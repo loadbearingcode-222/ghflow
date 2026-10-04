@@ -92,7 +92,16 @@ that adopts it (ADR-0001 onward).
 .\make.ps1 help        # every target
 .\make.ps1 hooks       # once per clone: core.hooksPath = .githooks (refuses pushes to main)
 .\make.ps1 check       # sync + lint + types + unit tests (what CI's quality job runs)
+.\make.ps1 profile     # network, ~2 min: re-measure GH Archive -> automation/runs/m0-s2/profile.json + doc
+.\make.ps1 profile-render  # no network: re-render docs/data/gharchive.md from the record
 ```
+
+Source facts (`docs/data/gharchive.md`, record `automation/runs/m0-s2/profile.json`): the doc's
+prose may not quote numbers; they render from the record (`tests/unit/test_profile_doc.py`).
+GitHub trimmed PushEvent and `pull_request` payloads in ONE hour, 2025-10-08 17:00 UTC — before
+the whole backfill window, so every hour ghflow ingests has the trimmed shape. Probes use
+`ghflow.archive` (User-Agent set, 4 in flight, three verdicts: published / not published /
+request failed).
 
 ## Conventions
 

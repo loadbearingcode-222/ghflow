@@ -85,7 +85,7 @@ wheels = [
 [[package]]
 name = "ghflow"
 version = "0.0.0"
-source = { virtual = "." }
+source = { editable = "." }
 
 [package.dev-dependencies]
 dev = [
