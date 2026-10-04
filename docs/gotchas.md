@@ -131,3 +131,7 @@ olist-lakehouse). Provenance is in brackets. Entries below it are earned by THIS
     one entry per line: a wrapped comment parses as a deeper "child", which turns an open
     directory into a closed one. *Check:* every tree line in `docs/MILESTONES.md` starts a new
     entry; no continuation lines. (M0-S1)
+38. **mypy passes on Windows and reports "Statement is unreachable" in CI.** mypy narrows
+    `sys.platform` to the host it runs on, so a Windows-only branch is dead code on the Linux
+    runner (with `warn_unreachable`). *Check:* branch on `os.name`, which mypy does not narrow,
+    or run `mypy --platform linux` locally before pushing. (M0-S1)

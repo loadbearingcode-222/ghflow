@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import subprocess
-import sys
 from pathlib import Path
 
 import pytest
@@ -19,8 +18,12 @@ def git(*args: str) -> subprocess.CompletedProcess[str]:
 
 
 def bash() -> str:
-    """Git's own bash on Windows (never WSL's), plain bash elsewhere."""
-    if sys.platform != "win32":
+    """Git's own bash on Windows (never WSL's), plain bash elsewhere.
+
+    `os.name`, not `sys.platform`: mypy narrows `sys.platform` to the host it runs on, so the
+    Windows branch reads as unreachable on the Linux CI runner (gotcha #38).
+    """
+    if os.name != "nt":
         return "bash"
     exec_path = Path(git("--exec-path").stdout.strip())  # .../Git/mingw64/libexec/git-core
     candidate = exec_path.parents[2] / "bin" / "bash.exe"
