@@ -1,0 +1,97 @@
+{
+  "story": "M0-S3",
+  "contract_trim": "2025-10-08T17:00:00+00:00",
+  "hours": [
+    {
+      "verdict": "passed",
+      "hour": "2024-06-15-15",
+      "lines_in": 184260,
+      "accepted": 184260,
+      "rejected": 0,
+      "rules": {},
+      "unknown_types": {},
+      "era_violations": {},
+      "missing_in_era": {}
+    },
+    {
+      "verdict": "passed",
+      "hour": "2025-10-08-16",
+      "lines_in": 163656,
+      "accepted": 163656,
+      "rejected": 0,
+      "rules": {},
+      "unknown_types": {},
+      "era_violations": {
+        "CreateEvent.full_ref": 5,
+        "ForkEvent.action": 1
+      },
+      "missing_in_era": {
+        "PullRequestEvent.pr_additions": 2,
+        "PullRequestEvent.pr_changed_files": 2,
+        "PullRequestEvent.pr_deletions": 2,
+        "PullRequestEvent.pr_merged": 2,
+        "PushEvent.push_distinct_size": 69,
+        "PushEvent.push_size": 69
+      }
+    },
+    {
+      "verdict": "passed",
+      "hour": "2025-10-08-17",
+      "lines_in": 986,
+      "accepted": 986,
+      "rejected": 0,
+      "rules": {},
+      "unknown_types": {},
+      "era_violations": {},
+      "missing_in_era": {}
+    },
+    {
+      "verdict": "passed",
+      "hour": "2026-09-02-5",
+      "lines_in": 1479,
+      "accepted": 1479,
+      "rejected": 0,
+      "rules": {},
+      "unknown_types": {},
+      "era_violations": {},
+      "missing_in_era": {}
+    },
+    {
+      "verdict": "passed",
+      "hour": "2026-09-05-15",
+      "lines_in": 84492,
+      "accepted": 84485,
+      "rejected": 7,
+      "rules": {
+        "repo_malformed": 7
+      },
+      "unknown_types": {},
+      "era_violations": {},
+      "missing_in_era": {}
+    },
+    {
+      "verdict": "passed",
+      "hour": "2026-09-21-15",
+      "lines_in": 2348,
+      "accepted": 2348,
+      "rejected": 0,
+      "rules": {},
+      "unknown_types": {},
+      "era_violations": {},
+      "missing_in_era": {}
+    },
+    {
+      "verdict": "passed",
+      "hour": "2026-10-02-15",
+      "lines_in": 84804,
+      "accepted": 84803,
+      "rejected": 1,
+      "rules": {
+        "repo_malformed": 1
+      },
+      "unknown_types": {},
+      "era_violations": {},
+      "missing_in_era": {}
+    }
+  ]
+}

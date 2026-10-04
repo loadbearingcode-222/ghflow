@@ -43,7 +43,8 @@ switch ($Target) {
             @('test',      'Unit tests'),
             @('check',     'sync + lint + typecheck + test (what CI runs)'),
             @('profile',   'Measure GH Archive (network), write the record, render docs/data/gharchive.md'),
-            @('profile-render', 'Re-render docs/data/gharchive.md from the committed record (no network)')
+            @('profile-render', 'Re-render docs/data/gharchive.md from the committed record (no network)'),
+            @('contract-check', 'Apply the event contract to seven real hours (network) -> automation/runs/m0-s3/')
         ) | ForEach-Object { Write-Host ('  {0,-12} {1}' -f $_[0], $_[1]) }
         Write-Host ''
     }
@@ -55,6 +56,11 @@ switch ($Target) {
     'test'      { Invoke-Uv @('run', 'pytest', 'tests/unit') }
     'profile'   { Invoke-Uv @('run', 'python', '-m', 'ghflow.profile', 'measure') }
     'profile-render' { Invoke-Uv @('run', 'python', '-m', 'ghflow.profile', 'render') }
+    'contract-check' {
+        # 2024 baseline, both sides of the trim, an outage hour, the broken-mix hour, a partial hour, a healthy hour
+        $hours = @('2024-06-15-15', '2025-10-08-16', '2025-10-08-17', '2026-09-02-5', '2026-09-05-15', '2026-09-21-15', '2026-10-02-15')
+        Invoke-Uv (@('run', 'python', '-m', 'ghflow.contract') + $hours + @('--record', 'automation/runs/m0-s3/real_hours.json'))
+    }
     'check'     {
         & $PSCommandPath sync
         & $PSCommandPath lint

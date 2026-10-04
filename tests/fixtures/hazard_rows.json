@@ -1,0 +1,174 @@
+[
+  {
+    "name": "new_era_push",
+    "hazard": "a PushEvent in the trimmed shape: size is not in its era",
+    "hour": "2026-10-02-15",
+    "line": "{\"id\":\"40000000001\",\"type\":\"PushEvent\",\"actor\":{\"id\":1,\"login\":\"synthetic-dev\",\"display_login\":\"synthetic-dev\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"},\"repo\":{\"id\":2,\"name\":\"synthetic-org/repo\",\"url\":\"u\"},\"payload\":{\"repository_id\":2,\"push_id\":3,\"ref\":\"refs/heads/main\",\"head\":\"aaa\",\"before\":\"bbb\"},\"public\":true,\"created_at\":\"2026-10-02T15:07:00Z\",\"org\":{\"id\":9,\"login\":\"synthetic-org\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"}}",
+    "expect": {
+      "outcome": "accepted",
+      "row": {
+        "push_size": null,
+        "push_id": 3,
+        "ref": "refs/heads/main"
+      }
+    }
+  },
+  {
+    "name": "old_era_push",
+    "hazard": "a PushEvent before the trim carries size and distinct_size",
+    "hour": "2025-10-08-16",
+    "line": "{\"id\":\"40000000001\",\"type\":\"PushEvent\",\"actor\":{\"id\":1,\"login\":\"synthetic-dev\",\"display_login\":\"synthetic-dev\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"},\"repo\":{\"id\":2,\"name\":\"synthetic-org/repo\",\"url\":\"u\"},\"payload\":{\"repository_id\":2,\"push_id\":3,\"ref\":\"refs/heads/main\",\"head\":\"aaa\",\"before\":\"bbb\",\"size\":2,\"distinct_size\":1,\"commits\":[]},\"public\":true,\"created_at\":\"2025-10-08T16:59:59Z\",\"org\":{\"id\":9,\"login\":\"synthetic-org\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"}}",
+    "expect": {
+      "outcome": "accepted",
+      "row": {
+        "push_size": 2,
+        "push_distinct_size": 1
+      }
+    }
+  },
+  {
+    "name": "value_in_wrong_era",
+    "hazard": "a new-era PushEvent that still carries size: counted, never projected",
+    "hour": "2026-10-02-15",
+    "line": "{\"id\":\"40000000001\",\"type\":\"PushEvent\",\"actor\":{\"id\":1,\"login\":\"synthetic-dev\",\"display_login\":\"synthetic-dev\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"},\"repo\":{\"id\":2,\"name\":\"synthetic-org/repo\",\"url\":\"u\"},\"payload\":{\"repository_id\":2,\"push_id\":3,\"ref\":\"refs/heads/main\",\"head\":\"aaa\",\"before\":\"bbb\",\"size\":5},\"public\":true,\"created_at\":\"2026-10-02T15:07:00Z\",\"org\":{\"id\":9,\"login\":\"synthetic-org\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"}}",
+    "expect": {
+      "outcome": "accepted",
+      "row": {
+        "push_size": null
+      },
+      "era_violation": "PushEvent.push_size"
+    }
+  },
+  {
+    "name": "unseen_event_type",
+    "hazard": "a type the contract has never seen (an unseen category)",
+    "hour": "2026-10-02-15",
+    "line": "{\"id\":\"40000000001\",\"type\":\"SponsorshipEvent\",\"actor\":{\"id\":1,\"login\":\"synthetic-dev\",\"display_login\":\"synthetic-dev\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"},\"repo\":{\"id\":2,\"name\":\"synthetic-org/repo\",\"url\":\"u\"},\"payload\":{\"action\":\"created\"},\"public\":true,\"created_at\":\"2026-10-02T15:07:00Z\",\"org\":{\"id\":9,\"login\":\"synthetic-org\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"}}",
+    "expect": {
+      "outcome": "accepted",
+      "unknown_type": "SponsorshipEvent"
+    }
+  },
+  {
+    "name": "org_absent",
+    "hazard": "a repo with no org: the optional top-level key is missing",
+    "hour": "2026-10-02-15",
+    "line": "{\"id\":\"40000000001\",\"type\":\"PushEvent\",\"actor\":{\"id\":1,\"login\":\"synthetic-dev\",\"display_login\":\"synthetic-dev\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"},\"repo\":{\"id\":2,\"name\":\"synthetic-org/repo\",\"url\":\"u\"},\"payload\":{\"repository_id\":2,\"push_id\":3,\"ref\":\"refs/heads/main\",\"head\":\"aaa\",\"before\":\"bbb\"},\"public\":true,\"created_at\":\"2026-10-02T15:07:00Z\"}",
+    "expect": {
+      "outcome": "accepted",
+      "row": {
+        "org_id": null,
+        "org_login": null
+      }
+    }
+  },
+  {
+    "name": "hour_start_boundary",
+    "hazard": "created_at exactly at the hour's first second",
+    "hour": "2026-10-02-15",
+    "line": "{\"id\":\"40000000001\",\"type\":\"PushEvent\",\"actor\":{\"id\":1,\"login\":\"synthetic-dev\",\"display_login\":\"synthetic-dev\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"},\"repo\":{\"id\":2,\"name\":\"synthetic-org/repo\",\"url\":\"u\"},\"payload\":{\"repository_id\":2,\"push_id\":3,\"ref\":\"refs/heads/main\",\"head\":\"aaa\",\"before\":\"bbb\"},\"public\":true,\"created_at\":\"2026-10-02T15:00:00Z\",\"org\":{\"id\":9,\"login\":\"synthetic-org\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"}}",
+    "expect": {
+      "outcome": "accepted"
+    }
+  },
+  {
+    "name": "hour_end_boundary",
+    "hazard": "created_at at the hour's last second",
+    "hour": "2026-10-02-15",
+    "line": "{\"id\":\"40000000001\",\"type\":\"PushEvent\",\"actor\":{\"id\":1,\"login\":\"synthetic-dev\",\"display_login\":\"synthetic-dev\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"},\"repo\":{\"id\":2,\"name\":\"synthetic-org/repo\",\"url\":\"u\"},\"payload\":{\"repository_id\":2,\"push_id\":3,\"ref\":\"refs/heads/main\",\"head\":\"aaa\",\"before\":\"bbb\"},\"public\":true,\"created_at\":\"2026-10-02T15:59:59Z\",\"org\":{\"id\":9,\"login\":\"synthetic-org\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"}}",
+    "expect": {
+      "outcome": "accepted"
+    }
+  },
+  {
+    "name": "next_hour",
+    "hazard": "created_at one second into the next hour",
+    "hour": "2026-10-02-15",
+    "line": "{\"id\":\"40000000001\",\"type\":\"PushEvent\",\"actor\":{\"id\":1,\"login\":\"synthetic-dev\",\"display_login\":\"synthetic-dev\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"},\"repo\":{\"id\":2,\"name\":\"synthetic-org/repo\",\"url\":\"u\"},\"payload\":{\"repository_id\":2,\"push_id\":3,\"ref\":\"refs/heads/main\",\"head\":\"aaa\",\"before\":\"bbb\"},\"public\":true,\"created_at\":\"2026-10-02T16:00:00Z\",\"org\":{\"id\":9,\"login\":\"synthetic-org\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"}}",
+    "expect": {
+      "outcome": "rejected",
+      "rule": "created_at_outside_hour"
+    }
+  },
+  {
+    "name": "created_at_garbage",
+    "hazard": "created_at that is not a timestamp",
+    "hour": "2026-10-02-15",
+    "line": "{\"id\":\"40000000001\",\"type\":\"PushEvent\",\"actor\":{\"id\":1,\"login\":\"synthetic-dev\",\"display_login\":\"synthetic-dev\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"},\"repo\":{\"id\":2,\"name\":\"synthetic-org/repo\",\"url\":\"u\"},\"payload\":{\"repository_id\":2,\"push_id\":3,\"ref\":\"refs/heads/main\",\"head\":\"aaa\",\"before\":\"bbb\"},\"public\":true,\"created_at\":\"yesterday\",\"org\":{\"id\":9,\"login\":\"synthetic-org\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"}}",
+    "expect": {
+      "outcome": "rejected",
+      "rule": "created_at_unparseable"
+    }
+  },
+  {
+    "name": "id_not_numeric",
+    "hazard": "an event id that is not a number",
+    "hour": "2026-10-02-15",
+    "line": "{\"id\":\"abc\",\"type\":\"PushEvent\",\"actor\":{\"id\":1,\"login\":\"synthetic-dev\",\"display_login\":\"synthetic-dev\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"},\"repo\":{\"id\":2,\"name\":\"synthetic-org/repo\",\"url\":\"u\"},\"payload\":{\"repository_id\":2,\"push_id\":3,\"ref\":\"refs/heads/main\",\"head\":\"aaa\",\"before\":\"bbb\"},\"public\":true,\"created_at\":\"2026-10-02T15:07:00Z\",\"org\":{\"id\":9,\"login\":\"synthetic-org\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"}}",
+    "expect": {
+      "outcome": "rejected",
+      "rule": "id_not_numeric"
+    }
+  },
+  {
+    "name": "truncated_line",
+    "hazard": "a line cut off mid-object",
+    "hour": "2026-10-02-15",
+    "line": "{\"id\":\"40000000001\",\"type\":\"PushEvent\",\"actor\":{\"id\":1,\"l",
+    "expect": {
+      "outcome": "rejected",
+      "rule": "unparseable_json"
+    }
+  },
+  {
+    "name": "array_not_object",
+    "hazard": "valid JSON that is not an event object",
+    "hour": "2026-10-02-15",
+    "line": "[1,2,3]",
+    "expect": {
+      "outcome": "rejected",
+      "rule": "not_an_object"
+    }
+  },
+  {
+    "name": "duplicate_id",
+    "hazard": "the same event id twice in one hour: the second is dropped",
+    "hour": "2026-10-02-15",
+    "line": "{\"id\":\"40000000001\",\"type\":\"PushEvent\",\"actor\":{\"id\":1,\"login\":\"synthetic-dev\",\"display_login\":\"synthetic-dev\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"},\"repo\":{\"id\":2,\"name\":\"synthetic-org/repo\",\"url\":\"u\"},\"payload\":{\"repository_id\":2,\"push_id\":3,\"ref\":\"refs/heads/main\",\"head\":\"aaa\",\"before\":\"bbb\"},\"public\":true,\"created_at\":\"2026-10-02T15:07:00Z\",\"org\":{\"id\":9,\"login\":\"synthetic-org\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"}}",
+    "expect": {
+      "outcome": "rejected",
+      "rule": "duplicate_id",
+      "after_clean_copy": true
+    }
+  },
+  {
+    "name": "fork_with_empty_repo",
+    "hazard": "a real GitHub shape (seen 2026-09-05, 2026-10-02): a ForkEvent whose repo is an empty object, so it has no key to join or partition on",
+    "hour": "2026-10-02-15",
+    "line": "{\"id\":\"40000000001\",\"type\":\"ForkEvent\",\"actor\":{\"id\":1,\"login\":\"synthetic-dev\",\"display_login\":\"synthetic-dev\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"},\"repo\":{},\"payload\":{\"action\":\"forked\",\"forkee\":{\"id\":7}},\"public\":true,\"created_at\":\"2026-10-02T15:07:00Z\",\"org\":{\"id\":9,\"login\":\"synthetic-org\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"}}",
+    "expect": {
+      "outcome": "rejected",
+      "rule": "repo_malformed"
+    }
+  },
+  {
+    "name": "unknown_top_level_key",
+    "hazard": "GitHub adds a top-level key: a structure change",
+    "hour": "2026-10-02-15",
+    "line": "{\"id\":\"40000000001\",\"type\":\"PushEvent\",\"actor\":{\"id\":1,\"login\":\"synthetic-dev\",\"display_login\":\"synthetic-dev\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"},\"repo\":{\"id\":2,\"name\":\"synthetic-org/repo\",\"url\":\"u\"},\"payload\":{\"repository_id\":2,\"push_id\":3,\"ref\":\"refs/heads/main\",\"head\":\"aaa\",\"before\":\"bbb\"},\"public\":true,\"created_at\":\"2026-10-02T15:07:00Z\",\"org\":{\"id\":9,\"login\":\"synthetic-org\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"},\"reactions\":{}}",
+    "expect": {
+      "outcome": "refused",
+      "code": "STRUCTURE-UNKNOWN-KEY"
+    }
+  },
+  {
+    "name": "missing_top_level_key",
+    "hazard": "a required top-level key disappears: a structure change",
+    "hour": "2026-10-02-15",
+    "line": "{\"id\":\"40000000001\",\"type\":\"PushEvent\",\"actor\":{\"id\":1,\"login\":\"synthetic-dev\",\"display_login\":\"synthetic-dev\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"},\"payload\":{\"repository_id\":2,\"push_id\":3,\"ref\":\"refs/heads/main\",\"head\":\"aaa\",\"before\":\"bbb\"},\"public\":true,\"created_at\":\"2026-10-02T15:07:00Z\",\"org\":{\"id\":9,\"login\":\"synthetic-org\",\"gravatar_id\":\"\",\"url\":\"u\",\"avatar_url\":\"u\"}}",
+    "expect": {
+      "outcome": "refused",
+      "code": "STRUCTURE-MISSING-KEY"
+    }
+  }
+]

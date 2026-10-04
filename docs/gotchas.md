@@ -135,3 +135,6 @@ olist-lakehouse). Provenance is in brackets. Entries below it are earned by THIS
     `sys.platform` to the host it runs on, so a Windows-only branch is dead code on the Linux
     runner (with `warn_unreachable`). *Check:* branch on `os.name`, which mypy does not narrow,
     or run `mypy --platform linux` locally before pushing. (M0-S1)
+39. **Real ForkEvents arrive with `"repo": {}`.** No id, no name — nothing to join or key the
+    stream by. *Check:* the contract's `repo_malformed` count per hour (real hours show a
+    handful); the rows are in the sidecar, never silently defaulted. (M0-S3)
