@@ -55,11 +55,11 @@ def profile_lines(lines: Iterable[bytes], hour: Hour, gz_bytes: int) -> HourProf
         result.raw_bytes += len(line)
         event = json.loads(line)
         result.events += 1
-        types[str(event.get("type"))] += 1
+        types[event.get("type")] += 1
         payload = event.get("payload")
         if payload is not None:
             result.payload_bytes += len(json.dumps(payload, separators=(",", ":")))
-        created = str(event.get("created_at", lo))
+        created = event.get("created_at", lo)
         if not lo <= created < hi:
             result.outside_hour += 1
     result.types = dict(types.most_common())

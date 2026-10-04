@@ -26,6 +26,9 @@ if a number appears outside the block.
   that changeover hour is itself nearly empty, so a collection gap and a schema change arrived
   together. The hour before still carries the old shape almost everywhere; the hour after carries
   only the new one. Each payload field therefore carries the era it exists in (M0-S3).
+- **Some events have no repository.** A few ForkEvents carry an empty `repo` object: no id,
+  no name, nothing to join or partition on. The contract rejects them into the sidecar under
+  `repo_malformed` (M0-S3 evidence: `automation/runs/m0-s3/real_hours.json`).
 - **Event time equals file hour.** In every sampled hour, every event's `created_at` falls inside
   the file's own hour, so the Airflow data interval is an exact watermark for the batch path.
 - **Files appear shortly after the hour closes** and carry an `ETag` and `Last-Modified`, which is
