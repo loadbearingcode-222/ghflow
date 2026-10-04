@@ -1,0 +1,107 @@
+PROTOCOL_MODE: learning
+
+**Scope:** chartered work is a story from `docs/MILESTONES.md` (`M#-S#`) and gets the full
+ritual: branch, draft PR, acceptance demo, evidence, handoff in the draft PR body, field note.
+Ad-hoc questions in this repo get the knowledge here and none of the ceremony.
+
+@~/.claude/templates/UNIVERSAL_PROTOCOL.md
+@~/.claude/templates/ENGINEERING_DOCTRINE.md
+
+Protocol version in force at kickoff: **2.18** (2026-10-04). Doctrine: 1.0.
+
+# ghflow
+
+GH Archive (every public GitHub event, one gzipped JSON file per hour) through two paths that must
+agree to the event: a **batch path** (Airflow 3 → MinIO bronze → dbt on DuckDB) where the data
+interval is the watermark, and a **replayed stream** (Redpanda + Schema Registry → lander,
+repo-state processor, ClickHouse) where committed offsets are. It ends in a Quarto dashboard for
+non-technical readers. Plan, layout and stories: `docs/MILESTONES.md`. Blueprint:
+`docs/architecture.md`. Traps: `docs/gotchas.md`. Decisions: `docs/adr/`. Source facts:
+`docs/data/gharchive.md` (from M0-S2).
+
+## User decisions (verbatim, 2026-10-04)
+
+- Data window: "From Aug 3 onward (Recommended)" → backfill from 2026-08-03 00:00 UTC.
+- Mode: "Learning mode (Recommended)".
+- Architecture: "Batch + replayed stream (Recommended)"; final add-on "ClickHouse
+  (Recommended)". Re-asked once olist-lakehouse was found to cover Kafka, CDC, Spark streaming,
+  Iceberg and SCD2: "Keep the plan you chose".
+- Added at plan review: "I want to add another requirement for this project, that is the
+  interactive dashboard throughout web browser, that display the important insights, findings,
+  patterns and trending in this case. It more like a presentation for stake holder, non
+  technical work people, to make them learn the gist from the data itself". Tool: "Quarto
+  (Recommended)".
+- At the second plan review the user asked for "the architecture of this project, graph,
+  visualization, blueprint" → `docs/architecture.md` + `docs/img/architecture.svg` from M0-S1.
+- Standing grant (approving the plan, protocol §7): Claude creates the private repo, opens AND
+  merges its own story PR once CI is green and the story's Accept-when demo has been run and
+  observed. NOT granted: stopping olist-lakehouse or any other stack, deleting volumes, touching
+  another repo — ask each time.
+- Labels: roles only, as in olist: `role:data engineer` (M0–M4), `role:data analyst` (M5).
+
+## Environment facts (observed 2026-10-04)
+
+- Windows 11, Docker Desktop (WSL2 backend), WSL2 capped at **28 GB** (~27.4 GiB visible to
+  Docker). `make` is NOT installed: `make.ps1` is the task runner. PowerShell 5.1.
+- The repo path contains a space; quote every path. State lives in named volumes; only code and
+  config are bind-mounted (C: bind mounts are slow through the WSL bridge).
+- Host Python is 3.9; the project uses uv-managed Python 3.12 (`.python-version`). Node 24 is on
+  the host but nothing here depends on it.
+- GitHub: the active `gh` account is a different one. Use `loadbearingcode-222` per command
+  without switching: `GH_TOKEN=$(gh auth token --user loadbearingcode-222)` (bash) or
+  `$env:GH_TOKEN = gh auth token --user loadbearingcode-222` (PowerShell). The repo-local
+  credential helper and `user.name`/`user.email` (329835776+loadbearingcode-222 noreply) are set;
+  global git and gh config are untouched.
+- Clones: this working copy is the only one; GitHub `origin` is refreshed by `git push` at every
+  checkpoint. Nobody else writes to it.
+
+## Fleet ledger (ports and RAM on this machine)
+
+| Holder | Ports |
+|---|---|
+| native Postgres (Windows service) | 5432 |
+| unknown listener (seen 2026-10-04) | 30000, 30001 |
+| wikiflow / meridian | 5433, 8080, 9000, 9001, 8501 |
+| wrenfield-retail | 8082, 5435, 3002, 5002, 8002 (+ 1xxxx prod) |
+| olist-lakehouse | 2xxxx family; 20 GB of `mem_limit` |
+| **ghflow (this repo): 3xxxx family** | Airflow 38082 · MinIO 39000/39001 · Redpanda Kafka 39092 · Schema Registry 38081 · Console 38080 · ClickHouse HTTP 38123 · Grafana 33000 · dashboard 33001 |
+
+RAM budget: at most **14 GB** of `mem_limit` in total. olist cannot run alongside; `doctor`
+(M0-S4) refuses, and Claude asks before stopping any other stack.
+
+## Version pins (OBSERVED values, re-verify live before relying on them)
+
+Observed at planning, 2026-10-04. Each is re-verified, and pinned by tag AND digest, in the story
+that adopts it (ADR-0001 onward).
+
+| Component | Observed | Adopted in |
+|---|---|---|
+| Python / uv | 3.12.13 / 0.11.25 (host) | M0-S1 |
+| Airflow | `apache/airflow:3.3.2-python3.12` | M0-S4 |
+| MinIO / Postgres | as olist (`RELEASE.2025-09-07T16-13-09Z.hotfix.7aa24e772` / `17.11-bookworm`) | M0-S4 |
+| duckdb / dbt-core / dbt-duckdb | 1.5.6 / 1.12.5 / 1.11.0 | M1-S3 |
+| Redpanda / Console | v26.2.3 / v3.12.0 | M2-S1 |
+| confluent-kafka / fastavro | 2.15.1 / 1.12.2 | M2-S1 |
+| ClickHouse / clickhouse-connect | 26.3 LTS (26.3.41.4) / 1.9.0 | M4-S1 |
+| Grafana | 13.2.3 | M4-S2 |
+| Quarto | 1.10.18 (stable; 1.11 pre-release) | M5-S2 |
+
+## Commands
+
+```
+.\make.ps1 help        # every target
+.\make.ps1 hooks       # once per clone: core.hooksPath = .githooks (refuses pushes to main)
+.\make.ps1 check       # sync + lint + types + unit tests (what CI's quality job runs)
+```
+
+## Conventions
+
+- One story → branch `feat/m#-s#-<slug>` → draft PR `M#-S#: <title>` → merge commit, in plan
+  order. CI refuses anything else (`.github/scripts/story_lint.py`, `layout_lint.py`).
+- A new path is declared in the layout in `docs/MILESTONES.md` by the story that adds it — one
+  entry per line (the layout grammar has no continuation lines; gotcha #37).
+- Every commit ends with the `Role:` trailer, then the Co-Authored-By line; the PR carries the
+  matching `role:` label.
+- The draft PR body is the handoff; the story closes with a field note in the PR body: what was
+  built, why this way, the concept, what to look at, what to try.
+- `docs/architecture.md` is refreshed at every milestone close.
