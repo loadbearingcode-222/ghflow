@@ -1,0 +1,598 @@
+{
+  "story": "M0-S2",
+  "observed_at": "2026-10-04T16:56:42Z",
+  "source": "https://data.gharchive.org",
+  "definitions": {
+    "window_first": "2026-08-03",
+    "window_last": "2026-10-03",
+    "near_empty_bytes": 5000000,
+    "concurrency": 4,
+    "retries": 3,
+    "era_sample": 20
+  },
+  "sweep": {
+    "hours": 1488,
+    "verdicts": {
+      "published": 1488
+    },
+    "retried": 0
+  },
+  "daily": [
+    {
+      "date": "2026-08-03",
+      "gz_bytes": 468067134,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-04",
+      "gz_bytes": 414847310,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-05",
+      "gz_bytes": 409783648,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-06",
+      "gz_bytes": 372247675,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-07",
+      "gz_bytes": 534061072,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-08",
+      "gz_bytes": 527876302,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-09",
+      "gz_bytes": 504408628,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-10",
+      "gz_bytes": 426975240,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-11",
+      "gz_bytes": 496556372,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-12",
+      "gz_bytes": 530915632,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-13",
+      "gz_bytes": 510356171,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-14",
+      "gz_bytes": 508117200,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-15",
+      "gz_bytes": 493799262,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-16",
+      "gz_bytes": 495511463,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-17",
+      "gz_bytes": 391624713,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-18",
+      "gz_bytes": 304703507,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-19",
+      "gz_bytes": 163111975,
+      "near_empty_hours": [
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ]
+    },
+    {
+      "date": "2026-08-20",
+      "gz_bytes": 91465782,
+      "near_empty_hours": [
+        0,
+        1,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ]
+    },
+    {
+      "date": "2026-08-21",
+      "gz_bytes": 190651367,
+      "near_empty_hours": [
+        0,
+        1,
+        2,
+        3,
+        23
+      ]
+    },
+    {
+      "date": "2026-08-22",
+      "gz_bytes": 422414685,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-23",
+      "gz_bytes": 500337497,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-24",
+      "gz_bytes": 360463776,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-25",
+      "gz_bytes": 264454864,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-26",
+      "gz_bytes": 306252122,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-27",
+      "gz_bytes": 247858302,
+      "near_empty_hours": [
+        18,
+        19,
+        21,
+        22,
+        23
+      ]
+    },
+    {
+      "date": "2026-08-28",
+      "gz_bytes": 189217360,
+      "near_empty_hours": [
+        0
+      ]
+    },
+    {
+      "date": "2026-08-29",
+      "gz_bytes": 170970950,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-30",
+      "gz_bytes": 168224870,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-08-31",
+      "gz_bytes": 186157832,
+      "near_empty_hours": [
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ]
+    },
+    {
+      "date": "2026-09-01",
+      "gz_bytes": 106994392,
+      "near_empty_hours": [
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ]
+    },
+    {
+      "date": "2026-09-02",
+      "gz_bytes": 48409522,
+      "near_empty_hours": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ]
+    },
+    {
+      "date": "2026-09-03",
+      "gz_bytes": 174295376,
+      "near_empty_hours": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ]
+    },
+    {
+      "date": "2026-09-04",
+      "gz_bytes": 1588346323,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-05",
+      "gz_bytes": 1918458698,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-06",
+      "gz_bytes": 1978641657,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-07",
+      "gz_bytes": 588513078,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-08",
+      "gz_bytes": 302210844,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-09",
+      "gz_bytes": 378845722,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-10",
+      "gz_bytes": 704535728,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-11",
+      "gz_bytes": 1621727034,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-12",
+      "gz_bytes": 1150123829,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-13",
+      "gz_bytes": 1050938805,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-14",
+      "gz_bytes": 527823940,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-15",
+      "gz_bytes": 1035208982,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-16",
+      "gz_bytes": 833465324,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-17",
+      "gz_bytes": 655384896,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-18",
+      "gz_bytes": 505858324,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-19",
+      "gz_bytes": 417764958,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-20",
+      "gz_bytes": 422872202,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-21",
+      "gz_bytes": 388380797,
+      "near_empty_hours": [
+        14,
+        15,
+        16,
+        17
+      ]
+    },
+    {
+      "date": "2026-09-22",
+      "gz_bytes": 400830836,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-23",
+      "gz_bytes": 420349295,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-24",
+      "gz_bytes": 324268684,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-25",
+      "gz_bytes": 344287982,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-26",
+      "gz_bytes": 382341909,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-27",
+      "gz_bytes": 435815761,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-28",
+      "gz_bytes": 404210464,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-29",
+      "gz_bytes": 452568506,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-09-30",
+      "gz_bytes": 513235570,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-10-01",
+      "gz_bytes": 488914232,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-10-02",
+      "gz_bytes": 554575996,
+      "near_empty_hours": []
+    },
+    {
+      "date": "2026-10-03",
+      "gz_bytes": 553419507,
+      "near_empty_hours": []
+    }
+  ],
+  "windows": {
+    "last_14_days": {
+      "first": "2026-09-20",
+      "last": "2026-10-03",
+      "days": 14,
+      "gz_bytes": 6086071741
+    },
+    "last_30_days": {
+      "first": "2026-09-04",
+      "last": "2026-10-03",
+      "days": 30,
+      "gz_bytes": 21343919883
+    },
+    "whole_window": {
+      "first": "2026-08-03",
+      "last": "2026-10-03",
+      "days": 62,
+      "gz_bytes": 32325051884
+    }
+  },
+  "near_empty_total": 111,
+  "sampled_hours": [
+    {
+      "hour": "2024-06-15-15",
+      "gz_bytes": 69295548,
+      "raw_bytes": 510681323,
+      "payload_bytes": 424726923,
+      "events": 184260,
+      "outside_hour": 0,
+      "types": {
+        "PushEvent": 121745,
+        "CreateEvent": 22747,
+        "PullRequestEvent": 9853,
+        "WatchEvent": 7985,
+        "IssueCommentEvent": 5493,
+        "DeleteEvent": 3787,
+        "ForkEvent": 3681,
+        "IssuesEvent": 2735,
+        "PullRequestReviewEvent": 2128,
+        "PullRequestReviewCommentEvent": 1272,
+        "ReleaseEvent": 1021,
+        "PublicEvent": 666,
+        "MemberEvent": 584,
+        "GollumEvent": 300,
+        "CommitCommentEvent": 263
+      }
+    },
+    {
+      "hour": "2026-09-01-15",
+      "gz_bytes": 1717717,
+      "raw_bytes": 8479407,
+      "payload_bytes": 7652818,
+      "events": 1844,
+      "outside_hour": 0,
+      "types": {
+        "PullRequestEvent": 753,
+        "IssueCommentEvent": 319,
+        "IssuesEvent": 285,
+        "PullRequestReviewEvent": 204,
+        "WatchEvent": 151,
+        "ReleaseEvent": 67,
+        "ForkEvent": 44,
+        "MemberEvent": 10,
+        "CommitCommentEvent": 7,
+        "PublicEvent": 2,
+        "GollumEvent": 1,
+        "DiscussionEvent": 1
+      }
+    },
+    {
+      "hour": "2026-09-05-15",
+      "gz_bytes": 78720972,
+      "raw_bytes": 383535611,
+      "payload_bytes": 349487762,
+      "events": 84492,
+      "outside_hour": 0,
+      "types": {
+        "PullRequestEvent": 25859,
+        "IssueCommentEvent": 13356,
+        "PushEvent": 11898,
+        "IssuesEvent": 10751,
+        "WatchEvent": 5794,
+        "PullRequestReviewEvent": 5651,
+        "PullRequestReviewCommentEvent": 5433,
+        "ReleaseEvent": 2236,
+        "ForkEvent": 1266,
+        "CreateEvent": 1012,
+        "DeleteEvent": 393,
+        "MemberEvent": 364,
+        "CommitCommentEvent": 237,
+        "PublicEvent": 114,
+        "GollumEvent": 84,
+        "DiscussionEvent": 44
+      }
+    },
+    {
+      "hour": "2026-10-02-15",
+      "gz_bytes": 20843278,
+      "raw_bytes": 94980361,
+      "payload_bytes": 56115194,
+      "events": 84804,
+      "outside_hour": 0,
+      "types": {
+        "PushEvent": 62597,
+        "CreateEvent": 9934,
+        "DeleteEvent": 3678,
+        "PullRequestEvent": 3137,
+        "IssueCommentEvent": 1681,
+        "IssuesEvent": 1187,
+        "PullRequestReviewEvent": 895,
+        "PullRequestReviewCommentEvent": 716,
+        "WatchEvent": 531,
+        "ReleaseEvent": 265,
+        "ForkEvent": 101,
+        "MemberEvent": 40,
+        "CommitCommentEvent": 23,
+        "PublicEvent": 10,
+        "GollumEvent": 9
+      }
+    }
+  ],
+  "drift": {
+    "push_commits_removed": {
+      "last_old_shape": "2025-10-08-16",
+      "first_new_shape": "2025-10-08-17"
+    },
+    "pull_request_trimmed": {
+      "last_old_shape": "2025-10-08-16",
+      "first_new_shape": "2025-10-08-17"
+    }
+  },
+  "boundary_census": {
+    "2025-10-08-16": {
+      "push": 95561,
+      "push_old_shape": 95492,
+      "pull_request": 12862,
+      "pull_request_old_shape": 12860
+    },
+    "2025-10-08-17": {
+      "push": 651,
+      "push_old_shape": 0,
+      "pull_request": 62,
+      "pull_request_old_shape": 0
+    }
+  }
+}

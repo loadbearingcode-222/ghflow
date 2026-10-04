@@ -14,13 +14,21 @@ dev = [
     "pre-commit>=4.0",
 ]
 
-# No [build-system] yet: src/ghflow/ arrives in M0-S2, which adds the package build.
+[project.scripts]
+ghflow-profile = "ghflow.profile:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ghflow"]
 
 # ---------------------------------------------------------------- ruff
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-src = [".github/scripts", "tests"]
+src = ["src", ".github/scripts", "tests"]
 
 [tool.ruff.lint]
 select = [
@@ -36,12 +44,12 @@ select = [
 ignore = ["E501"]  # the formatter owns line length
 
 [tool.ruff.lint.isort]
-known-first-party = ["story_lint", "layout_lint"]
+known-first-party = ["ghflow", "story_lint", "layout_lint"]
 
 # ---------------------------------------------------------------- mypy
 [tool.mypy]
 python_version = "3.12"
-files = [".github/scripts", "tests"]
+files = ["src", ".github/scripts", "tests"]
 mypy_path = ".github/scripts"
 strict = true
 warn_unreachable = true

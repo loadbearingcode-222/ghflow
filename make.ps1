@@ -41,7 +41,9 @@ switch ($Target) {
             @('format',    'Auto-fix formatting and lint rules'),
             @('typecheck', 'mypy --strict'),
             @('test',      'Unit tests'),
-            @('check',     'sync + lint + typecheck + test (what CI runs)')
+            @('check',     'sync + lint + typecheck + test (what CI runs)'),
+            @('profile',   'Measure GH Archive (network), write the record, render docs/data/gharchive.md'),
+            @('profile-render', 'Re-render docs/data/gharchive.md from the committed record (no network)')
         ) | ForEach-Object { Write-Host ('  {0,-12} {1}' -f $_[0], $_[1]) }
         Write-Host ''
     }
@@ -51,6 +53,8 @@ switch ($Target) {
     'format'    { Invoke-Uv @('run', 'ruff', 'check', '--fix', '.'); Invoke-Uv @('run', 'ruff', 'format', '.') }
     'typecheck' { Invoke-Uv @('run', 'mypy') }
     'test'      { Invoke-Uv @('run', 'pytest', 'tests/unit') }
+    'profile'   { Invoke-Uv @('run', 'python', '-m', 'ghflow.profile', 'measure') }
+    'profile-render' { Invoke-Uv @('run', 'python', '-m', 'ghflow.profile', 'render') }
     'check'     {
         & $PSCommandPath sync
         & $PSCommandPath lint
