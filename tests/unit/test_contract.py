@@ -8,8 +8,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from factories import line, push
 
+from factories import line, push
 from ghflow import fields
 from ghflow.commands import contract as contract_cli
 from ghflow.contract import ROW_RULES, Refusal, apply

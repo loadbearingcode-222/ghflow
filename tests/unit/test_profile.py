@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import pytest
+
 from factories import HOUR, line
 from factories import event as body
-
 from ghflow.hours import Hour
 from ghflow.profiling import (
     bisect_boundary,

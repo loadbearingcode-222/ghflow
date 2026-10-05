@@ -47,22 +47,24 @@ class NoLayoutError(ValueError):
     pass
 
 
+def _entries(tree: str) -> list[tuple[int, list[str]]]:
+    """(depth, names) for every entry line of the tree, in order."""
+    entries: list[tuple[int, list[str]]] = []
+    for line in (line.rstrip() for line in tree.splitlines() if line.strip()):
+        glyphs = GLYPHS.match(line)
+        prefix = glyphs.group(0) if glyphs else ""
+        match = ENTRY.match(line[len(prefix) :])
+        if match is not None:
+            names = [name.strip() for name in match["names"].split(" · ")]
+            entries.append((len(prefix) // 3, names))
+    return entries
+
+
 def parse_layout(milestones: str) -> Layout:
     block = LAYOUT_BLOCK.search(milestones)
     if block is None:
         raise NoLayoutError("docs/MILESTONES.md has no '## Repo layout' code block")
-
-    lines = [line.rstrip() for line in block["tree"].splitlines() if line.strip()]
-    entries: list[tuple[int, list[str]]] = []
-    for line in lines:
-        glyphs = GLYPHS.match(line)
-        prefix = glyphs.group(0) if glyphs else ""
-        depth = len(prefix) // 3
-        match = ENTRY.match(line[len(prefix) :])
-        if match is None:
-            continue
-        names = [name.strip() for name in match["names"].split(" · ")]
-        entries.append((depth, names))
+    entries = _entries(block["tree"])
 
     layout = Layout()
     # parents[d] is the full path of the directory that entries at depth d+1 live in.
@@ -75,13 +77,12 @@ def parse_layout(milestones: str) -> Layout:
         has_children = index + 1 < len(entries) and entries[index + 1][0] > depth
         for name in names:
             full = base + name
-            if name.endswith("/"):
-                if has_children and len(names) == 1:
-                    parents[depth] = full
-                else:
-                    layout.open_dirs.add(full)
-            else:
+            if not name.endswith("/"):
                 layout.files.add(full)
+            elif has_children and len(names) == 1:
+                parents[depth] = full
+            else:
+                layout.open_dirs.add(full)
     return layout
 
 
