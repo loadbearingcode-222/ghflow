@@ -119,7 +119,7 @@ switch ($Target) {
     'contract-check' {
         # 2024 baseline, both sides of the trim, an outage hour, the broken-mix hour, a partial hour, a healthy hour
         $hours = @('2024-06-15-15', '2025-10-08-16', '2025-10-08-17', '2026-09-02-5', '2026-09-05-15', '2026-09-21-15', '2026-10-02-15')
-        Invoke-Uv (@('run', 'python', '-m', 'ghflow.contract') + $hours + @('--record', 'automation/runs/m0-s3/real_hours.json'))
+        Invoke-Uv (@('run', 'python', '-m', 'ghflow.commands.contract') + $hours + @('--record', 'automation/runs/m0-s3/real_hours.json'))
     }
     'env'       { Invoke-Env }
     'doctor'    { Invoke-Checked 'powershell' @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'scripts\doctor.ps1')) }

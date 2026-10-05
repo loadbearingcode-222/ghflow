@@ -32,7 +32,11 @@ def test_every_dag_file_parses_into_exactly_one_dag() -> None:
 def test_the_project_venv_imports_ghflow() -> None:
     python = os.environ.get("GHFLOW_PYTHON", "/opt/ghflow-venv/bin/python")
     result = subprocess.run(
-        [python, "-c", "import ghflow.archive, ghflow.contract; print('ghflow ok')"],
+        [
+            python,
+            "-c",
+            "import ghflow.archive, ghflow.contract, ghflow.commands.contract, ghflow.commands.profile; print('ghflow ok')",
+        ],
         capture_output=True,
         text=True,
         check=True,
