@@ -56,7 +56,7 @@ known-first-party = ["ghflow", "story_lint", "layout_lint"]
 # ---------------------------------------------------------------- mypy
 [tool.mypy]
 python_version = "3.12"
-files = ["src", ".github/scripts", "tests"]
+files = ["src", ".github/scripts", "scripts", "tests"]
 mypy_path = ".github/scripts"
 strict = true
 warn_unreachable = true

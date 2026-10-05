@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import io
+import urllib.request
 from datetime import UTC, date, datetime
+from pathlib import Path
 
 import pytest
 
@@ -91,3 +94,33 @@ def test_a_real_404_is_not_retried() -> None:
     [probe] = sweep([H], missing, retries=3, sleep=lambda _: None)
     assert probe.verdict is Verdict.NOT_PUBLISHED
     assert len(calls) == 1
+
+
+class _BrokenStream(io.BytesIO):
+    """Serves a few bytes, then stalls the way a slow server does."""
+
+    def read(self, size: int | None = -1) -> bytes:
+        if self.tell() > 0:
+            raise TimeoutError("The read operation timed out")
+        return super().read(4)
+
+
+def test_a_failed_download_leaves_no_partial_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from ghflow import archive
+
+    monkeypatch.setattr(urllib.request, "urlopen", lambda *a, **k: _BrokenStream(b"0123456789"))
+    dest = tmp_path / "2026-09-05-15.json.gz"
+    with pytest.raises(TimeoutError):
+        archive.download_hour(Hour.parse("2026-09-05-15"), dest)
+    assert sorted(p.name for p in tmp_path.iterdir()) == []
+
+
+def test_a_complete_download_lands_whole(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from ghflow import archive
+
+    monkeypatch.setattr(urllib.request, "urlopen", lambda *a, **k: io.BytesIO(b"gz-bytes"))
+    dest = archive.download_hour(Hour.parse("2026-09-05-15"), tmp_path / "h.json.gz")
+    assert dest.read_bytes() == b"gz-bytes"
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["h.json.gz"]

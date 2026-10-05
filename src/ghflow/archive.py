@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import enum
 import gzip
+import shutil
 import time
 import urllib.error
 import urllib.request
@@ -18,6 +19,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime, timedelta
+from pathlib import Path
 
 from ghflow import settings
 
@@ -164,3 +166,23 @@ def open_hour(hour: Hour, timeout: float = settings.HTTP_TIMEOUT_S) -> Iterator[
         gzip.GzipFile(fileobj=response) as lines,
     ):
         yield lines
+
+
+def download_hour(hour: Hour, dest: Path, timeout: float = settings.HTTP_TIMEOUT_S) -> Path:
+    """Save one hour's .json.gz exactly as served.
+
+    Streams into `<dest>.part` and renames it into place only when complete; on any failure the
+    partial file is removed, so `dest` is either the whole file or absent — never a truncated one.
+    """
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    partial = dest.with_suffix(dest.suffix + ".part")
+    try:
+        with (
+            urllib.request.urlopen(_request(hour, "GET"), timeout=timeout) as response,
+            partial.open("wb") as out,
+        ):
+            shutil.copyfileobj(response, out, length=1 << 20)
+        partial.replace(dest)
+    finally:
+        partial.unlink(missing_ok=True)
+    return dest
