@@ -64,6 +64,7 @@ ghflow/
 │  ├─ commands/                                       M0-S5  I/O shell: the CLIs (profile, contract); every one exits through guarded()
 │  ├─ bronze.py                                       M1-S1  pure core: rows → deterministic bronze Parquet + rejected-row sidecar · object keys
 │  ├─ storage.py · audit.py                           M1-S1  I/O shell: S3 objects (pyarrow, path style) · one audit row per attempt in ghflow_ops
+│  ├─ retention.py                                    M1-S2  pure core: which raw files have outlived RAW_KEEP_DAYS (by the hour's own time)
 │  ├─ quality/                                        M1-S4  baselines · volume · event mix · ETag re-check
 │  ├─ stream/
 │  │  ├─ __init__.py · replayer.py                    M2-S1  bronze hour → topic; checkpoint after flush; end-of-hour markers

@@ -11,7 +11,9 @@ param(
     [Parameter(Position = 0)]
     [string]$Target = 'help',
     # Only for `reset`: confirms that every named volume (all platform data) may be deleted.
-    [switch]$Force
+    [switch]$Force,
+    # Only for the backfill targets: the window's last hour, inclusive (e.g. 2026-10-05-11).
+    [string]$To = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -96,6 +98,11 @@ $Targets = [ordered]@{
     'ps'               = 'Show every service and its state'
     'logs'             = 'Follow the stack logs'
     'reset'            = 'down -v: delete every volume (needs -Force)'
+    'backfill'         = 'Start the Airflow backfill of gharchive_ingest from 2026-08-03 (-To <last hour>)'
+    'park'             = 'Pause the backfill; wait for in-flight hours; say whether it is safe to walk away'
+    'resume'           = 'Unpause the backfill'
+    'watch'            = 'Backfill progress from the audit table, one line a minute (-To <last hour>)'
+    'backfill-verify'  = 'Every window hour has exactly one final verdict (-To <last hour>)'
     'dags'             = "Build the Airflow image's dag-test stage; run the DAG-integrity tests in it, network off"
     'test-integration' = 'Tests against the running stack (needs up)'
 }
@@ -123,6 +130,11 @@ switch ($Target) {
         $hours = @('2024-06-15-15', '2025-10-08-16', '2025-10-08-17', '2026-09-02-5', '2026-09-05-15', '2026-09-21-15', '2026-10-02-15')
         Invoke-Uv (@('run', 'python', '-m', 'ghflow.commands.contract') + $hours + @('--record', 'automation/runs/m0-s3/real_hours.json'))
     }
+    'backfill'  { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.backfill', 'start', '--to', $To) }
+    'park'      { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.backfill', 'park', '--wait') }
+    'resume'    { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.backfill', 'resume') }
+    'watch'     { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.backfill', 'watch', '--to', $To) }
+    'backfill-verify' { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.backfill', 'verify', '--to', $To, '--out', 'automation/runs/m1-s2/verdicts.json') }
     'env'       { Invoke-Env }
     'doctor'    { Invoke-Checked 'powershell' @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'scripts\doctor.ps1')) }
     'up'        {

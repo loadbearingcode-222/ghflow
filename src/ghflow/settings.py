@@ -55,3 +55,8 @@ VANISHED_MIN_ROWS = 20
 #: always encode to the same bytes (re-running an hour rewrites a byte-identical file).
 BRONZE_ZSTD_LEVEL = 3
 BRONZE_ROW_GROUP_ROWS = 1_000_000
+
+#: Raw .gz files are kept this many days after their hour (M1-S2, ADR-0002); older ones can be
+#: fetched from GH Archive again. Age is the hour's own timestamp, not the upload time: a
+#: backfill uploads August today, and August is still old.
+RAW_KEEP_DAYS = 14
