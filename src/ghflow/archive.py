@@ -77,28 +77,36 @@ def head(hour: Hour, timeout: float = settings.HTTP_TIMEOUT_S) -> Probe:
 Fetch = Callable[[Hour], Probe]
 
 
+@dataclass(frozen=True)
+class SweepPolicy:
+    """How hard a sweep tries: requests in flight, then slow sequential retries of failures."""
+
+    concurrency: int = settings.CONCURRENCY
+    retries: int = settings.RETRIES
+    pause_s: float = settings.RETRY_PAUSE_S
+    sleep: Callable[[float], None] = time.sleep
+
+
+#: The policy the measurements in docs/data/gharchive.md were taken under.
+DEFAULT_POLICY = SweepPolicy()
+
+
 def sweep(
-    hours: Sequence[Hour],
-    fetch: Fetch = head,
-    *,
-    concurrency: int = settings.CONCURRENCY,
-    retries: int = settings.RETRIES,
-    pause_s: float = settings.RETRY_PAUSE_S,
-    sleep: Callable[[float], None] = time.sleep,
+    hours: Sequence[Hour], fetch: Fetch = head, policy: SweepPolicy = DEFAULT_POLICY
 ) -> list[Probe]:
     """Probe every hour; retry each failed request sequentially before accepting the failure.
 
     The retry is sequential and slow on purpose: a failure under load is usually the load.
-    A probe still failing after `retries` keeps its REQUEST_FAILED verdict — it is never
+    A probe still failing after `policy.retries` keeps its REQUEST_FAILED verdict — it is never
     promoted to NOT_PUBLISHED.
     """
-    with ThreadPoolExecutor(max_workers=concurrency) as pool:
+    with ThreadPoolExecutor(max_workers=policy.concurrency) as pool:
         first = list(pool.map(fetch, hours))
     settled: list[Probe] = []
     for probe in first:
         attempts = 1
-        while probe.verdict is Verdict.REQUEST_FAILED and attempts <= retries:
-            sleep(pause_s * attempts)
+        while probe.verdict is Verdict.REQUEST_FAILED and attempts <= policy.retries:
+            policy.sleep(policy.pause_s * attempts)
             probe = fetch(probe.hour)
             attempts += 1
         settled.append(replace(probe, attempts=attempts))

@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from ghflow.archive import Probe, Verdict, classify, sweep
+from ghflow.archive import Probe, SweepPolicy, Verdict, classify, sweep
 from ghflow.hours import Hour, hours_between, hours_of_days
 
 
@@ -68,7 +68,7 @@ def test_a_planted_timeout_is_request_failed_never_not_published() -> None:
         calls.append(hour.key)
         return Probe(hour, Verdict.REQUEST_FAILED, None, detail="TimeoutError")
 
-    [probe] = sweep([H], always_times_out, retries=3, sleep=lambda _: None)
+    [probe] = sweep([H], always_times_out, SweepPolicy(retries=3, sleep=lambda _: None))
     assert probe.verdict is Verdict.REQUEST_FAILED
     assert probe.attempts == 4
     assert calls == [H.key] * 4
@@ -81,7 +81,7 @@ def test_a_timeout_that_recovers_on_retry_is_published() -> None:
         status = next(answers)
         return Probe(hour, classify(status), status, size=20_000_000 if status else None)
 
-    [probe] = sweep([H], flaky, retries=3, sleep=lambda _: None)
+    [probe] = sweep([H], flaky, SweepPolicy(retries=3, sleep=lambda _: None))
     assert (probe.verdict, probe.attempts, probe.size) == (Verdict.PUBLISHED, 3, 20_000_000)
 
 
@@ -92,7 +92,7 @@ def test_a_real_404_is_not_retried() -> None:
         calls.append(hour.key)
         return Probe(hour, classify(404), 404)
 
-    [probe] = sweep([H], missing, retries=3, sleep=lambda _: None)
+    [probe] = sweep([H], missing, SweepPolicy(retries=3, sleep=lambda _: None))
     assert probe.verdict is Verdict.NOT_PUBLISHED
     assert len(calls) == 1
 
