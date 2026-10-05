@@ -138,3 +138,21 @@ olist-lakehouse). Provenance is in brackets. Entries below it are earned by THIS
 39. **Real ForkEvents arrive with `"repo": {}`.** No id, no name — nothing to join or key the
     stream by. *Check:* the contract's `repo_malformed` count per hour (real hours show a
     handful); the rows are in the sidecar, never silently defaulted. (M0-S3)
+40. **A stack that ran yesterday cannot be rebuilt today: `pull access denied` / `401` for
+    MinIO.** MinIO's images stopped being publicly pullable (quay.io answers 401 for
+    `minio/minio` and `minio/mc`; Docker Hub refuses `minio/minio`; checked 2026-10-04). Stacks
+    that still "work" run from the local Docker cache and die at the next prune. *Check:*
+    `docker buildx imagetools inspect <ref>` resolves every pinned image anonymously (ADR-0001);
+    ghflow uses SeaweedFS. (M0-S4)
+41. **A GitHub issue (or any file) comes out empty after a script "succeeded".** The host Python
+    3.9 prints to a cp1252 console, so `print()` of `≤`, `≥` or `→` raises UnicodeEncodeError —
+    and a shell pipeline redirecting that output carries on with an empty file. *Check:* write
+    files with `encoding="utf-8"` instead of redirecting `print`, or run through `uv run` (Python
+    3.12) with `PYTHONUTF8=1`; read back what you created (`gh issue view N --json body`). (M0-S4)
+42. **A generated file breaks only after it reaches GitHub: "no checks reported", or a run that
+    "likely failed because of a workflow file issue" with no jobs.** Backslash escapes did not
+    survive the trip into generated text: `\n` inside a Python string became a real newline in
+    `ci.yml` (GitHub could not parse it, so CI ran nothing), and `\U` in `C:\Users` was a Python
+    SyntaxError. *Check:* write generated text with raw strings (`r"""…"""`) or no backslashes
+    at all, and parse what you generated before pushing — `tests/unit/test_workflows.py` parses
+    every workflow. (M0-S4)

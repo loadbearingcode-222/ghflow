@@ -1,0 +1,214 @@
+# ghflow: the local platform. Grows story by story (docs/MILESTONES.md):
+#   M0 core:      seaweedfs (S3) · s3-init · platform-db (Postgres) · platform-db-init ·
+#                 airflow-init · airflow-apiserver/scheduler/dag-processor/triggerer
+#   M2 stream:    redpanda · console · replayer · lander      M3: repo-state
+#   M4 real-time: clickhouse · grafana                       M5: dashboard
+#
+# Conventions
+# - Third-party images are pinned by tag AND digest (ADR-0001); CI refuses one without a digest.
+# - Host ports are the 3xxxx family on 127.0.0.1 only (CLAUDE.md fleet ledger).
+# - State lives in named volumes; only code and config are bind-mounted (the repo is on C:).
+# - Every long-running service has a healthcheck and a mem_limit (budget: 14 GB in total).
+# - Every one-shot is named by some service's depends_on (gotcha #22), so `up --wait` passes.
+# - Secrets come from .env (`.\make.ps1 env`); `:?` makes a missing one fail loudly.
+
+name: ghflow
+
+x-s3-credentials: &s3-credentials
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY:?run .\make.ps1 env}
+  S3_SECRET_KEY: ${S3_SECRET_KEY:?run .\make.ps1 env}
+
+x-airflow-common: &airflow-common
+  build:
+    context: .
+    dockerfile: docker/airflow/Dockerfile
+  image: ghflow/airflow:dev
+  environment: &airflow-env
+    <<: *s3-credentials
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://platform:${PLATFORM_DB_PASSWORD:?run .\make.ps1 env}@platform-db:5432/airflow
+    AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY:?run .\make.ps1 env}
+    AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_JWT_SECRET:?run .\make.ps1 env}
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__PARALLELISM: "8"
+    AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: "true"
+    # The project's code, isolated from Airflow's own environment (docker/airflow).
+    GHFLOW_PYTHON: /opt/ghflow-venv/bin/python
+    S3_ENDPOINT: http://seaweedfs:8333
+    GHFLOW_OPS_DSN: postgresql://ghflow:${GHFLOW_OPS_PASSWORD:?run .\make.ps1 env}@platform-db:5432/ghflow_ops
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags:ro
+    - airflow-logs:/opt/airflow/logs
+  user: "50000:0"
+  depends_on: &airflow-depends-on
+    platform-db-init:
+      condition: service_completed_successfully
+    s3-init:
+      condition: service_completed_successfully
+
+services:
+  # ------------------------------------------------------------------ object storage (S3)
+  seaweedfs:
+    # Master, volume, filer and S3 gateway in one process (config/platform/seaweedfs-s3.sh).
+    # Replaces MinIO, whose images are no longer publicly pullable (ADR-0001, gotcha #40).
+    image: chrislusf/seaweedfs:4.48@sha256:4e61d15fd35994cb1e43e1e553dff106794841fd9a99ade2fc8c8bfce4d7872d
+    entrypoint: ["/bin/sh", "/opt/ghflow/seaweedfs-s3.sh"]
+    environment: *s3-credentials
+    ports:
+      - "127.0.0.1:39000:8333"   # S3 API
+      - "127.0.0.1:39001:8888"   # filer UI: browse the buckets
+    volumes:
+      - ./config/platform:/opt/ghflow:ro
+      - seaweedfs-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8333/healthz"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+    mem_limit: 1g
+    restart: unless-stopped
+
+  s3-init:
+    # One-shot: creates the buckets (idempotent, never deletes). Airflow depends on it.
+    image: chrislusf/seaweedfs:4.48@sha256:4e61d15fd35994cb1e43e1e553dff106794841fd9a99ade2fc8c8bfce4d7872d
+    entrypoint: ["/bin/sh", "/opt/ghflow/s3-buckets.sh"]
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+    volumes:
+      - ./config/platform:/opt/ghflow:ro
+    restart: "no"
+
+  # ------------------------------------------------------------------ platform database
+  platform-db:
+    # Airflow's metadata (`airflow`) and ghflow's operational state (`ghflow_ops`), one database each.
+    image: postgres:17.11-bookworm@sha256:639ab7ceb90e13123085b741fb31ef493fba25463002f6da665352e7b534b652
+    environment:
+      POSTGRES_USER: platform
+      POSTGRES_PASSWORD: ${PLATFORM_DB_PASSWORD:?run .\make.ps1 env}
+      POSTGRES_DB: airflow
+    ports:
+      - "127.0.0.1:35432:5432"   # host-side tools and integration tests; use 127.0.0.1 (gotcha #20)
+    volumes:
+      - platform-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U platform -d airflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+    mem_limit: 512m
+    restart: unless-stopped
+
+  platform-db-init:
+    # One-shot: the ghflow role and the ghflow_ops database (config/platform/postgres-init.sql).
+    image: postgres:17.11-bookworm@sha256:639ab7ceb90e13123085b741fb31ef493fba25463002f6da665352e7b534b652
+    depends_on:
+      platform-db:
+        condition: service_healthy
+    environment:
+      PGHOST: platform-db
+      PGUSER: platform
+      PGPASSWORD: ${PLATFORM_DB_PASSWORD:?run .\make.ps1 env}
+      PGDATABASE: airflow
+      GHFLOW_OPS_PASSWORD: ${GHFLOW_OPS_PASSWORD:?run .\make.ps1 env}
+    volumes:
+      - ./config/platform:/opt/ghflow:ro
+    entrypoint: ["sh", "-c"]
+    command:
+      - psql -X -v ON_ERROR_STOP=1 -v ghflow_password="$$GHFLOW_OPS_PASSWORD" -f /opt/ghflow/postgres-init.sql
+    restart: "no"
+
+  # ------------------------------------------------------------------ Airflow 3
+  airflow-init:
+    <<: *airflow-common
+    # Root, to chown the named log volume (Docker creates it root-owned; gotcha #19).
+    user: "0:0"
+    environment:
+      <<: *airflow-env
+      HOME: /home/airflow
+      ADMIN_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD:?run .\make.ps1 env}
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -e
+        mkdir -p /opt/airflow/logs
+        chown -R 50000:0 /opt/airflow/logs
+        airflow db migrate
+        airflow users create --username admin --password "$$ADMIN_PASSWORD" \
+          --firstname ghflow --lastname admin --role Admin --email admin@example.invalid || true
+        echo "airflow-init: done"
+    restart: "no"
+
+  airflow-apiserver:
+    <<: *airflow-common
+    command: api-server
+    ports:
+      - "127.0.0.1:38082:8080"
+    depends_on:
+      <<: *airflow-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/monitor/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
+    mem_limit: 1g
+    restart: unless-stopped
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    depends_on:
+      <<: *airflow-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "airflow jobs check --job-type SchedulerJob --local"]
+      interval: 30s
+      timeout: 10s
+      retries: 6
+      start_period: 30s
+    mem_limit: 2g   # LocalExecutor: tasks run inside this container
+    restart: unless-stopped
+
+  airflow-dag-processor:
+    <<: *airflow-common
+    command: dag-processor
+    depends_on:
+      <<: *airflow-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "airflow jobs check --job-type DagProcessorJob --local"]
+      interval: 30s
+      timeout: 10s
+      retries: 6
+      start_period: 30s
+    mem_limit: 512m
+    restart: unless-stopped
+
+  airflow-triggerer:
+    <<: *airflow-common
+    command: triggerer
+    depends_on:
+      <<: *airflow-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "airflow jobs check --job-type TriggererJob --local"]
+      interval: 30s
+      timeout: 10s
+      retries: 6
+      start_period: 30s
+    mem_limit: 384m
+    restart: unless-stopped
+
+volumes:
+  seaweedfs-data:
+  platform-db:
+  airflow-logs:

@@ -12,10 +12,12 @@ Protocol version in force at kickoff: **2.18** (2026-10-04). Doctrine: 1.0.
 # ghflow
 
 GH Archive (every public GitHub event, one gzipped JSON file per hour) through two paths that must
-agree to the event: a **batch path** (Airflow 3 → MinIO bronze → dbt on DuckDB) where the data
+agree to the event: a **batch path** (Airflow 3 → SeaweedFS (S3) bronze → dbt on DuckDB) where the data
 interval is the watermark, and a **replayed stream** (Redpanda + Schema Registry → lander,
 repo-state processor, ClickHouse) where committed offsets are. It ends in a Quarto dashboard for
-non-technical readers. Plan, layout and stories: `docs/MILESTONES.md`. Blueprint:
+non-technical readers. It is built iteratively: every milestone ends with a Refine story, and a
+later insight that changes an earlier design becomes a Realign story (`docs/ITERATION.md` from
+M0-S5; until then `docs/MILESTONES.md`'s header). Plan, layout and stories: `docs/MILESTONES.md`. Blueprint:
 `docs/architecture.md`. Traps: `docs/gotchas.md`. Decisions: `docs/adr/`. Source facts:
 `docs/data/gharchive.md` (from M0-S2).
 
@@ -35,9 +37,27 @@ non-technical readers. Plan, layout and stories: `docs/MILESTONES.md`. Blueprint
   visualization, blueprint" → `docs/architecture.md` + `docs/img/architecture.svg` from M0-S1.
 - Standing grant (approving the plan, protocol §7): Claude creates the private repo, opens AND
   merges its own story PR once CI is green and the story's Accept-when demo has been run and
-  observed. NOT granted: stopping olist-lakehouse or any other stack, deleting volumes, touching
-  another repo — ask each time.
+  observed. NOT granted: deleting volumes (`down -v`), `docker compose down` on another stack,
+  touching another repo — ask each time.
 - Labels: roles only, as in olist: `role:data engineer` (M0–M4), `role:data analyst` (M5).
+
+## User decisions (verbatim, 2026-10-05) — plan revision 2
+
+- The request: "before proceed to more proceed, I want to add iterative development for this
+  project. As the first time we develop the project, I strive to attain the original goal but as
+  we keep developing the project, suddenly there is still plenty room for improvement, so we come
+  back to the previous work, make changes, chore and refactor code base, improve the performance
+  and also increase the readability and cohesion. can you revise this plan again". Then, on
+  cross-milestone change: "if somehow M3 as we keep making progress, suddenly we gain epiphany
+  from the gods, now we not only simply refine M3 work anymore, but also the prior work, in this
+  case for example M1, M2 so it will align with our new vision" → the Realign path.
+- Cadence: "Refine story per milestone (Recommended)". Ideas log: "GitHub Issues, 'refine' label
+  (Recommended)" — the backlog is issues labelled `refine` (realign proposals also `architecture`),
+  never a file.
+- S3 store: "SeaweedFS 4.48 (Recommended)" — MinIO images stopped being publicly pullable
+  (quay.io 401, Docker Hub denied; checked 2026-10-04). ADR-0001.
+- olist: "Yes, stop it (keep data)" → `docker compose stop` in olist-lakehouse when a story needs
+  `up` (volumes kept; restart with `docker compose start` there). Never `down`.
 
 ## Environment facts (observed 2026-10-04)
 
@@ -64,10 +84,11 @@ non-technical readers. Plan, layout and stories: `docs/MILESTONES.md`. Blueprint
 | wikiflow / meridian | 5433, 8080, 9000, 9001, 8501 |
 | wrenfield-retail | 8082, 5435, 3002, 5002, 8002 (+ 1xxxx prod) |
 | olist-lakehouse | 2xxxx family; 20 GB of `mem_limit` |
-| **ghflow (this repo): 3xxxx family** | Airflow 38082 · MinIO 39000/39001 · Redpanda Kafka 39092 · Schema Registry 38081 · Console 38080 · ClickHouse HTTP 38123 · Grafana 33000 · dashboard 33001 |
+| **ghflow (this repo): 3xxxx family** | Airflow 38082 · SeaweedFS S3 39000, admin UI 39001 · Postgres 35432 · Redpanda Kafka 39092 · Schema Registry 38081 · Console 38080 · ClickHouse HTTP 38123 · Grafana 33000 · dashboard 33001 |
 
-RAM budget: at most **14 GB** of `mem_limit` in total. olist cannot run alongside; `doctor`
-(M0-S4) refuses, and Claude asks before stopping any other stack.
+RAM budget: at most **14 GB** of `mem_limit` in total. `doctor` counts foreign stacks at their
+`mem_limit` (what they may take), not their live use. olist (20 GB of limits) cannot run
+alongside; it is stopped with `docker compose stop`, volumes kept (granted 2026-10-05).
 
 ## Version pins (OBSERVED values, re-verify live before relying on them)
 
@@ -78,7 +99,7 @@ that adopts it (ADR-0001 onward).
 |---|---|---|
 | Python / uv | 3.12.13 / 0.11.25 (host) | M0-S1 |
 | Airflow | `apache/airflow:3.3.2-python3.12` | M0-S4 |
-| MinIO / Postgres | as olist (`RELEASE.2025-09-07T16-13-09Z.hotfix.7aa24e772` / `17.11-bookworm`) | M0-S4 |
+| SeaweedFS / Postgres | `chrislusf/seaweedfs:4.48` / `postgres:17.11-bookworm` (MinIO dropped: unpullable) | M0-S4 |
 | duckdb / dbt-core / dbt-duckdb | 1.5.6 / 1.12.5 / 1.11.0 | M1-S3 |
 | Redpanda / Console | v26.2.3 / v3.12.0 | M2-S1 |
 | confluent-kafka / fastavro | 2.15.1 / 1.12.2 | M2-S1 |
@@ -94,7 +115,21 @@ that adopts it (ADR-0001 onward).
 .\make.ps1 check       # sync + lint + types + unit tests (what CI's quality job runs)
 .\make.ps1 profile     # network, ~2 min: re-measure GH Archive -> automation/runs/m0-s2/profile.json + doc
 .\make.ps1 profile-render  # no network: re-render docs/data/gharchive.md from the record
+.\make.ps1 contract-check  # network: the contract over seven real hours -> automation/runs/m0-s3/
+.\make.ps1 env         # .env with generated secrets (never rewrites an existing one)
+.\make.ps1 doctor      # read-only preflight: port holders, RAM vs budget (foreign stacks at mem_limit)
+.\make.ps1 up          # env + doctor + compose up --build --wait (~1 min)
+.\make.ps1 down        # stop and remove containers; volumes kept
+.\make.ps1 reset -Force  # down -v: deletes every volume
+.\make.ps1 dags        # build the Airflow image, run tests/dags inside it
+.\make.ps1 test-integration  # S3 round-trip, ghflow_ops round-trip, Airflow health (needs up)
 ```
+
+Platform (M0-S4, ADR-0001): SeaweedFS S3 at http://127.0.0.1:39000 (buckets raw, bronze, stream,
+marts; every request signed — pyarrow needs `force_virtual_addressing=False`, i.e. path style);
+filer UI at :39001; Postgres at 127.0.0.1:35432 (`airflow` metadata, `ghflow_ops` owned by role
+`ghflow`); Airflow at http://127.0.0.1:38082 (admin / `AIRFLOW_ADMIN_PASSWORD`). Project code runs
+in the image's `/opt/ghflow-venv` (`GHFLOW_PYTHON`).
 
 Source facts (`docs/data/gharchive.md`, record `automation/runs/m0-s2/profile.json`): the doc's
 prose may not quote numbers; they render from the record (`tests/unit/test_profile_doc.py`).
@@ -113,4 +148,9 @@ request failed).
   matching `role:` label.
 - The draft PR body is the handoff; the story closes with a field note in the PR body: what was
   built, why this way, the concept, what to look at, what to try.
-- `docs/architecture.md` is refreshed at every milestone close.
+- `docs/architecture.md` is refreshed in every Refine story.
+- **Findings take a lane:** a bug in merged work → "Also fixes" in the next PR; a ≤ ~40-line,
+  behaviour-preserving, already-tested improvement → "Also refines" in the next PR; anything
+  bigger → a `refine` issue for the milestone's Refine story; an insight that changes an earlier
+  design → a Realign proposal (draft ADR + `architecture` issue) and a re-plan the owner approves.
+  Never act on an out-of-scope improvement mid-story.

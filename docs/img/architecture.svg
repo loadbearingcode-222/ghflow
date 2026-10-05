@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="680" height="700" viewBox="0 0 680 700" role="img" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
 <title>ghflow architecture blueprint</title>
-<desc>GH Archive feeds a batch path (ingest DAG, bronze in MinIO, dbt on DuckDB) and a replayed stream path (Redpanda + Schema Registry, lander and repo state, ClickHouse). Both feed trust checks, which feed a Quarto dashboard for stakeholders and Grafana for engineers.</desc>
+<desc>GH Archive feeds a batch path (ingest DAG, bronze in SeaweedFS, dbt on DuckDB) and a replayed stream path (Redpanda + Schema Registry, lander and repo state, ClickHouse). Both feed trust checks, which feed a Quarto dashboard for stakeholders and Grafana for engineers.</desc>
 <defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#73726C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
 <rect x="0" y="0" width="680" height="700" fill="#FFFFFF"/>
 <text x="340" y="26" text-anchor="middle" font-size="16" font-weight="500" fill="#2C2C2A">ghflow — two paths that must agree to the event</text>
@@ -24,7 +24,7 @@
 <text x="185" y="234" text-anchor="middle" font-weight="500" fill="#2C2C2A">Ingest DAG (Airflow 3)</text>
 <text x="185" y="254" text-anchor="middle" font-size="12" fill="#5F5E5A">Sensor, contract, audit</text>
 <rect x="60" y="290" width="250" height="56" rx="8" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="0.75"/>
-<text x="185" y="314" text-anchor="middle" font-weight="500" fill="#2C2C2A">Bronze in MinIO</text>
+<text x="185" y="314" text-anchor="middle" font-weight="500" fill="#2C2C2A">Bronze in SeaweedFS</text>
 <text x="185" y="334" text-anchor="middle" font-size="12" fill="#5F5E5A">Projected Parquet, hourly</text>
 <rect x="60" y="370" width="250" height="56" rx="8" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="0.75"/>
 <text x="185" y="394" text-anchor="middle" font-weight="500" fill="#2C2C2A">dbt on DuckDB</text>

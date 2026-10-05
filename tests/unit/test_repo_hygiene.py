@@ -79,7 +79,7 @@ def test_ignore_rules_hold_in_both_directions(path: str, ignored: bool) -> None:
     assert (result.returncode == 0) is ignored, git("check-ignore", "--no-index", "-v", path).stdout
 
 
-COMPONENTS = ["GH Archive", "MinIO", "DuckDB", "Redpanda", "ClickHouse", "Grafana", "Quarto"]
+COMPONENTS = ["GH Archive", "SeaweedFS", "DuckDB", "Redpanda", "ClickHouse", "Grafana", "Quarto"]
 
 
 @pytest.mark.parametrize("component", COMPONENTS)

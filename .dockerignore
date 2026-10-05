@@ -1,0 +1,15 @@
+# Image builds need pyproject.toml, uv.lock, README.md, src/ and tests/dags/ — nothing else.
+.git/
+.venv/
+**/__pycache__/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.env
+automation/
+docs/
+dashboard/_site/
+dashboard/.quarto/
+dbt/**/target/
+dbt/**/logs/
+*.log
