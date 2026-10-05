@@ -115,7 +115,21 @@ that adopts it (ADR-0001 onward).
 .\make.ps1 check       # sync + lint + types + unit tests (what CI's quality job runs)
 .\make.ps1 profile     # network, ~2 min: re-measure GH Archive -> automation/runs/m0-s2/profile.json + doc
 .\make.ps1 profile-render  # no network: re-render docs/data/gharchive.md from the record
+.\make.ps1 contract-check  # network: the contract over seven real hours -> automation/runs/m0-s3/
+.\make.ps1 env         # .env with generated secrets (never rewrites an existing one)
+.\make.ps1 doctor      # read-only preflight: port holders, RAM vs budget (foreign stacks at mem_limit)
+.\make.ps1 up          # env + doctor + compose up --build --wait (~1 min)
+.\make.ps1 down        # stop and remove containers; volumes kept
+.\make.ps1 reset -Force  # down -v: deletes every volume
+.\make.ps1 dags        # build the Airflow image, run tests/dags inside it
+.\make.ps1 test-integration  # S3 round-trip, ghflow_ops round-trip, Airflow health (needs up)
 ```
+
+Platform (M0-S4, ADR-0001): SeaweedFS S3 at http://127.0.0.1:39000 (buckets raw, bronze, stream,
+marts; every request signed — pyarrow needs `force_virtual_addressing=False`, i.e. path style);
+filer UI at :39001; Postgres at 127.0.0.1:35432 (`airflow` metadata, `ghflow_ops` owned by role
+`ghflow`); Airflow at http://127.0.0.1:38082 (admin / `AIRFLOW_ADMIN_PASSWORD`). Project code runs
+in the image's `/opt/ghflow-venv` (`GHFLOW_PYTHON`).
 
 Source facts (`docs/data/gharchive.md`, record `automation/runs/m0-s2/profile.json`): the doc's
 prose may not quote numbers; they render from the record (`tests/unit/test_profile_doc.py`).

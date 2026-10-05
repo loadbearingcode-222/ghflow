@@ -60,8 +60,53 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-      - run: uv sync --locked --group dev
+      - run: uv sync --locked --group dev --group integration
       - run: uv run ruff check --output-format=github .
       - run: uv run ruff format --check .
       - run: uv run mypy
       - run: uv run pytest tests/unit
+
+  compose-render:
+    name: compose render
+    if: github.event.action != 'edited'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: compose.yaml renders with every required variable set
+        # Dummy values: this proves the file parses and every ${VAR:?} is declared in
+        # .env.example, not that the stack runs (that is each story's local acceptance).
+        run: |
+          sed 's/=$/=ci-dummy/' .env.example > .env
+          docker compose config --quiet
+          echo "services: $(docker compose config --services | tr '
+' ' ')"
+      - name: Every third-party image is pinned by tag AND digest (ADR-0001)
+        # Images this repo builds (ghflow/*) are exempt: their own Dockerfile pins its bases.
+        run: |
+          sed 's/=$/=ci-dummy/' .env.example > .env
+          unpinned=$(docker compose config --images | grep -v '^ghflow/' | grep -v '@sha256:' || true)
+          if [ -n "$unpinned" ]; then
+            echo "::error title=compose-render::IMAGE-UNPINNED: $unpinned"
+            exit 1
+          fi
+          if grep -nE '^FROM [^@]+$|COPY --from=[^@ ]+ ' docker/*/Dockerfile; then
+            echo "::error title=compose-render::IMAGE-UNPINNED: a Dockerfile base or COPY --from lacks a digest"
+            exit 1
+          fi
+
+  dag-integrity:
+    name: dag integrity
+    if: github.event.action != 'edited'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the Airflow image
+        run: docker build -f docker/airflow/Dockerfile -t ghflow/airflow:ci .
+      - name: Parse every DAG inside the image
+        run: >-
+          mkdir -p airflow/dags &&
+          docker run --rm
+          -e AIRFLOW__CORE__LOAD_EXAMPLES=false
+          -v "$PWD/airflow/dags:/opt/airflow/dags:ro"
+          ghflow/airflow:ci
+          bash -c "pip install -q pytest && python -m pytest -q /opt/ghflow/tests/dags"

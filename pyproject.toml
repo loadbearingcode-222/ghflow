@@ -13,6 +13,11 @@ dev = [
     "mypy>=1.13",
     "pre-commit>=4.0",
 ]
+# Talks to the running stack (.\make.ps1 test-integration); CI installs it for type checks only.
+integration = [
+    "pyarrow>=25,<26",
+    "psycopg[binary]>=3.3,<4",
+]
 
 [project.scripts]
 ghflow-profile = "ghflow.profile:main"
@@ -54,10 +59,21 @@ mypy_path = ".github/scripts"
 strict = true
 warn_unreachable = true
 
+[[tool.mypy.overrides]]
+# Airflow runs in its own image (tests/dags execute there, not on the host).
+module = ["airflow", "airflow.*"]
+ignore_missing_imports = true
+follow_imports = "skip"
+
+[[tool.mypy.overrides]]
+# pyarrow ships without complete type hints.
+module = ["pyarrow", "pyarrow.*"]
+ignore_missing_imports = true
+
 # ---------------------------------------------------------------- pytest
 [tool.pytest.ini_options]
 minversion = "8.0"
-testpaths = ["tests"]
+testpaths = ["tests/unit"]  # tests/integration needs the stack; tests/dags runs in the Airflow image
 pythonpath = [".github/scripts"]
 addopts = "-ra --strict-markers --strict-config"
 markers = [

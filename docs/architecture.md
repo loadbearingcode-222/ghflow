@@ -82,5 +82,5 @@ Two boundaries the diagram encodes on purpose:
 A later insight that changes an earlier design is handled by a Realign story inserted into the
 plan (see `MILESTONES.md`), and this blueprint changes with it.
 
-Status at this revision (M0-S4): the repo, the source profile and the event contract are built;
-the platform core is being built; everything else above is planned.
+Status at this revision (M0-S4): the repo, the source profile, the event contract and the platform
+core (SeaweedFS, Postgres, Airflow 3) run; everything else above is planned.

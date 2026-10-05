@@ -18,3 +18,4 @@ Date: YYYY-MM-DD · Story: M#-S# · Status: accepted | superseded by NNNN
 
 | ADR | Decision | Story |
 |---|---|---|
+| [0001](0001-platform-core-and-pins.md) | Platform core: SeaweedFS (MinIO dropped), Postgres, Airflow 3; pins by tag and digest; doctor counts mem_limit | M0-S4 |

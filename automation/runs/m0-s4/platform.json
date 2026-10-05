@@ -1,0 +1,116 @@
+{
+  "story": "M0-S4",
+  "recorded_at": "2026-10-05T08:04:22Z",
+  "services": {
+    "airflow-apiserver": {
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    "airflow-dag-processor": {
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    "airflow-init": {
+      "state": "exited",
+      "health": null,
+      "exit_code": 0
+    },
+    "airflow-scheduler": {
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    "airflow-triggerer": {
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    "platform-db": {
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    "platform-db-init": {
+      "state": "exited",
+      "health": null,
+      "exit_code": 0
+    },
+    "s3-init": {
+      "state": "exited",
+      "health": null,
+      "exit_code": 0
+    },
+    "seaweedfs": {
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    }
+  },
+  "verdicts": {
+    "long_running_all_healthy": true,
+    "one_shots_exited_zero": true
+  },
+  "mem_limit_gb": {
+    "airflow-apiserver": 1.074,
+    "airflow-dag-processor": 0.537,
+    "airflow-scheduler": 2.147,
+    "airflow-triggerer": 0.403,
+    "platform-db": 0.537,
+    "seaweedfs": 1.074
+  },
+  "doctor": {
+    "with_olist_running": {
+      "verdict": "DOCTOR-RAM-SHORT",
+      "exit": 1,
+      "docker_total_gib": 27.4,
+      "olist_limits_gib": 18.7,
+      "olist_live_use_gib": 6.3,
+      "available_gib": 8.7,
+      "budget_gb": 14,
+      "live_use_method_would_have_said_gib": 21.1
+    },
+    "after_olist_stopped": {
+      "verdict": "pass",
+      "exit": 0,
+      "available_gib": 27.4,
+      "ports": "airflow 38082, s3-api 39000, s3-ui 39001, postgres 35432 ours; the rest free"
+    }
+  },
+  "olist_stop": {
+    "at": "2026-10-05T07:59:22Z",
+    "command": "docker compose stop",
+    "running_after": 0,
+    "volumes_before": 6,
+    "volumes_after": 6,
+    "restart": "cd \"C:/Users/longt/data engineer/olist-lakehouse\"; docker compose start",
+    "authority": "owner, verbatim 2026-10-05: \"Yes, stop it (keep data)\""
+  },
+  "up": {
+    "command": "make.ps1 up",
+    "exit": 0,
+    "wall_s": 57
+  },
+  "one_shot_idempotence": {
+    "s3-init_second_run": "4 of 4 buckets 'exists', 0 created",
+    "platform-db-init_second_run": "ALTER ROLE only; no CREATE ROLE, no CREATE DATABASE"
+  },
+  "tests": {
+    "integration": {
+      "command": "make.ps1 test-integration",
+      "passed": 3,
+      "failed": 0
+    },
+    "dag_integrity_in_image": {
+      "command": "make.ps1 dags",
+      "passed": 3,
+      "failed": 0
+    }
+  },
+  "red_teams": {
+    "doctor": "olist running -> DOCTOR-RAM-SHORT (exit 1); stopped -> pass (exit 0)",
+    "image_pin_check": "control: pinned ok; compose image without digest -> IMAGE-UNPINNED naming it; Dockerfile FROM without digest -> IMAGE-UNPINNED naming line 4"
+  },
+  "mem_limit_total_gb": 5.77
+}
