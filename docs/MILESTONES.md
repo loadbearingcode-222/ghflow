@@ -57,10 +57,12 @@ ghflow/
 │  ├─ schemas/                                        M2-S1  gh_event.avsc (event + end-of-hour marker); repo_state.avsc added M3-S2
 │  └─ clickhouse/                                     M4-S1  server memory caps, users, ordered DDL
 ├─ src/ghflow/
-│  ├─ __init__.py · settings.py                       M0-S2
-│  ├─ archive.py                                      M0-S2  hour naming · HEAD/GET with a User-Agent · 404 vs timeout as distinct verdicts
-│  ├─ profile.py                                      M0-S2  per-hour volume and event mix; twin script of docs/data/gharchive.md
-│  ├─ contract.py · exitcodes.py                      M0-S3  the one cast · structure refusal · named row rules · era-aware shapes
+│  ├─ __init__.py · settings.py                       M0-S2  settings: every knob, one home (enforced from M0-S5)
+│  ├─ hours.py · events.py · fields.py · profiling.py  M0-S5  pure core: hour values · the one JSON-line reader · field declarations and eras · profile arithmetic and rendering
+│  ├─ archive.py                                      M0-S2  I/O shell: HEAD/GET with a User-Agent · 404 vs timeout as distinct verdicts · download
+│  ├─ profile.py                                      M0-S2  being split in M0-S5 into profiling.py (core) and commands/profile.py (shell)
+│  ├─ contract.py · exitcodes.py                      M0-S3  pure core: the one cast · structure refusal · named row rules
+│  ├─ commands/                                       M0-S5  I/O shell: the CLIs (profile, contract); every one exits through guarded()
 │  ├─ bronze.py · audit.py                            M1-S1  raw → projected Parquet + rejected-row sidecar · one audit row per attempt
 │  ├─ quality/                                        M1-S4  baselines · volume · event mix · ETag re-check
 │  ├─ stream/
