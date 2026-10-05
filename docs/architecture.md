@@ -1,8 +1,8 @@
 # Architecture
 
 The blueprint of ghflow. GitHub renders the diagram below; the drawn version is
-[img/architecture.svg](img/architecture.svg). This file is refreshed at every milestone close,
-and from M5-S3 a checker fails if any compose service or DAG is missing from it.
+[img/architecture.svg](img/architecture.svg). Both are refreshed in every Refine story, and from
+M5-S4 a checker fails if any compose service or DAG is missing from them.
 
 ![ghflow architecture blueprint](img/architecture.svg)
 
@@ -13,8 +13,8 @@ flowchart TB
   GA["GH Archive · hourly .json.gz · ~0.5 GB/day"]
   subgraph BATCH["Batch path · M1 · the Airflow data interval is the watermark"]
     ING["gharchive_ingest<br/>sensor · download · one cast · audit"]
-    RAW[("MinIO raw<br/>kept 14 days")]
-    BRZ[("MinIO bronze<br/>projected Parquet + sidecar")]
+    RAW[("SeaweedFS raw<br/>kept 14 days")]
+    BRZ[("SeaweedFS bronze<br/>projected Parquet + sidecar")]
     DBT["dbt on DuckDB<br/>silver → gold SCD2 → marts"]
   end
   subgraph STREAM["Stream path · M2–M4 · committed offsets are the watermark"]
@@ -70,13 +70,17 @@ Two boundaries the diagram encodes on purpose:
 
 ## Where each piece lands
 
-| Milestone | What becomes real | Release |
-|---|---|---|
-| M0 | Repo, plan, CI guards; source profile; event contract; MinIO, Postgres, Airflow | v0.0.0 |
-| M1 | Hourly ingest, backfill from Aug 3, silver, event-mix quality checks | v0.1.0 |
-| M2 | Redpanda + Schema Registry, replayer, lander, batch-vs-stream reconciliation | v0.2.0 |
-| M3 | SCD2 repo/actor history; transactional compacted repo-state topic | v0.3.0 |
-| M4 | ClickHouse consuming the topic; Grafana for engineers | v0.4.0 |
-| M5 | Insight marts, the Quarto stakeholder dashboard, one-command demo | v1.0.0 |
+| Milestone | Build stories make real | Refine story improves | Release |
+|---|---|---|---|
+| M0 | Repo, plan and CI guards; source profile; event contract; SeaweedFS, Postgres, Airflow | one event reader, the readability/cohesion ratchet, the first benchmark | v0.0.0 |
+| M1 | Hourly ingest, backfill from Aug 3, silver, event-mix quality checks | ingest throughput, thin DAGs — same bronze bytes | v0.1.0 |
+| M2 | Redpanda + Schema Registry, replayer, lander, batch-vs-stream reconciliation | stream throughput, one client configuration | v0.2.0 |
+| M3 | SCD2 repo/actor history; transactional compacted repo-state topic | cheaper history, faster restore | v0.3.0 |
+| M4 | ClickHouse consuming the topic; Grafana for engineers | table design, panel latency | v0.4.0 |
+| M5 | Insight marts, the Quarto stakeholder dashboard, one-command demo | the whole system, end to end | v1.0.0 |
 
-Status at this revision (M0-S1): nothing runs yet; every box above is planned.
+A later insight that changes an earlier design is handled by a Realign story inserted into the
+plan (see `MILESTONES.md`), and this blueprint changes with it.
+
+Status at this revision (M0-S4): the repo, the source profile and the event contract are built;
+the platform core is being built; everything else above is planned.

@@ -22,3 +22,7 @@ Role: <!-- data engineer (M0–M4) | data analyst (M5) — must match the story 
 
 ## Also fixes
 <!-- Optional: problems from earlier stories fixed here. Delete this section if none. -->
+
+## Also refines
+<!-- Optional: small (about 40 lines), behaviour-preserving, already-tested improvements, each
+     closing its `refine` issue ("Closes #N"). Anything bigger waits for the Refine story. -->
