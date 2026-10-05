@@ -4,7 +4,9 @@ version = "0.0.0"
 description = "GH Archive through a batch path and a replayed stream that must agree to the event"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
-dependencies = []
+dependencies = [
+    "orjson>=3.12,<4",
+]
 
 [dependency-groups]
 dev = [
