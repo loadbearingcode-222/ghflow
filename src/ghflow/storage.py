@@ -62,3 +62,6 @@ class Store:
         selector = fs.FileSelector(prefix, recursive=True, allow_not_found=True)
         infos = self.fs.get_file_info(selector)
         return sorted(i.path for i in infos if i.type == fs.FileType.File)
+
+    def delete(self, path: str) -> None:
+        self.fs.delete_file(path)

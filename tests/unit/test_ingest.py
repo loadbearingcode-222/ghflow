@@ -106,6 +106,7 @@ def test_a_crash_is_recorded_then_raised(tmp_path: Path, recorded: list[audit.At
         ingest.run(HOUR, good_hour(tmp_path), store, conn=None)  # type: ignore[arg-type]
     [attempt] = recorded
     assert attempt.outcome == "crashed" and attempt.duration_ms is not None
+    assert attempt.detail == "RuntimeError: disk on fire", "a crash row says what crashed"
 
 
 def test_a_failed_fetch_is_recorded_and_exits_2(
@@ -124,3 +125,17 @@ def test_the_attempt_printed_is_json(
 ) -> None:
     ingest.run(HOUR, good_hour(tmp_path), FakeStore(), conn=None)  # type: ignore[arg-type]
     assert json.loads(capsys.readouterr().out.splitlines()[-1])["outcome"] == "accepted"
+
+
+def test_a_body_cut_short_is_a_failed_fetch_not_a_crash(
+    monkeypatch: pytest.MonkeyPatch, recorded: list[audit.Attempt]
+) -> None:
+    """The M1-S2 backfill met this: IncompleteRead is not an OSError."""
+    import http.client
+
+    def cut_short(hour: Any) -> Any:
+        raise http.client.IncompleteRead(b"x" * 10, 5)
+
+    monkeypatch.setattr(ingest, "fetch_hour", cut_short)
+    assert ingest.run(HOUR, None, FakeStore(), conn=None) == ExitCode.COULD_NOT_BUILD  # type: ignore[arg-type]
+    assert recorded[0].outcome == "failed" and "IncompleteRead" in (recorded[0].detail or "")

@@ -55,3 +55,21 @@ def test_gharchive_ingest_waits_then_ingests_one_interval() -> None:
     assert isinstance(dag.timetable, CronDataIntervalTimetable)
     for task in (sensor, ingest):
         assert "data_interval_start" in str(task.op_kwargs["hour"]), "the interval is the watermark"
+
+
+def test_raw_retention_runs_daily_on_its_own_interval() -> None:
+    from airflow.timetables.interval import CronDataIntervalTimetable
+
+    dag = DagBag(dag_folder=str(DAGS)).dags["raw_retention"]
+    assert isinstance(dag.timetable, CronDataIntervalTimetable) and dag.max_active_runs == 1
+    task = dag.get_task("delete_expired_raw")
+    assert "data_interval_end" in str(task.op_kwargs["as_of"]), "the interval is the clock"
+
+
+def test_every_dag_starts_no_later_than_the_window() -> None:
+    """A run before start_date gets no tasks yet reports success (gotcha #44)."""
+    from datetime import UTC, datetime
+
+    window_start = datetime(2026, 8, 3, tzinfo=UTC)
+    for dag_id, dag in DagBag(dag_folder=str(DAGS)).dags.items():
+        assert dag.start_date <= window_start, f"{dag_id} starts after the window"

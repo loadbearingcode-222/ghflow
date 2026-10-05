@@ -163,3 +163,9 @@ olist-lakehouse). Provenance is in brackets. Entries below it are earned by THIS
     late. *Check:* schedule with `CronDataIntervalTimetable("0 * * * *", timezone="UTC")` and
     render the templated hour of a real run (`airflow tasks render`) before trusting it;
     `tests/dags` asserts the timetable class. (M1-S1)
+44. **A DAG run "succeeds" in milliseconds and did nothing.** In Airflow 3 a run whose logical
+    date is before the DAG's `start_date` gets no task instances at all, and an empty run is
+    marked `success`. A retention run triggered for yesterday's interval on a DAG that "starts
+    today" deleted nothing and reported green. *Check:* set `start_date` at or before the
+    earliest interval anyone may run (catchup off keeps it from backfilling), and confirm a run
+    has task instances before trusting its state; `tests/dags` pins raw_retention's start. (M1-S2)
