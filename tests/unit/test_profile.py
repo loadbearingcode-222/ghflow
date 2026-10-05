@@ -7,7 +7,7 @@ from datetime import timedelta
 
 import pytest
 
-from ghflow.archive import Hour
+from ghflow.hours import Hour
 from ghflow.profile import (
     bisect_boundary,
     profile_lines,

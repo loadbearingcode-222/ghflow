@@ -10,9 +10,9 @@ from typing import Any
 import pytest
 
 from ghflow import contract
-from ghflow.archive import Hour
 from ghflow.contract import COLUMNS, ROW_RULES, Refusal, apply
 from ghflow.exitcodes import ExitCode, guarded
+from ghflow.hours import Hour
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 HAZARDS: list[dict[str, Any]] = json.loads(

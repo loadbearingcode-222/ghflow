@@ -29,8 +29,9 @@ from functools import partial
 from pathlib import Path
 from typing import Any
 
-from ghflow.archive import Hour, download_hour
+from ghflow.archive import download_hour
 from ghflow.contract import apply
+from ghflow.hours import Hour
 
 #: A typical recent hour and the heaviest broken-mix hour (both inside the backfill window).
 REFERENCE_HOURS = ("2026-10-02-15", "2026-09-05-15")

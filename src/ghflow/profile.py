@@ -23,7 +23,8 @@ from pathlib import Path
 from typing import Any
 
 from ghflow import settings
-from ghflow.archive import Hour, Probe, Verdict, head, hours_of_days, open_hour, sweep
+from ghflow.archive import Probe, Verdict, head, open_hour, sweep
+from ghflow.hours import Hour, hours_of_days
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RECORD = REPO_ROOT / "automation" / "runs" / "m0-s2" / "profile.json"

@@ -9,7 +9,8 @@ from pathlib import Path
 
 import pytest
 
-from ghflow.archive import Hour, Probe, Verdict, classify, hours_between, hours_of_days, sweep
+from ghflow.archive import Probe, Verdict, classify, sweep
+from ghflow.hours import Hour, hours_between, hours_of_days
 
 
 def test_hour_keys_follow_gh_archive_naming() -> None:

@@ -27,8 +27,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from ghflow.archive import Hour, open_hour
+from ghflow.archive import open_hour
 from ghflow.exitcodes import ExitCode, guarded
+from ghflow.hours import Hour
 
 #: When GitHub trimmed event payloads; the first hour of the new shape (M0-S2 bisection).
 TRIM = datetime(2025, 10, 8, 17, tzinfo=UTC)
