@@ -111,11 +111,11 @@ that adopts it (ADR-0001 onward).
 ```
 .\make.ps1 help        # every target
 .\make.ps1 hooks       # once per clone: core.hooksPath = .githooks (refuses pushes to main)
-.\make.ps1 check       # sync + lint + types + unit tests (what CI's quality job runs)
+.\make.ps1 check       # sync + lint + types + layers + unit tests (CI quality, import-layers, ratchet)
 .\make.ps1 profile     # network, ~2 min: re-measure GH Archive -> automation/runs/m0-s2/profile.json + doc
 .\make.ps1 profile-render  # no network: re-render docs/data/gharchive.md from the record
 .\make.ps1 contract-check  # network: the contract over seven real hours -> automation/runs/m0-s3/
-.make.ps1 layers      # the core/shell layers (import-linter; CI job import-layers)
+.\make.ps1 layers      # the core/shell layers (import-linter; CI job import-layers)
 uv run python scripts/bench.py contract --out automation/runs/<story>/bench.json  # cached reference hours
 .\make.ps1 env         # .env with generated secrets (never rewrites an existing one)
 .\make.ps1 doctor      # read-only preflight: port holders, RAM vs budget (foreign stacks at mem_limit)
