@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from factories import line, push
 
 from ghflow import fields
 from ghflow.commands import contract as contract_cli
@@ -76,15 +77,13 @@ def test_every_row_rule_is_exercised_by_a_hazard_or_has_a_reason() -> None:
     assert unexercised == {"actor_malformed"}, unexercised  # the twin of repo_malformed
 
 
-def push_hour(rows: int, without_ref: int) -> list[str]:
-    base = json.loads(HAZARDS[0]["line"])
+def push_hour(rows: int, without_ref: int) -> list[bytes]:
     lines = []
     for n in range(rows):
-        event = json.loads(json.dumps(base))
-        event["id"] = str(50_000_000_000 + n)
+        event = push(50_000_000_000 + n)
         if n < without_ref:
             del event["payload"]["ref"]
-        lines.append(json.dumps(event))
+        lines.append(line(event))
     return lines
 
 
