@@ -1,0 +1,26 @@
+# ghflow's warehouse: dbt-duckdb over bronze Parquet in S3 (SeaweedFS). ADR-0003.
+name: ghflow
+version: "1.0.0"
+config-version: 2
+profile: ghflow
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+
+vars:
+  # Bronze lives under this S3 prefix (ADR-0002 paths); overridden only by tests.
+  bronze_events: "s3://bronze/gharchive/*/*/events.parquet"
+  # Incremental staging deletes and re-reads this many days before its newest day, so a
+  # re-ingested recent hour flows through; an older re-ingest needs --full-refresh.
+  lookback_days: 2
+
+models:
+  ghflow:
+    staging:
+      +schema: staging
+    silver:
+      +schema: silver
+
+flags:
+  send_anonymous_usage_stats: false

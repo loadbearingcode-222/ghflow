@@ -169,3 +169,17 @@ olist-lakehouse). Provenance is in brackets. Entries below it are earned by THIS
     today" deleted nothing and reported green. *Check:* set `start_date` at or before the
     earliest interval anyone may run (catchup off keeps it from backfilling), and confirm a run
     has task instances before trusting its state; `tests/dags` pins raw_retention's start. (M1-S2)
+45. **DuckDB's `memory_limit` does not bound the process.** With `memory_limit` 1 GB (or 1.5 GB,
+    2 or 4 threads), a `dbt build` loading 143M rows from 1,528 Parquet files over httpfs peaked at
+    ~2.1 GiB RSS: the limit governs the buffer manager, not the readers' own allocations, and
+    `docker stats` (which also counts page cache) cannot tell you which. *Check:* measure the
+    process (`/proc/<pid>/status` VmRSS, or cgroup `memory.stat` anon vs file) under a real build
+    and size the container from that. (M1-S3, ADR-0003)
+46. **dbt-duckdb `delete+insert` on a composite `unique_key` crawls.** `unique_key=['event_date',
+    'event_hour']` ran >10 minutes deleting one day of 4M rows; `unique_key='event_date'` takes
+    seconds. *Check:* key incremental models on one column (re-read whole days if needed), and
+    time the second (incremental) run, not just the first. (M1-S3)
+47. **A DuckDB view breaks when its file is attached under another name.** dbt-duckdb views name
+    their catalog after the database file (`ghflow`); `attach '…/ghflow.duckdb' as prod` gives
+    `Catalog "ghflow" does not exist`. *Check:* attach the warehouse as `ghflow` (read-only) in
+    any side tool. (M1-S3)

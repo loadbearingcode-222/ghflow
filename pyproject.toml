@@ -22,6 +22,13 @@ dev = [
 # Talks to the running stack (.\make.ps1 test-integration). Its clients (pyarrow, psycopg) became
 # runtime dependencies in M1-S1; the group stays as the CI/make entry point for these tests.
 integration = []
+# dbt on DuckDB (M1-S3). Installed into the Airflow image's project venv and by CI's dbt-parse
+# job; versions re-verified on PyPI 2026-10-05 (CLAUDE.md pins).
+dbt = [
+    "dbt-core>=1.12.5,<1.13",
+    "dbt-duckdb>=1.11.0,<1.12",
+    "duckdb>=1.5.6,<1.6",
+]
 
 [project.scripts]
 ghflow-profile = "ghflow.commands.profile:main"

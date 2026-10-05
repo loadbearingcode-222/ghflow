@@ -137,3 +137,17 @@ jobs:
         run: uv run ruff check --select C90,PLR0912,PLR0913,PLR0915 --output-format=github .
       - name: One-home laws, layers by AST, floors no looser, module size budget
         run: uv run pytest -q tests/unit/test_laws.py tests/unit/test_events.py
+
+  dbt-parse:
+    name: dbt parse
+    if: github.event.action != 'edited'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1 (node24), verified 2026-10-05
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0 (node24), verified 2026-10-05
+      - run: uv sync --locked --group dbt
+      - name: The generated silver models match ghflow.fields
+        run: uv run python -m ghflow.commands.silver check
+      - name: The dbt project parses (no warehouse needed)
+        working-directory: dbt/ghflow
+        run: uv run dbt parse --profiles-dir .
