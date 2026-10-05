@@ -4,7 +4,10 @@ version = "0.0.0"
 description = "GH Archive through a batch path and a replayed stream that must agree to the event"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
-dependencies = []
+dependencies = [
+    "pyarrow>=25,<26",
+    "psycopg[binary]>=3.3,<4",
+]
 
 [dependency-groups]
 dev = [
@@ -16,14 +19,13 @@ dev = [
     "types-PyYAML>=6.0",
     "import-linter>=2.3",
 ]
-# Talks to the running stack (.\make.ps1 test-integration); CI installs it for type checks only.
-integration = [
-    "pyarrow>=25,<26",
-    "psycopg[binary]>=3.3,<4",
-]
+# Talks to the running stack (.\make.ps1 test-integration). Its clients (pyarrow, psycopg) became
+# runtime dependencies in M1-S1; the group stays as the CI/make entry point for these tests.
+integration = []
 
 [project.scripts]
 ghflow-profile = "ghflow.commands.profile:main"
+ghflow-ingest = "ghflow.commands.ingest:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -77,7 +79,7 @@ name = "The shell sits on the core, never the reverse"
 type = "layers"
 layers = [
     "ghflow.commands",
-    "ghflow.archive | ghflow.contract | ghflow.profiling",
+    "ghflow.archive | ghflow.audit | ghflow.storage | ghflow.bronze | ghflow.contract | ghflow.profiling",
     "ghflow.events | ghflow.fields | ghflow.exitcodes",
     "ghflow.hours",
     "ghflow.settings",

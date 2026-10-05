@@ -95,6 +95,10 @@ wheels = [
 name = "ghflow"
 version = "0.0.0"
 source = { editable = "." }
+dependencies = [
+    { name = "psycopg", extra = ["binary"] },
+    { name = "pyarrow" },
+]
 
 [package.dev-dependencies]
 dev = [
@@ -106,12 +110,12 @@ dev = [
     { name = "ruff" },
     { name = "types-pyyaml" },
 ]
-integration = [
-    { name = "psycopg", extra = ["binary"] },
-    { name = "pyarrow" },
-]
 
 [package.metadata]
+requires-dist = [
+    { name = "psycopg", extras = ["binary"], specifier = ">=3.3,<4" },
+    { name = "pyarrow", specifier = ">=25,<26" },
+]
 
 [package.metadata.requires-dev]
 dev = [
@@ -123,10 +127,7 @@ dev = [
     { name = "ruff", specifier = ">=0.8" },
     { name = "types-pyyaml", specifier = ">=6.0" },
 ]
-integration = [
-    { name = "psycopg", extras = ["binary"], specifier = ">=3.3,<4" },
-    { name = "pyarrow", specifier = ">=25,<26" },
-]
+integration = []
 
 [[package]]
 name = "grimp"

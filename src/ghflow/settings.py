@@ -50,3 +50,8 @@ ERA_SKIP_LIMIT = 96
 #: An in-era field missing from every row of its type refuses the hour only if the type has at
 #: least this many rows — one row without an optional key is not a schema change (M0-S3).
 VANISHED_MIN_ROWS = 20
+
+#: Bronze Parquet (M1-S1): zstd at a fixed level and one row group per hour, so the same rows
+#: always encode to the same bytes (re-running an hour rewrites a byte-identical file).
+BRONZE_ZSTD_LEVEL = 3
+BRONZE_ROW_GROUP_ROWS = 1_000_000

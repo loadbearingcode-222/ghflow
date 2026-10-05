@@ -156,3 +156,10 @@ olist-lakehouse). Provenance is in brackets. Entries below it are earned by THIS
     SyntaxError. *Check:* write generated text with raw strings (`r"""…"""`) or no backslashes
     at all, and parse what you generated before pushing — `tests/unit/test_workflows.py` parses
     every workflow. (M0-S4)
+43. **An hourly DAG ingests the hour that is still in progress.** In Airflow 3 a bare cron
+    schedule (`"@hourly"`) is a *trigger* timetable: the run at 13:00 has a zero-length interval
+    at 13:00, so `data_interval_start` renders hour 13, not the closed hour 12. A publication
+    sensor hides it (it waits until hour 13 is published) and the run looks healthy, an hour
+    late. *Check:* schedule with `CronDataIntervalTimetable("0 * * * *", timezone="UTC")` and
+    render the templated hour of a real run (`airflow tasks render`) before trusting it;
+    `tests/dags` asserts the timetable class. (M1-S1)

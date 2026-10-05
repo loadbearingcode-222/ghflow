@@ -1,0 +1,197 @@
+{
+  "story": "M1-S1",
+  "recorded_at": "2026-10-05",
+  "how": "DAG gharchive_ingest unpaused at 13:10 UTC (catchup off): run [12:00,13:00) ingested 2026-10-05-12; the task was cleared via the REST API and re-ran; run [13:00,14:00) at 14:00 waited for 2026-10-05-13. Red team: ghflow.commands.ingest run 2020-01-01-0 --source <planted gz with an unknown top-level key>, outside the backfill window. Objects re-read from S3 and hashed here, independently of the audit rows.",
+  "sensor_waited": {
+    "run": "scheduled__2026-10-05T14:00:00+00:00",
+    "hour": "2026-10-05-13",
+    "mode": "reschedule",
+    "poke_interval_s": 120,
+    "pokes": [
+      [
+        "14:00:06",
+        "not_published"
+      ],
+      [
+        "14:02:08",
+        "not_published"
+      ],
+      [
+        "14:04:11",
+        "not_published"
+      ],
+      [
+        "14:06:12",
+        "published"
+      ]
+    ],
+    "ingest_finished": "14:06:18"
+  },
+  "refusal_red_team": {
+    "hour": "2020-01-01-0",
+    "exit_code": 1,
+    "objects_written": 0
+  },
+  "memory": {
+    "note": "peak RSS of one ingest in the scheduler container (contract + Parquet): 333 MiB on 2026-09-05-15, 307 MiB on 2026-10-02-15; 4 in flight would need ~1.3 GiB of the scheduler's 2 GiB -> raised in M1-S2"
+  },
+  "hours": {
+    "2026-10-05-12": {
+      "audit_attempts": [
+        {
+          "id": 1,
+          "attempted_at": "2026-10-05 13:12:03.890717+00:00",
+          "hour": "2026-10-05-12",
+          "hour_start": "2026-10-05 12:00:00+00:00",
+          "source": "archive",
+          "outcome": "accepted",
+          "http_verdict": "published",
+          "etag": "\"5ebf123f0cac13a78ac378570c1d63b5\"",
+          "content_length": 15358706,
+          "last_modified": "Mon, 05 Oct 2026 13:05:06 GMT",
+          "refusal_code": null,
+          "detail": null,
+          "rows_in": 88737,
+          "rows_accepted": 88737,
+          "rows_rejected": 0,
+          "raw_sha256": "2f52b7fe0e54d20e3eb6327c34369ceaf25ef75b7a41faccde86ff654205602f",
+          "bronze_sha256": "5c3cb6582c0267cdcb91ca07c6f1ba17564d9b40fd42362e531f11031fe115fb",
+          "sidecar_sha256": "29de5d2d4b7047c20d646391339f2de39fd613cef8266d4e96dabe679773dc09",
+          "duration_ms": 4609
+        },
+        {
+          "id": 2,
+          "attempted_at": "2026-10-05 13:13:33.973495+00:00",
+          "hour": "2026-10-05-12",
+          "hour_start": "2026-10-05 12:00:00+00:00",
+          "source": "archive",
+          "outcome": "accepted",
+          "http_verdict": "published",
+          "etag": "\"5ebf123f0cac13a78ac378570c1d63b5\"",
+          "content_length": 15358706,
+          "last_modified": "Mon, 05 Oct 2026 13:05:06 GMT",
+          "refusal_code": null,
+          "detail": null,
+          "rows_in": 88737,
+          "rows_accepted": 88737,
+          "rows_rejected": 0,
+          "raw_sha256": "2f52b7fe0e54d20e3eb6327c34369ceaf25ef75b7a41faccde86ff654205602f",
+          "bronze_sha256": "5c3cb6582c0267cdcb91ca07c6f1ba17564d9b40fd42362e531f11031fe115fb",
+          "sidecar_sha256": "29de5d2d4b7047c20d646391339f2de39fd613cef8266d4e96dabe679773dc09",
+          "duration_ms": 4524
+        }
+      ],
+      "objects": {
+        "raw": {
+          "path": "raw/gharchive/date=2026-10-05/2026-10-05-12.json.gz",
+          "bytes": 15358706,
+          "sha256": "2f52b7fe0e54d20e3eb6327c34369ceaf25ef75b7a41faccde86ff654205602f"
+        },
+        "bronze": {
+          "path": "bronze/gharchive/date=2026-10-05/hour=12/events.parquet",
+          "bytes": 7029452,
+          "sha256": "5c3cb6582c0267cdcb91ca07c6f1ba17564d9b40fd42362e531f11031fe115fb",
+          "rows": 88737
+        },
+        "sidecar": {
+          "path": "bronze/gharchive_rejected/date=2026-10-05/hour=12/rejected.parquet",
+          "bytes": 765,
+          "sha256": "29de5d2d4b7047c20d646391339f2de39fd613cef8266d4e96dabe679773dc09",
+          "rows": 0
+        }
+      },
+      "objects_in_bronze_partition": [
+        "bronze/gharchive/date=2026-10-05/hour=12/events.parquet"
+      ],
+      "rows_check": {
+        "rows_in": 88737,
+        "bronze_rows_read_back": 88737,
+        "sidecar_rows_read_back": 0,
+        "holds": true,
+        "every_attempt_same_bronze_sha256_as_stored": true
+      }
+    },
+    "2026-10-05-13": {
+      "audit_attempts": [
+        {
+          "id": 7,
+          "attempted_at": "2026-10-05 14:06:18.691724+00:00",
+          "hour": "2026-10-05-13",
+          "hour_start": "2026-10-05 13:00:00+00:00",
+          "source": "archive",
+          "outcome": "accepted",
+          "http_verdict": "published",
+          "etag": "\"7946a629cce847f44235fbca2399a522\"",
+          "content_length": 15292220,
+          "last_modified": "Mon, 05 Oct 2026 14:05:07 GMT",
+          "refusal_code": null,
+          "detail": null,
+          "rows_in": 88583,
+          "rows_accepted": 88583,
+          "rows_rejected": 0,
+          "raw_sha256": "7b1321d1a920f3357a8041d328b810fbdeecd3a3dd0d7b0d3babf18111a72fec",
+          "bronze_sha256": "06d76908882b7419d7debd32095445f498afe18c7d2c39bd6e8c4550edf34628",
+          "sidecar_sha256": "91396686ddcabdf937741a7cd0ee1f915dfc220fd0eaba7f210e3cec997bbddc",
+          "duration_ms": 5560
+        }
+      ],
+      "objects": {
+        "raw": {
+          "path": "raw/gharchive/date=2026-10-05/2026-10-05-13.json.gz",
+          "bytes": 15292220,
+          "sha256": "7b1321d1a920f3357a8041d328b810fbdeecd3a3dd0d7b0d3babf18111a72fec"
+        },
+        "bronze": {
+          "path": "bronze/gharchive/date=2026-10-05/hour=13/events.parquet",
+          "bytes": 7187169,
+          "sha256": "06d76908882b7419d7debd32095445f498afe18c7d2c39bd6e8c4550edf34628",
+          "rows": 88583
+        },
+        "sidecar": {
+          "path": "bronze/gharchive_rejected/date=2026-10-05/hour=13/rejected.parquet",
+          "bytes": 765,
+          "sha256": "91396686ddcabdf937741a7cd0ee1f915dfc220fd0eaba7f210e3cec997bbddc",
+          "rows": 0
+        }
+      },
+      "objects_in_bronze_partition": [
+        "bronze/gharchive/date=2026-10-05/hour=13/events.parquet"
+      ],
+      "rows_check": {
+        "rows_in": 88583,
+        "bronze_rows_read_back": 88583,
+        "sidecar_rows_read_back": 0,
+        "holds": true,
+        "every_attempt_same_bronze_sha256_as_stored": true
+      }
+    },
+    "2020-01-01-0": {
+      "audit_attempts": [
+        {
+          "id": 3,
+          "attempted_at": "2026-10-05 13:13:56.065938+00:00",
+          "hour": "2020-01-01-0",
+          "hour_start": "2020-01-01 00:00:00+00:00",
+          "source": "file:planted-2020-01-01-0.json.gz",
+          "outcome": "refused",
+          "http_verdict": null,
+          "etag": null,
+          "content_length": 220,
+          "last_modified": null,
+          "refusal_code": "STRUCTURE-UNKNOWN-KEY",
+          "detail": "line 3: ['surprise']",
+          "rows_in": null,
+          "rows_accepted": null,
+          "rows_rejected": null,
+          "raw_sha256": null,
+          "bronze_sha256": null,
+          "sidecar_sha256": null,
+          "duration_ms": 0
+        }
+      ],
+      "objects": {},
+      "objects_in_bronze_partition": [],
+      "rows_check": null
+    }
+  }
+}

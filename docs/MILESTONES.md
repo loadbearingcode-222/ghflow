@@ -62,7 +62,8 @@ ghflow/
 │  ├─ archive.py                                      M0-S2  I/O shell: HEAD/GET with a User-Agent · 404 vs timeout as distinct verdicts · download
 │  ├─ contract.py · exitcodes.py                      M0-S3  pure core: the one cast · structure refusal · named row rules
 │  ├─ commands/                                       M0-S5  I/O shell: the CLIs (profile, contract); every one exits through guarded()
-│  ├─ bronze.py · audit.py                            M1-S1  raw → projected Parquet + rejected-row sidecar · one audit row per attempt
+│  ├─ bronze.py                                       M1-S1  pure core: rows → deterministic bronze Parquet + rejected-row sidecar · object keys
+│  ├─ storage.py · audit.py                           M1-S1  I/O shell: S3 objects (pyarrow, path style) · one audit row per attempt in ghflow_ops
 │  ├─ quality/                                        M1-S4  baselines · volume · event mix · ETag re-check
 │  ├─ stream/
 │  │  ├─ __init__.py · replayer.py                    M2-S1  bronze hour → topic; checkpoint after flush; end-of-hour markers

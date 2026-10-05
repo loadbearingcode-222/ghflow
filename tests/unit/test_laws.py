@@ -136,7 +136,7 @@ def test_the_knob_check_catches_a_planted_constant() -> None:
 
 # ------------------------------------------------------------------ the core does no I/O
 
-CORE = ("settings", "hours", "events", "fields", "contract", "profiling")
+CORE = ("settings", "hours", "events", "fields", "contract", "profiling", "bronze")
 IO_MODULES = {
     "gzip", "http", "io", "os", "pathlib", "requests", "shutil", "socket", "subprocess", "sys",
     "urllib", "ghflow.archive", "ghflow.commands",

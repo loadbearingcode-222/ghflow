@@ -22,8 +22,10 @@ on:
 permissions:
   contents: read
 
+# A PR edit (title/body) runs only story-lint, so it gets its own group: in one shared group,
+# editing a PR body cancelled the in-flight code run and left only skipped jobs (M1-S1).
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.ref }}-${{ github.event.action == 'edited' && 'edit' || 'code' }}
   cancel-in-progress: true
 
 jobs:
