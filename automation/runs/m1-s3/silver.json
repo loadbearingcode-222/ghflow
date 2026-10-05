@@ -1,0 +1,86 @@
+{
+  "story": "M1-S3",
+  "recorded_at": "2026-10-05",
+  "dbt_build": {
+    "run": "dbt_build manual run m1s3_acceptance_build, conf full_refresh=true, on a freshly deleted warehouse",
+    "elapsed_s": 122.2,
+    "statuses": {
+      "success": 18,
+      "pass": 79
+    },
+    "models": 18,
+    "tests": 79,
+    "era_tests": [
+      "era__silver_commit_comment_events__action__from_2025_10_08T17",
+      "era__silver_create_events__full_ref__from_2025_10_08T17",
+      "era__silver_delete_events__full_ref__from_2025_10_08T17",
+      "era__silver_fork_events__action__from_2025_10_08T17",
+      "era__silver_pull_request_events__pr_additions__until_2025_10_08T17",
+      "era__silver_pull_request_events__pr_changed_files__until_2025_10_08T17",
+      "era__silver_pull_request_events__pr_deletions__until_2025_10_08T17",
+      "era__silver_pull_request_events__pr_merged__until_2025_10_08T17",
+      "era__silver_push_events__push_distinct_size__until_2025_10_08T17",
+      "era__silver_push_events__push_size__until_2025_10_08T17"
+    ],
+    "staging_s": 113.6,
+    "rows_test": "pass",
+    "contracts": "17 views, contract enforced (dbt fails the build on a column name or type mismatch)"
+  },
+  "independent_rows_check": {
+    "how": "bronze: num_rows from every Parquet footer (pyarrow); silver: count per (date, hour) from each view (DuckDB, read-only)",
+    "hours_in_bronze": 1529,
+    "hours_in_silver": 1529,
+    "bronze_rows": 143341109,
+    "silver_rows": 143341109,
+    "hours_that_differ": {},
+    "rows_per_view": {
+      "silver_commit_comment_events": 47496,
+      "silver_create_events": 6849171,
+      "silver_delete_events": 2417395,
+      "silver_discussion_events": 8320,
+      "silver_fork_events": 221498,
+      "silver_gollum_events": 18911,
+      "silver_issue_comment_events": 2830009,
+      "silver_issues_events": 2078652,
+      "silver_member_events": 80137,
+      "silver_public_events": 22209,
+      "silver_pull_request_events": 5664553,
+      "silver_pull_request_review_comment_events": 1116843,
+      "silver_pull_request_review_events": 1283473,
+      "silver_push_events": 119193384,
+      "silver_release_events": 466611,
+      "silver_watch_events": 1042447,
+      "silver_unknown_events": 0
+    }
+  },
+  "era_red_team": {
+    "command": "python -m ghflow.commands.silver redteam (in the scheduler container)",
+    "planted": "push_size = 7 on one 2026-08-03 PushEvent, in a disposable copy (prod attached read-only)",
+    "results": {
+      "era__silver_push_events__push_size__until_2025_10_08T17": [
+        "fail",
+        1
+      ],
+      "era__silver_push_events__push_distinct_size__until_2025_10_08T17": [
+        "pass",
+        0
+      ]
+    },
+    "exit_code": 0,
+    "copy_deleted": true
+  },
+  "memory": {
+    "docker_stats_peak_mib_incl_cache_limit_1500MB": 2768,
+    "anon_peak_mib_limit_1GB_4_threads": 2282,
+    "anon_peak_mib_limit_1GB_2_threads": 2288,
+    "dbt_process_vmrss_peak_mib": 2121,
+    "decision": "scheduler mem_limit 3g -> 4g (ADR-0003 point 8, gotcha #45)"
+  },
+  "warehouse_file": {
+    "first_plain_build_gb": 7.45,
+    "after_4_more_full_refreshes_gb": 26.2,
+    "fresh_full_refresh_gb": 13.1,
+    "issue": 20
+  },
+  "incremental_run": "host smoke on 2 days of bronze: first build 17 s, incremental re-run 20 s, both 97/97 PASS"
+}

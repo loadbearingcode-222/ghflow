@@ -42,6 +42,8 @@ x-airflow-common: &airflow-common
   volumes:
     - ./airflow/dags:/opt/airflow/dags:ro
     - airflow-logs:/opt/airflow/logs
+    # DuckDB's one file. Only dbt_build writes it, through the one-slot `duckdb` pool (ADR-0003).
+    - warehouse:/opt/ghflow/warehouse
   user: "50000:0"
   depends_on: &airflow-depends-on
     platform-db-init:
@@ -139,6 +141,8 @@ services:
         airflow db migrate
         airflow users create --username admin --password "$$ADMIN_PASSWORD" \
           --firstname ghflow --lastname admin --role Admin --email admin@example.invalid || true
+        # DuckDB has exactly one writer: every task that touches it runs in this pool (ADR-0003).
+        airflow pools set duckdb 1 "DuckDB warehouse: one writer at a time"
         echo "airflow-init: done"
     restart: "no"
 
@@ -173,7 +177,7 @@ services:
       timeout: 10s
       retries: 6
       start_period: 30s
-    mem_limit: 3g   # LocalExecutor: tasks run here; 4 ingests x ~330 MiB peak + ~400 MiB scheduler (M1-S2)
+    mem_limit: 4g   # LocalExecutor: tasks run here. Measured peaks: ingest ~330 MiB each (4 in flight), dbt build ~2.1 GiB (M1-S3)
     restart: unless-stopped
 
   airflow-dag-processor:
@@ -210,5 +214,6 @@ services:
 
 volumes:
   seaweedfs-data:
+  warehouse:
   platform-db:
   airflow-logs:

@@ -1,0 +1,23 @@
+# Secrets and endpoints come from the environment (compose sets them for Airflow); nothing here
+# is a secret. `prod` is the warehouse volume; `redteam` is a disposable copy (M1-S3 era red team).
+ghflow:
+  target: prod
+  outputs:
+    prod: &duckdb
+      type: duckdb
+      path: "{{ env_var('GHFLOW_WAREHOUSE', '/opt/ghflow/warehouse/ghflow.duckdb') }}"
+      threads: 4
+      extensions: [httpfs]
+      settings:
+        memory_limit: "{{ env_var('GHFLOW_DUCKDB_MEMORY', '1GB') }}"
+        preserve_insertion_order: false
+        extension_directory: "{{ env_var('GHFLOW_DUCKDB_EXTENSIONS', '/opt/ghflow/duckdb-extensions') }}"
+        s3_endpoint: "{{ env_var('S3_ENDPOINT', 'http://127.0.0.1:39000') | replace('http://', '') }}"
+        s3_access_key_id: "{{ env_var('S3_ACCESS_KEY', 'unset') }}"
+        s3_secret_access_key: "{{ env_var('S3_SECRET_KEY', 'unset') }}"
+        s3_url_style: path
+        s3_use_ssl: false
+        s3_region: us-east-1
+    redteam:
+      <<: *duckdb
+      path: "{{ env_var('GHFLOW_REDTEAM_WAREHOUSE', '/tmp/ghflow-redteam.duckdb') }}"

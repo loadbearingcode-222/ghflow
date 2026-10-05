@@ -145,6 +145,13 @@ ingests file H; gotcha #43) → raw `.gz` + projected bronze Parquet + sidecar i
 attempt in `ghflow_ops.ingest_audit`. Airflow 3.3's `airflow tasks clear` CLI silently matches
 nothing; clear through the REST API (`/api/v2/dags/<dag>/clearTaskInstances`).
 
+Silver (M1-S3, ADR-0003): DAG `dbt_build` (daily 02:30, pool `duckdb` = the one writer) runs
+`dbt build` in /opt/ghflow/dbt/ghflow → `main_staging.stg_gharchive__events` (incremental by day)
++ one contract-enforced view per event type in `main_silver`, generated from `ghflow.fields`
+(`uv run python -m ghflow.commands.silver generate|check`; never hand-edit models/silver/).
+Warehouse: `/opt/ghflow/warehouse/ghflow.duckdb` (volume `warehouse`); attach it read-only AS
+`ghflow` (gotcha #47). Full rebuild: trigger dbt_build with conf {"full_refresh": true}.
+
 Code layers (M0-S5, `docs/ITERATION.md`): pure core `settings`, `hours`, `events`, `fields`,
 `contract`, `profiling` (no I/O); shell `archive`, `commands/` (every CLI through `guarded()`).
 One cast (`contract.py`), one JSON-line reader (`events.py`), one home per knob (`settings.py`);
