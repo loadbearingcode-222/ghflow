@@ -144,12 +144,13 @@ switch ($Target) {
     'dags'      {
         # docker build, not `compose build`: compose interpolates every ${VAR:?} first, so it
         # would refuse before .env exists. CI builds the same way.
-        Invoke-Checked 'docker' @('build', '-f', 'docker/airflow/Dockerfile', '-t', 'ghflow/airflow:dev', '.')
+        Invoke-Checked 'docker' @('build', '-f', 'docker/airflow/Dockerfile', '--target', 'dag-test', '-t', 'ghflow/airflow:dag-test', '.')
         $dags = Join-Path $PSScriptRoot 'airflow\dags'
         New-Item -ItemType Directory -Force -Path $dags | Out-Null
-        Invoke-Checked 'docker' @('run', '--rm', '-e', 'AIRFLOW__CORE__LOAD_EXAMPLES=false',
-            '-v', "${dags}:/opt/airflow/dags:ro", 'ghflow/airflow:dev',
-            'bash', '-c', 'pip install -q pytest && python -m pytest -q /opt/ghflow/tests/dags')
+        # pytest is baked into the dag-test stage: the check runs with networking off (issue #14).
+        Invoke-Checked 'docker' @('run', '--rm', '--network', 'none', '-e', 'AIRFLOW__CORE__LOAD_EXAMPLES=false',
+            '-v', "${dags}:/opt/airflow/dags:ro", 'ghflow/airflow:dag-test',
+            'python', '-m', 'pytest', '-q', '-p', 'no:cacheprovider', '/opt/ghflow/tests/dags')
     }
     'test-integration' { Invoke-Uv @('run', '--group', 'integration', 'pytest', '-m', 'integration', 'tests/integration') }
     'check'     {

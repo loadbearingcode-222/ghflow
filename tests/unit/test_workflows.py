@@ -7,6 +7,7 @@ PR shows "no checks reported", and that reads like "still queued" rather than "b
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -41,3 +42,26 @@ def test_a_planted_broken_block_is_caught() -> None:
     broken = "jobs:\n  x:\n    runs-on: ubuntu-latest\n    steps:\n      - run: |\n          echo \"a | tr '\n' ' '\"\n"
     with pytest.raises(yaml.YAMLError):
         yaml.safe_load(broken)
+
+
+SHA_PIN = re.compile(r"^[\w.-]+/[\w.-]+@[0-9a-f]{40}$")
+
+
+def unpinned_actions(workflow: dict[Any, Any]) -> list[str]:
+    """Every `uses:` not pinned to a full commit SHA: a tag can be moved under us, a SHA cannot."""
+    return [
+        step["uses"]
+        for job in workflow.get("jobs", {}).values()
+        for step in job.get("steps", [])
+        if "uses" in step and not SHA_PIN.match(step["uses"])
+    ]
+
+
+@pytest.mark.parametrize("path", WORKFLOWS, ids=[p.name for p in WORKFLOWS])
+def test_every_action_is_pinned_by_commit_sha(path: Path) -> None:
+    assert unpinned_actions(yaml.safe_load(path.read_text(encoding="utf-8"))) == []
+
+
+def test_a_planted_tag_pin_is_caught() -> None:
+    planted = {"jobs": {"x": {"steps": [{"uses": "actions/checkout@v7"}, {"run": "true"}]}}}
+    assert unpinned_actions(planted) == ["actions/checkout@v7"]
