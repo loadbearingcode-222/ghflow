@@ -65,3 +65,13 @@ def test_every_action_is_pinned_by_commit_sha(path: Path) -> None:
 def test_a_planted_tag_pin_is_caught() -> None:
     planted = {"jobs": {"x": {"steps": [{"uses": "actions/checkout@v7"}, {"run": "true"}]}}}
     assert unpinned_actions(planted) == ["actions/checkout@v7"]
+
+
+@pytest.mark.parametrize("path", WORKFLOWS, ids=[p.name for p in WORKFLOWS])
+def test_a_pr_edit_cannot_cancel_a_code_run(path: Path) -> None:
+    """Edits and code runs must not share a cancel-in-progress group (M1-S1 lost a run that way)."""
+    workflow: dict[Any, Any] = yaml.safe_load(path.read_text(encoding="utf-8"))
+    group = str((workflow.get("concurrency") or {}).get("group", ""))
+    assert not group or "edited" in group, (
+        f"{path.name}: concurrency group {group!r} mixes edits and code"
+    )
