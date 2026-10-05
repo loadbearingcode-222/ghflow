@@ -9,7 +9,8 @@
 # The full stack does not fit a private-repo runner, so CI proves what it can in isolation; each
 # story's end-to-end acceptance runs locally and its evidence is committed under automation/runs/.
 # Jobs arrive with the stories that need them: compose-render and dag-integrity (M0-S4),
-# dbt-parse (M1-S3), avro-compat (M2-S1).
+# import-layers and ratchet (M0-S5), dbt-parse (M1-S3), avro-compat (M2-S1). Every action is pinned
+# by commit SHA, its release named beside it.
 name: ci
 
 on:
@@ -32,7 +33,7 @@ jobs:
     if: github.event_name == 'pull_request' && github.event.pull_request.state == 'open'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1 (node24), verified 2026-10-05
         with:
           fetch-depth: 0
       - name: The PR is the next story in docs/MILESTONES.md
@@ -47,7 +48,7 @@ jobs:
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1 (node24), verified 2026-10-05
       - name: Every tracked path is declared in docs/MILESTONES.md
         run: python3 .github/scripts/layout_lint.py
 
@@ -56,10 +57,8 @@ jobs:
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1 (node24), verified 2026-10-05
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0 (node24), verified 2026-10-05
       - run: uv sync --locked --group dev --group integration
       - run: uv run ruff check --output-format=github .
       - run: uv run ruff format --check .
@@ -71,7 +70,7 @@ jobs:
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1 (node24), verified 2026-10-05
       - name: compose.yaml renders with every required variable set
         # Dummy values: this proves the file parses and every ${VAR:?} is declared in
         # .env.example, not that the stack runs (that is each story's local acceptance).
@@ -88,7 +87,9 @@ jobs:
             echo "::error title=compose-render::IMAGE-UNPINNED: $unpinned"
             exit 1
           fi
-          if grep -nE '^FROM [^@]+$|COPY --from=[^@ ]+ ' docker/*/Dockerfile; then
+          # An image reference has a ':' or '/' (a stage name like `base` has neither) and must
+          # carry its digest; `FROM base AS runtime` reuses a stage that already did.
+          if grep -nE '^FROM [^ @]*[:/][^ @]*( |$)|COPY --from=[^ @]*[:/][^ @]* ' docker/*/Dockerfile; then
             echo "::error title=compose-render::IMAGE-UNPINNED: a Dockerfile base or COPY --from lacks a digest"
             exit 1
           fi
@@ -98,14 +99,39 @@ jobs:
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Build the Airflow image
-        run: docker build -f docker/airflow/Dockerfile -t ghflow/airflow:ci .
-      - name: Parse every DAG inside the image
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1 (node24), verified 2026-10-05
+      - name: Build the Airflow image's test stage
+        run: docker build -f docker/airflow/Dockerfile --target dag-test -t ghflow/airflow:dag-test .
+      - name: Parse every DAG inside the image, with networking off
+        # pytest is baked into the dag-test stage, so the check needs no network (issue #14).
         run: >-
           mkdir -p airflow/dags &&
-          docker run --rm
+          docker run --rm --network none
           -e AIRFLOW__CORE__LOAD_EXAMPLES=false
           -v "$PWD/airflow/dags:/opt/airflow/dags:ro"
-          ghflow/airflow:ci
-          bash -c "pip install -q pytest && python -m pytest -q /opt/ghflow/tests/dags"
+          ghflow/airflow:dag-test
+          python -m pytest -q -p no:cacheprovider /opt/ghflow/tests/dags
+
+  import-layers:
+    name: import layers
+    if: github.event.action != 'edited'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1 (node24), verified 2026-10-05
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0 (node24), verified 2026-10-05
+      - run: uv sync --locked --group dev
+      - name: The shell sits on the core, never the reverse (pyproject.toml [tool.importlinter])
+        run: uv run lint-imports
+
+  ratchet:
+    name: ratchet
+    if: github.event.action != 'edited'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1 (node24), verified 2026-10-05
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0 (node24), verified 2026-10-05
+      - run: uv sync --locked --group dev
+      - name: Complexity, branch, argument and statement floors (ruff)
+        run: uv run ruff check --select C90,PLR0912,PLR0913,PLR0915 --output-format=github .
+      - name: One-home laws, layers by AST, floors no looser, module size budget
+        run: uv run pytest -q tests/unit/test_laws.py tests/unit/test_events.py

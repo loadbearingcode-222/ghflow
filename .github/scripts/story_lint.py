@@ -64,36 +64,28 @@ def plan_ids(milestones: str) -> list[str]:
     return [match["id"] for match in PLAN_HEADING.finditer(milestones)]
 
 
-def check(branch: str, title: str, plan: list[str], merged_log: str) -> list[Violation]:
-    """All rules, evaluated together so one run reports everything wrong at once."""
+def _naming(branch: str, title: str) -> tuple[str | None, list[Violation]]:
+    """The story id the branch and title agree on (or whichever one parses), and what is wrong."""
     violations: list[Violation] = []
-
     branch_id = story_id_from_branch(branch)
     if branch_id is None:
         violations.append(
             Violation("BRANCH-NAME", f"{branch!r} is not feat/m<M>-s<S>[-<P>]-<slug>")
         )
-
     title_match = TITLE.match(title)
     title_id = title_match["id"] if title_match else None
     if title_id is None:
         violations.append(Violation("TITLE-FORMAT", f"{title!r} is not 'M<M>-S<S>: <words>'"))
-
     if branch_id and title_id and branch_id != title_id:
         violations.append(
             Violation("ID-MISMATCH", f"branch names {branch_id}, title names {title_id}")
         )
+    return title_id or branch_id, violations
 
-    story = title_id or branch_id
-    if story is None:
-        return violations
 
-    if story not in plan:
-        violations.append(
-            Violation("ID-NOT-IN-PLAN", f"{story} is not a story heading in docs/MILESTONES.md")
-        )
-        return violations
-
+def _ordering(story: str, plan: list[str], merged_log: str) -> list[Violation]:
+    """Is it this story's turn: not merged already, and its predecessor merged?"""
+    violations: list[Violation] = []
     if branch_prefix(story).search(merged_log):
         violations.append(
             Violation(
@@ -101,7 +93,6 @@ def check(branch: str, title: str, plan: list[str], merged_log: str) -> list[Vio
                 f"{story} merged already; put the fix in the next story under 'Also fixes'",
             )
         )
-
     position = plan.index(story)
     if position > 0:
         predecessor = plan[position - 1]
@@ -111,8 +102,20 @@ def check(branch: str, title: str, plan: list[str], merged_log: str) -> list[Vio
                     "PREDECESSOR-OPEN", f"{predecessor} comes first and has not merged into main"
                 )
             )
-
     return violations
+
+
+def check(branch: str, title: str, plan: list[str], merged_log: str) -> list[Violation]:
+    """All rules, evaluated together so one run reports everything wrong at once."""
+    story, violations = _naming(branch, title)
+    if story is None:
+        return violations
+    if story not in plan:
+        violations.append(
+            Violation("ID-NOT-IN-PLAN", f"{story} is not a story heading in docs/MILESTONES.md")
+        )
+        return violations
+    return violations + _ordering(story, plan, merged_log)
 
 
 def merged_log(main_ref: str) -> str:

@@ -38,3 +38,15 @@ SAMPLED_HOURS = ("2024-06-15-15", "2026-09-01-15", "2026-09-05-15", "2026-10-02-
 #: full payloads, the later one is trimmed (both observed during scoping).
 DRIFT_BEFORE = "2024-06-15-15"
 DRIFT_AFTER = "2026-10-02-15"
+
+#: Payload-era classification (M0-S2): events of a type inspected before calling an hour's
+#: shape. Each must agree, so a mixed hour reads as the old shape.
+ERA_SAMPLE = 20
+
+#: An hour with none of the event type (the Sep 2026 outage had no PushEvents for days) is
+#: undecided; the era probe moves forward hour by hour, at most this far.
+ERA_SKIP_LIMIT = 96
+
+#: An in-era field missing from every row of its type refuses the hour only if the type has at
+#: least this many rows — one row without an optional key is not a schema change (M0-S3).
+VANISHED_MIN_ROWS = 20

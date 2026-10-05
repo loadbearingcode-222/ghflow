@@ -84,7 +84,8 @@ $Targets = [ordered]@{
     'format'           = 'Auto-fix formatting and lint rules'
     'typecheck'        = 'mypy --strict'
     'test'             = 'Unit tests'
-    'check'            = 'sync + lint + typecheck + test (what CI runs)'
+    'layers'           = 'Import layers: the shell sits on the core, never the reverse (import-linter)'
+    'check'            = 'sync + lint + typecheck + layers + test (what CI quality, import-layers and ratchet run)'
     'profile'          = 'Measure GH Archive (network), write the record, render docs/data/gharchive.md'
     'profile-render'   = 'Re-render docs/data/gharchive.md from the committed record (no network)'
     'contract-check'   = 'Apply the event contract to seven real hours (network) -> automation/runs/m0-s3/'
@@ -95,7 +96,7 @@ $Targets = [ordered]@{
     'ps'               = 'Show every service and its state'
     'logs'             = 'Follow the stack logs'
     'reset'            = 'down -v: delete every volume (needs -Force)'
-    'dags'             = 'Build the Airflow image and run the DAG-integrity tests inside it'
+    'dags'             = "Build the Airflow image's dag-test stage; run the DAG-integrity tests in it, network off"
     'test-integration' = 'Tests against the running stack (needs up)'
 }
 
@@ -113,13 +114,14 @@ switch ($Target) {
     'lint'      { Invoke-Uv @('run', 'ruff', 'check', '.'); Invoke-Uv @('run', 'ruff', 'format', '--check', '.') }
     'format'    { Invoke-Uv @('run', 'ruff', 'check', '--fix', '.'); Invoke-Uv @('run', 'ruff', 'format', '.') }
     'typecheck' { Invoke-Uv @('run', 'mypy') }
+    'layers'    { Invoke-Uv @('run', 'lint-imports') }
     'test'      { Invoke-Uv @('run', 'pytest', 'tests/unit') }
-    'profile'   { Invoke-Uv @('run', 'python', '-m', 'ghflow.profile', 'measure') }
-    'profile-render' { Invoke-Uv @('run', 'python', '-m', 'ghflow.profile', 'render') }
+    'profile'   { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.profile', 'measure') }
+    'profile-render' { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.profile', 'render') }
     'contract-check' {
         # 2024 baseline, both sides of the trim, an outage hour, the broken-mix hour, a partial hour, a healthy hour
         $hours = @('2024-06-15-15', '2025-10-08-16', '2025-10-08-17', '2026-09-02-5', '2026-09-05-15', '2026-09-21-15', '2026-10-02-15')
-        Invoke-Uv (@('run', 'python', '-m', 'ghflow.contract') + $hours + @('--record', 'automation/runs/m0-s3/real_hours.json'))
+        Invoke-Uv (@('run', 'python', '-m', 'ghflow.commands.contract') + $hours + @('--record', 'automation/runs/m0-s3/real_hours.json'))
     }
     'env'       { Invoke-Env }
     'doctor'    { Invoke-Checked 'powershell' @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'scripts\doctor.ps1')) }
@@ -144,20 +146,22 @@ switch ($Target) {
     'dags'      {
         # docker build, not `compose build`: compose interpolates every ${VAR:?} first, so it
         # would refuse before .env exists. CI builds the same way.
-        Invoke-Checked 'docker' @('build', '-f', 'docker/airflow/Dockerfile', '-t', 'ghflow/airflow:dev', '.')
+        Invoke-Checked 'docker' @('build', '-f', 'docker/airflow/Dockerfile', '--target', 'dag-test', '-t', 'ghflow/airflow:dag-test', '.')
         $dags = Join-Path $PSScriptRoot 'airflow\dags'
         New-Item -ItemType Directory -Force -Path $dags | Out-Null
-        Invoke-Checked 'docker' @('run', '--rm', '-e', 'AIRFLOW__CORE__LOAD_EXAMPLES=false',
-            '-v', "${dags}:/opt/airflow/dags:ro", 'ghflow/airflow:dev',
-            'bash', '-c', 'pip install -q pytest && python -m pytest -q /opt/ghflow/tests/dags')
+        # pytest is baked into the dag-test stage: the check runs with networking off (issue #14).
+        Invoke-Checked 'docker' @('run', '--rm', '--network', 'none', '-e', 'AIRFLOW__CORE__LOAD_EXAMPLES=false',
+            '-v', "${dags}:/opt/airflow/dags:ro", 'ghflow/airflow:dag-test',
+            'python', '-m', 'pytest', '-q', '-p', 'no:cacheprovider', '/opt/ghflow/tests/dags')
     }
     'test-integration' { Invoke-Uv @('run', '--group', 'integration', 'pytest', '-m', 'integration', 'tests/integration') }
     'check'     {
         & $PSCommandPath sync
         & $PSCommandPath lint
         & $PSCommandPath typecheck
+        & $PSCommandPath layers
         & $PSCommandPath test
-        Write-Host 'check: lint, types and unit tests all passed' -ForegroundColor Green
+        Write-Host 'check: lint, types, layers and unit tests all passed' -ForegroundColor Green
     }
     default {
         Write-Host "Unknown target '$Target'. Run .\make.ps1 help" -ForegroundColor Red

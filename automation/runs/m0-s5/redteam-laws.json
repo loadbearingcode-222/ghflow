@@ -1,0 +1,13 @@
+{
+  "story": "M0-S5",
+  "recorded_at": "2026-10-05",
+  "what": "Each law planted-against in the real source (working copy only, reverted with git checkout), then run.",
+  "plants": [
+    {"law": "one home per knob", "planted": "RETRY_LIMIT = 7 appended to src/ghflow/hours.py", "caught_by": "tests/unit/test_laws.py::test_every_knob_lives_in_settings", "result": "failed as intended"},
+    {"law": "one JSON-line reader", "planted": "json.loads(line) in a helper appended to src/ghflow/profiling.py", "caught_by": "tests/unit/test_laws.py::test_only_the_reader_parses_json", "result": "failed as intended"},
+    {"law": "the pure core does no I/O", "planted": "from ghflow.archive import head appended to src/ghflow/contract.py", "caught_by": "tests/unit/test_laws.py::test_the_pure_core_does_no_io", "result": "failed as intended"},
+    {"law": "core/shell layers", "planted": "the same contract.py import", "caught_by": "lint-imports: 'The shell sits on the core, never the reverse' BROKEN, ghflow.contract -> ghflow.archive", "result": "failed as intended"}
+  ],
+  "unplanted_run": "13 law tests passed; lint-imports 1 kept, 0 broken",
+  "reverted": "git checkout -- src; src identical to HEAD afterwards"
+}

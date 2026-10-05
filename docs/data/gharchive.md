@@ -9,7 +9,7 @@ redistributes it — raw and derived data live only in Docker volumes.
 
 **Rule for this file:** the prose quotes no measurements. Every number below sits between the
 GENERATED markers and is rendered from `automation/runs/m0-s2/profile.json` by
-`python -m ghflow.profile render`; `tests/unit/test_profile_doc.py` fails if the two disagree or
+`.\make.ps1 profile-render`; `tests/unit/test_profile_doc.py` fails if the two disagree or
 if a number appears outside the block.
 
 ## What the pipeline must assume
@@ -39,8 +39,8 @@ if a number appears outside the block.
 
 ## Measurements
 
-<!-- BEGIN GENERATED: python -m ghflow.profile render -->
-*Measured 2026-10-04T16:56:42Z by `python -m ghflow.profile measure`; record: `automation/runs/m0-s2/profile.json`.*
+<!-- BEGIN GENERATED: .\make.ps1 profile-render -->
+*Measured 2026-10-04T16:56:42Z by `.\make.ps1 profile`; record: `automation/runs/m0-s2/profile.json`.*
 
 #### Download needed to backfill
 

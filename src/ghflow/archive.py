@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import enum
 import gzip
+import shutil
 import time
 import urllib.error
 import urllib.request
@@ -17,62 +18,10 @@ from collections.abc import Callable, Iterator, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass, replace
-from datetime import UTC, date, datetime, timedelta
+from pathlib import Path
 
 from ghflow import settings
-
-
-@dataclass(frozen=True, order=True)
-class Hour:
-    """One GH Archive file: the events created in [start, start + 1h), UTC."""
-
-    start: datetime
-
-    def __post_init__(self) -> None:
-        if self.start.tzinfo is None or self.start.utcoffset() != timedelta(0):
-            raise ValueError(f"Hour must be UTC: {self.start!r}")
-        if (self.start.minute, self.start.second, self.start.microsecond) != (0, 0, 0):
-            raise ValueError(f"Hour must be on the hour: {self.start!r}")
-
-    @classmethod
-    def parse(cls, key: str) -> Hour:
-        """`2026-09-05-15` (GH Archive's own naming: the hour is not zero-padded)."""
-        day, _, hour = key.rpartition("-")
-        if not day or not hour.isdigit() or not 0 <= int(hour) <= 23:
-            raise ValueError(f"not a GH Archive hour key: {key!r}")
-        parsed = datetime.strptime(day, "%Y-%m-%d").replace(tzinfo=UTC)
-        return cls(parsed + timedelta(hours=int(hour)))
-
-    @classmethod
-    def of(cls, day: date, hour: int) -> Hour:
-        return cls(datetime(day.year, day.month, day.day, hour, tzinfo=UTC))
-
-    @property
-    def key(self) -> str:
-        return f"{self.start:%Y-%m-%d}-{self.start.hour}"
-
-    @property
-    def url(self) -> str:
-        return f"{settings.BASE_URL}/{self.key}.json.gz"
-
-    @property
-    def day(self) -> date:
-        return self.start.date()
-
-    def plus(self, hours: int) -> Hour:
-        return Hour(self.start + timedelta(hours=hours))
-
-
-def hours_between(first: Hour, last: Hour) -> list[Hour]:
-    """Every hour from `first` to `last`, inclusive."""
-    if last < first:
-        raise ValueError(f"{last.key} is before {first.key}")
-    count = int((last.start - first.start).total_seconds() // 3600) + 1
-    return [first.plus(n) for n in range(count)]
-
-
-def hours_of_days(first: date, last: date) -> list[Hour]:
-    return hours_between(Hour.of(first, 0), Hour.of(last, 23))
+from ghflow.hours import Hour
 
 
 class Verdict(enum.StrEnum):
@@ -128,28 +77,36 @@ def head(hour: Hour, timeout: float = settings.HTTP_TIMEOUT_S) -> Probe:
 Fetch = Callable[[Hour], Probe]
 
 
+@dataclass(frozen=True)
+class SweepPolicy:
+    """How hard a sweep tries: requests in flight, then slow sequential retries of failures."""
+
+    concurrency: int = settings.CONCURRENCY
+    retries: int = settings.RETRIES
+    pause_s: float = settings.RETRY_PAUSE_S
+    sleep: Callable[[float], None] = time.sleep
+
+
+#: The policy the measurements in docs/data/gharchive.md were taken under.
+DEFAULT_POLICY = SweepPolicy()
+
+
 def sweep(
-    hours: Sequence[Hour],
-    fetch: Fetch = head,
-    *,
-    concurrency: int = settings.CONCURRENCY,
-    retries: int = settings.RETRIES,
-    pause_s: float = settings.RETRY_PAUSE_S,
-    sleep: Callable[[float], None] = time.sleep,
+    hours: Sequence[Hour], fetch: Fetch = head, policy: SweepPolicy = DEFAULT_POLICY
 ) -> list[Probe]:
     """Probe every hour; retry each failed request sequentially before accepting the failure.
 
     The retry is sequential and slow on purpose: a failure under load is usually the load.
-    A probe still failing after `retries` keeps its REQUEST_FAILED verdict — it is never
+    A probe still failing after `policy.retries` keeps its REQUEST_FAILED verdict — it is never
     promoted to NOT_PUBLISHED.
     """
-    with ThreadPoolExecutor(max_workers=concurrency) as pool:
+    with ThreadPoolExecutor(max_workers=policy.concurrency) as pool:
         first = list(pool.map(fetch, hours))
     settled: list[Probe] = []
     for probe in first:
         attempts = 1
-        while probe.verdict is Verdict.REQUEST_FAILED and attempts <= retries:
-            sleep(pause_s * attempts)
+        while probe.verdict is Verdict.REQUEST_FAILED and attempts <= policy.retries:
+            policy.sleep(policy.pause_s * attempts)
             probe = fetch(probe.hour)
             attempts += 1
         settled.append(replace(probe, attempts=attempts))
@@ -164,3 +121,23 @@ def open_hour(hour: Hour, timeout: float = settings.HTTP_TIMEOUT_S) -> Iterator[
         gzip.GzipFile(fileobj=response) as lines,
     ):
         yield lines
+
+
+def download_hour(hour: Hour, dest: Path, timeout: float = settings.HTTP_TIMEOUT_S) -> Path:
+    """Save one hour's .json.gz exactly as served.
+
+    Streams into `<dest>.part` and renames it into place only when complete; on any failure the
+    partial file is removed, so `dest` is either the whole file or absent — never a truncated one.
+    """
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    partial = dest.with_suffix(dest.suffix + ".part")
+    try:
+        with (
+            urllib.request.urlopen(_request(hour, "GET"), timeout=timeout) as response,
+            partial.open("wb") as out,
+        ):
+            shutil.copyfileobj(response, out, length=1 << 20)
+        partial.replace(dest)
+    finally:
+        partial.unlink(missing_ok=True)
+    return dest

@@ -1,0 +1,60 @@
+{
+  "story": "M0-S5",
+  "phase": "before",
+  "git_head": "861fd62",
+  "complexity_top": [
+    {
+      "complexity": 13,
+      "module": "contract.py",
+      "function": "apply"
+    },
+    {
+      "complexity": 8,
+      "module": "contract.py",
+      "function": "main"
+    },
+    {
+      "complexity": 7,
+      "module": "profile.py",
+      "function": "render"
+    },
+    {
+      "complexity": 7,
+      "module": "contract.py",
+      "function": "_project"
+    },
+    {
+      "complexity": 6,
+      "module": "contract.py",
+      "function": "_envelope"
+    },
+    {
+      "complexity": 5,
+      "module": "contract.py",
+      "function": "_cast"
+    },
+    {
+      "complexity": 4,
+      "module": "profile.py",
+      "function": "push_is_trimmed"
+    },
+    {
+      "complexity": 4,
+      "module": "profile.py",
+      "function": "pull_request_is_trimmed"
+    }
+  ],
+  "functions_over_8": 1,
+  "module_lines": {
+    "src/ghflow/__init__.py": 1,
+    "src/ghflow/archive.py": 188,
+    "src/ghflow/contract.py": 380,
+    "src/ghflow/exitcodes.py": 41,
+    "src/ghflow/profile.py": 377,
+    "src/ghflow/settings.py": 40
+  },
+  "modules_over_300_lines": [
+    "src/ghflow/contract.py",
+    "src/ghflow/profile.py"
+  ]
+}

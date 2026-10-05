@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import io
+import urllib.request
 from datetime import UTC, date, datetime
+from pathlib import Path
 
 import pytest
 
-from ghflow.archive import Hour, Probe, Verdict, classify, hours_between, hours_of_days, sweep
+from ghflow.archive import Probe, SweepPolicy, Verdict, classify, sweep
+from ghflow.hours import Hour, hours_between, hours_of_days
 
 
 def test_hour_keys_follow_gh_archive_naming() -> None:
@@ -64,7 +68,7 @@ def test_a_planted_timeout_is_request_failed_never_not_published() -> None:
         calls.append(hour.key)
         return Probe(hour, Verdict.REQUEST_FAILED, None, detail="TimeoutError")
 
-    [probe] = sweep([H], always_times_out, retries=3, sleep=lambda _: None)
+    [probe] = sweep([H], always_times_out, SweepPolicy(retries=3, sleep=lambda _: None))
     assert probe.verdict is Verdict.REQUEST_FAILED
     assert probe.attempts == 4
     assert calls == [H.key] * 4
@@ -77,7 +81,7 @@ def test_a_timeout_that_recovers_on_retry_is_published() -> None:
         status = next(answers)
         return Probe(hour, classify(status), status, size=20_000_000 if status else None)
 
-    [probe] = sweep([H], flaky, retries=3, sleep=lambda _: None)
+    [probe] = sweep([H], flaky, SweepPolicy(retries=3, sleep=lambda _: None))
     assert (probe.verdict, probe.attempts, probe.size) == (Verdict.PUBLISHED, 3, 20_000_000)
 
 
@@ -88,6 +92,36 @@ def test_a_real_404_is_not_retried() -> None:
         calls.append(hour.key)
         return Probe(hour, classify(404), 404)
 
-    [probe] = sweep([H], missing, retries=3, sleep=lambda _: None)
+    [probe] = sweep([H], missing, SweepPolicy(retries=3, sleep=lambda _: None))
     assert probe.verdict is Verdict.NOT_PUBLISHED
     assert len(calls) == 1
+
+
+class _BrokenStream(io.BytesIO):
+    """Serves a few bytes, then stalls the way a slow server does."""
+
+    def read(self, size: int | None = -1) -> bytes:
+        if self.tell() > 0:
+            raise TimeoutError("The read operation timed out")
+        return super().read(4)
+
+
+def test_a_failed_download_leaves_no_partial_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from ghflow import archive
+
+    monkeypatch.setattr(urllib.request, "urlopen", lambda *a, **k: _BrokenStream(b"0123456789"))
+    dest = tmp_path / "2026-09-05-15.json.gz"
+    with pytest.raises(TimeoutError):
+        archive.download_hour(Hour.parse("2026-09-05-15"), dest)
+    assert sorted(p.name for p in tmp_path.iterdir()) == []
+
+
+def test_a_complete_download_lands_whole(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from ghflow import archive
+
+    monkeypatch.setattr(urllib.request, "urlopen", lambda *a, **k: io.BytesIO(b"gz-bytes"))
+    dest = archive.download_hour(Hour.parse("2026-09-05-15"), tmp_path / "h.json.gz")
+    assert dest.read_bytes() == b"gz-bytes"
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["h.json.gz"]

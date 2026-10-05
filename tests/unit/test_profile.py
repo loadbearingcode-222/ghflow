@@ -2,26 +2,21 @@
 
 from __future__ import annotations
 
-import json
-from datetime import timedelta
-
 import pytest
 
-from ghflow.archive import Hour
-from ghflow.profile import (
+from factories import HOUR, line
+from factories import event as body
+from ghflow.hours import Hour
+from ghflow.profiling import (
     bisect_boundary,
     profile_lines,
     pull_request_is_trimmed,
     push_is_trimmed,
 )
 
-HOUR = Hour.parse("2026-10-02-15")
-
 
 def event(type_: str, payload: dict[str, object], minute: int = 7) -> bytes:
-    created = (HOUR.start + timedelta(minutes=minute)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    body = {"id": "1", "type": type_, "created_at": created, "payload": payload}
-    return (json.dumps(body) + "\n").encode()
+    return line(body(type_, payload, minute=minute))
 
 
 def test_profile_counts_events_types_and_payload_share() -> None:
@@ -83,7 +78,7 @@ def test_bisection_refuses_wrong_brackets() -> None:
 
 
 def test_census_counts_every_event_by_shape() -> None:
-    from ghflow.profile import census_lines
+    from ghflow.profiling import census_lines
 
     lines = [
         event("PushEvent", {"commits": []}),

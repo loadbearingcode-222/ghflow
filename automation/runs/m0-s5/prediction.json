@@ -1,0 +1,43 @@
+{
+  "story": "M0-S5",
+  "committed_before_any_change": true,
+  "baseline": {
+    "git_head": "861fd62",
+    "bench": "automation/runs/m0-s5/bench-before.json",
+    "contract_apply_median_s_2026_10_02_15": 1.8927,
+    "json_parse_share_pct": 51.6,
+    "output_sha256": "a999484c501993b7..."
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "change": "behaviour-preserving refactors (#4 #5 #6 #7 #8 #12)",
+      "claim": "contract.apply output fingerprint identical on every reference hour; median within +/-10% of baseline (refactors are not optimisations)"
+    },
+    {
+      "id": "P2",
+      "change": "orjson behind the single JSON-line reader, bytes parsed without a prior decode (#11)",
+      "claim": "contract.apply median on 2026-10-02-15 <= 1.35 s (from 1.89 s, >= 28% faster), fingerprint identical",
+      "argument": "parsing is 51.6% of apply; orjson parses roughly 2-3x faster than json.loads, and skipping the eager decode removes a second full pass over the bytes. 1.89 - 0.98 + 0.98/2.5 = 1.30 s; the bar is set looser, at 1.35 s"
+    },
+    {
+      "id": "P3",
+      "change": "same as P2, on the payload-heavy hour 2026-09-05-15",
+      "claim": "at least as large a relative gain as on 2026-10-02-15 (payload is 91% of its bytes, so parsing dominates more)"
+    },
+    {
+      "id": "P4",
+      "change": "readability ratchet (#5 #6 #8)",
+      "claim": "no function above complexity 8 (contract.apply is 13 today), no module above 300 lines (contract.py 380, profile.py 377 today), no function above 5 arguments"
+    },
+    {
+      "id": "P5",
+      "change": "import layers",
+      "claim": "core modules (settings, hours, events, fields, contract, profiling, exitcodes) import no I/O: not ghflow.archive or ghflow.commands, not urllib, http, socket, subprocess or gzip"
+    }
+  ],
+  "negative_predictions": [
+    "no test is weakened or deleted: the set of collected test ids after is a superset of before",
+    "docs/data/gharchive.md re-renders byte-identical from the unchanged M0-S2 record"
+  ]
+}

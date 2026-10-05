@@ -14,6 +14,7 @@ dev = [
     "pre-commit>=4.0",
     "pyyaml>=6.0",
     "types-PyYAML>=6.0",
+    "import-linter>=2.3",
 ]
 # Talks to the running stack (.\make.ps1 test-integration); CI installs it for type checks only.
 integration = [
@@ -22,7 +23,7 @@ integration = [
 ]
 
 [project.scripts]
-ghflow-profile = "ghflow.profile:main"
+ghflow-profile = "ghflow.commands.profile:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -47,16 +48,45 @@ select = [
     "SIM",       # simplify
     "PTH",       # pathlib only: the repo path contains a space
     "RUF",
+    "C90",       # mccabe complexity      } the readability ratchet: floors below, mirrored in
+    "PLR0912",   # branches per function  } tests/unit/test_laws.py; a refine may tighten them,
+    "PLR0913",   # arguments per function } loosening one needs an ADR (docs/ITERATION.md)
+    "PLR0915",   # statements per function}
 ]
 ignore = ["E501"]  # the formatter owns line length
 
+[tool.ruff.lint.mccabe]
+max-complexity = 8
+
+[tool.ruff.lint.pylint]
+max-args = 5
+max-branches = 10
+max-statements = 40
+
 [tool.ruff.lint.isort]
-known-first-party = ["ghflow", "story_lint", "layout_lint"]
+known-first-party = ["ghflow", "story_lint", "layout_lint", "factories"]
+
+# ---------------------------------------------------------------- import-linter
+# Core/shell layers (docs/ITERATION.md, "How readability and cohesion are measured"). A module
+# may import only from layers below it; modules sharing a layer may not import each other.
+[tool.importlinter]
+root_package = "ghflow"
+
+[[tool.importlinter.contracts]]
+name = "The shell sits on the core, never the reverse"
+type = "layers"
+layers = [
+    "ghflow.commands",
+    "ghflow.archive | ghflow.contract | ghflow.profiling",
+    "ghflow.events | ghflow.fields | ghflow.exitcodes",
+    "ghflow.hours",
+    "ghflow.settings",
+]
 
 # ---------------------------------------------------------------- mypy
 [tool.mypy]
 python_version = "3.12"
-files = ["src", ".github/scripts", "tests"]
+files = ["src", ".github/scripts", "scripts", "tests"]
 mypy_path = ".github/scripts"
 strict = true
 warn_unreachable = true

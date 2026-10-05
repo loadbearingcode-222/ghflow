@@ -9,10 +9,13 @@ from typing import Any
 
 import pytest
 
-from ghflow import contract
-from ghflow.archive import Hour
-from ghflow.contract import COLUMNS, ROW_RULES, Refusal, apply
+from factories import line, push
+from ghflow import fields
+from ghflow.commands import contract as contract_cli
+from ghflow.contract import ROW_RULES, Refusal, apply
 from ghflow.exitcodes import ExitCode, guarded
+from ghflow.fields import COLUMNS
+from ghflow.hours import Hour
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 HAZARDS: list[dict[str, Any]] = json.loads(
@@ -74,15 +77,13 @@ def test_every_row_rule_is_exercised_by_a_hazard_or_has_a_reason() -> None:
     assert unexercised == {"actor_malformed"}, unexercised  # the twin of repo_malformed
 
 
-def push_hour(rows: int, without_ref: int) -> list[str]:
-    base = json.loads(HAZARDS[0]["line"])
+def push_hour(rows: int, without_ref: int) -> list[bytes]:
     lines = []
     for n in range(rows):
-        event = json.loads(json.dumps(base))
-        event["id"] = str(50_000_000_000 + n)
+        event = push(50_000_000_000 + n)
         if n < without_ref:
             del event["payload"]["ref"]
-        lines.append(json.dumps(event))
+        lines.append(line(event))
     return lines
 
 
@@ -106,7 +107,7 @@ def test_the_cli_refuses_with_exit_1_and_writes_nothing(
     hazard = next(h for h in HAZARDS if h["name"] == "unknown_top_level_key")
     source = tmp_path / "hour.json"
     source.write_text(clean_line(hazard) + "\n" + hazard["line"] + "\n", encoding="utf-8")
-    code = contract.main([hazard["hour"], "--file", str(source)])
+    code = contract_cli.main([hazard["hour"], "--file", str(source)])
     out = capsys.readouterr()
     assert code == ExitCode.REFUSED
     assert int(ExitCode.REFUSED) == 1  # the vocabulary, not a magic number
@@ -125,6 +126,7 @@ def test_an_unenumerated_exception_exits_4_never_1() -> None:
 
 # ------------------------------------------------------------------ the one-cast law, by AST
 
+THE_CAST = REPO_ROOT / "src" / "ghflow" / "contract.py"
 CASTS = {"int", "float", "str", "bool", "Decimal", "strptime", "fromisoformat", "fromtimestamp"}
 
 
@@ -142,7 +144,7 @@ def source_field_access(node: ast.AST) -> str | None:
         key = node.args[0].value
     else:
         return None
-    return key if isinstance(key, str) and key in contract.SOURCE_KEYS else None
+    return key if isinstance(key, str) and key in fields.SOURCE_KEYS else None
 
 
 def casts_of_source_fields(tree: ast.AST) -> list[str]:
@@ -166,7 +168,7 @@ def casts_of_source_fields(tree: ast.AST) -> list[str]:
 def test_only_the_contract_casts_a_source_field() -> None:
     offenders = {}
     for path in sorted((REPO_ROOT / "src" / "ghflow").rglob("*.py")):
-        if path.name == "contract.py":
+        if path == THE_CAST:  # by path, not name: commands/contract.py gets no exemption
             continue
         if found := casts_of_source_fields(ast.parse(path.read_text("utf-8"))):
             offenders[str(path.relative_to(REPO_ROOT))] = found

@@ -1,0 +1,8 @@
+{
+  "story": "M0-S5",
+  "issue": 14,
+  "recorded_at": "2026-10-05",
+  "old": {"how": "ghflow/airflow:dev (M0-S4 image), pip install -q pytest at run time, then pytest tests/dags", "wall_ms": [9620, 10090, 8848, 8782, 9222], "median_ms": 9222, "all_passed": true, "with_network_none": "fails: pip install exits 1 (9287 ms)"},
+  "new": {"how": "dag-test stage (pytest 9.1.1 baked in, = uv.lock), docker run --network none", "wall_ms": [6134, 6149, 6068, 6289, 6968], "median_ms": 6149, "all_passed": true},
+  "note": "Interleaved old/new per run, same machine and session. The image's uv moved 0.11.25 -> 0.12.23 (issue #13) and `uv sync --locked` accepted the lock written by host uv 0.11.25."
+}

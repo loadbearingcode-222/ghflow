@@ -1,0 +1,95 @@
+{
+  "benchmark": "contract",
+  "recorded_at": "2026-10-05T12:34:13Z",
+  "git_head": "bfba4da",
+  "machine": {
+    "python": "3.12.13",
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel"
+  },
+  "results": [
+    {
+      "hour": "2026-10-02-15",
+      "input_sha256": "2dfe227250407f417988bf47bcaa61ff01299ed10b1a027c68f6aec00cb7ace6",
+      "rows_in": 84804,
+      "raw_mb": 95.0,
+      "contract_apply": {
+        "runs": 7,
+        "median_s": 2.115,
+        "min_s": 2.0033,
+        "max_s": 2.2133,
+        "spread_pct": 9.9,
+        "rows_per_s": 40097,
+        "all_s": [
+          2.115,
+          2.2133,
+          2.1069,
+          2.0033,
+          2.1341,
+          2.1211,
+          2.0475
+        ]
+      },
+      "json_parse_only": {
+        "runs": 7,
+        "median_s": 1.0093,
+        "min_s": 0.9768,
+        "max_s": 1.1435,
+        "spread_pct": 16.5,
+        "rows_per_s": 84023,
+        "all_s": [
+          1.1435,
+          1.0638,
+          0.9976,
+          0.9768,
+          1.0121,
+          1.0093,
+          0.9825
+        ]
+      },
+      "parse_share_pct": 47.7,
+      "output_sha256": "a999484c501993b7783ac385cf43570f4c231925e3c91d1d0448191eea8be842"
+    },
+    {
+      "hour": "2026-09-05-15",
+      "input_sha256": "2e2ddd12a987ae0d7892c33d1668f0ceff30c3fbb91ba64b56596f300da24403",
+      "rows_in": 84492,
+      "raw_mb": 383.5,
+      "contract_apply": {
+        "runs": 7,
+        "median_s": 3.9707,
+        "min_s": 3.8512,
+        "max_s": 4.1629,
+        "spread_pct": 7.9,
+        "rows_per_s": 21279,
+        "all_s": [
+          3.8512,
+          4.1629,
+          4.0923,
+          3.9707,
+          3.9477,
+          3.9409,
+          4.0894
+        ]
+      },
+      "json_parse_only": {
+        "runs": 7,
+        "median_s": 3.25,
+        "min_s": 3.1714,
+        "max_s": 3.323,
+        "spread_pct": 4.7,
+        "rows_per_s": 25997,
+        "all_s": [
+          3.1805,
+          3.3093,
+          3.323,
+          3.25,
+          3.2268,
+          3.1714,
+          3.3085
+        ]
+      },
+      "parse_share_pct": 81.9,
+      "output_sha256": "f5acd71d2e0208e5c54cb1a56f8a5f1d755b682262e9ac5d75325b62f34fa632"
+    }
+  ]
+}

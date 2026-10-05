@@ -1,0 +1,76 @@
+{
+  "story": "M0-S5",
+  "recorded_at": "2026-10-05",
+  "method": "Before = worktree of bfba4da (861fd62 + download_hour, the code the prediction was made against); after = this branch. Run alternately before, after, before, after, 7 runs each, same session, same cached inputs (input_sha256 in each record). Records: automation/runs/m0-s5/bench/.",
+  "keep_rule": "From the plan (docs/MILESTONES.md, M0-S5 Accept-when): a parser optimisation is kept only if it meets its committed prediction and the contract's output hashes are identical; additionally the after/before IQRs must not overlap on every reference hour.",
+  "pooled": {
+    "2026-10-02-15": {
+      "before_median_s": 2.326,
+      "before_iqr_s": [
+        2.11,
+        2.6
+      ],
+      "after_median_s": 1.835,
+      "after_iqr_s": [
+        1.8,
+        1.94
+      ],
+      "gain_pct": 21.1,
+      "p_after_faster": 0.98
+    },
+    "2026-09-05-15": {
+      "before_median_s": 4.091,
+      "before_iqr_s": [
+        3.95,
+        4.21
+      ],
+      "after_median_s": 3.351,
+      "after_iqr_s": [
+        3.06,
+        3.7
+      ],
+      "gain_pct": 18.1,
+      "p_after_faster": 0.91
+    }
+  },
+  "parse_alone_round_2": {
+    "2026-10-02-15": {
+      "json_loads_s": 1.0093,
+      "reader_s": 0.6596
+    },
+    "2026-09-05-15": {
+      "json_loads_s": 3.25,
+      "reader_s": 2.2953
+    }
+  },
+  "fingerprints_identical": true,
+  "predictions": {
+    "P1": {
+      "verdict": "met",
+      "evidence": "fingerprints identical on both hours; apply minus parse ~1.11 s before vs ~1.14 s after (within 10%)"
+    },
+    "P2": {
+      "verdict": "missed",
+      "evidence": "1.835 s pooled median vs <= 1.35 s predicted; 21% faster vs >= 28% predicted",
+      "why": "orjson parses these lines ~1.5x faster than json.loads, not the 2.5x assumed, and the 19-digit guard adds ~0.13 s per hour; the eager decode the argument expected to remove was a small share"
+    },
+    "P3": {
+      "verdict": "missed (narrowly)",
+      "evidence": "heavy hour gained 18.1% vs 21.1% on the typical hour"
+    },
+    "decision": "REVERTED. The change was faster (IQRs disjoint, hashes identical) but missed its committed prediction P2, and the Accept-when keeps a parser optimisation only if it meets that prediction. An IQR-only keep rule was briefly written after seeing the numbers; it was withdrawn as moving the bar. events.parse is json.loads again; the measurements seed a new refine issue with a re-derived prediction (target M1-S5)."
+  },
+  "attempt_1": {
+    "what": "the same change with a regex guard, re.search(rb'\\d{19}') per line",
+    "result": "slower than before: 2.91/3.26 s vs 2.09/2.17 s (typical), 6.90/7.95 s vs 4.06/4.13 s (heavy); the regex scan alone cost 1.40 s and 4.93 s per hour, more than json.loads",
+    "fix": "bytes.translate digits to '0' then a substring search: 0.13 s and 0.46 s, flagging exactly the same 294 and 921 lines",
+    "records": "automation/runs/m0-s5/bench/attempt-1-regex-guard/"
+  },
+  "after_revert": {
+    "fingerprints": {
+      "2026-10-02-15": "a999484c501993b7...",
+      "2026-09-05-15": "f5acd71d2e0208e5..."
+    },
+    "uv_lock": "package set identical to before orjson was added"
+  }
+}
