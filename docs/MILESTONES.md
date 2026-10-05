@@ -60,7 +60,6 @@ ghflow/
 │  ├─ __init__.py · settings.py                       M0-S2  settings: every knob, one home (enforced from M0-S5)
 │  ├─ hours.py · events.py · fields.py · profiling.py  M0-S5  pure core: hour values · the one JSON-line reader · field declarations and eras · profile arithmetic and rendering
 │  ├─ archive.py                                      M0-S2  I/O shell: HEAD/GET with a User-Agent · 404 vs timeout as distinct verdicts · download
-│  ├─ profile.py                                      M0-S2  being split in M0-S5 into profiling.py (core) and commands/profile.py (shell)
 │  ├─ contract.py · exitcodes.py                      M0-S3  pure core: the one cast · structure refusal · named row rules
 │  ├─ commands/                                       M0-S5  I/O shell: the CLIs (profile, contract); every one exits through guarded()
 │  ├─ bronze.py · audit.py                            M1-S1  raw → projected Parquet + rejected-row sidecar · one audit row per attempt
@@ -95,7 +94,7 @@ ghflow/
    ├─ ITERATION.md                                    M0-S5  the iteration model (section 3 of this plan), for readers of the repo
    ├─ gotchas.md                                      M0-S1  GOTCHA_SEED classes A–D and F–I, plus the traps found in scoping
    ├─ adr/                                            M0-S1  one file per decision
-   ├─ data/gharchive.md                               M0-S2  measured source facts and attribution; every number re-derived by profile.py
+   ├─ data/gharchive.md                               M0-S2  measured source facts and attribution; every number re-derived by commands/profile.py
    ├─ RUNBOOK.md · FAILURE_DRILLS.md                  M2-S3
    ├─ KPIS.md                                         M5-S1  KPI id · formula · source · window · owner; a changed formula gets a new id
    ├─ architecture.md                                 M0-S1  the blueprint (Mermaid, rendered by GitHub); refreshed in every Refine story

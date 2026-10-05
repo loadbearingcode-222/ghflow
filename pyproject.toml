@@ -22,7 +22,7 @@ integration = [
 ]
 
 [project.scripts]
-ghflow-profile = "ghflow.profile:main"
+ghflow-profile = "ghflow.commands.profile:main"
 
 [build-system]
 requires = ["hatchling"]

@@ -11,7 +11,8 @@ import re
 
 import pytest
 
-from ghflow.profile import BEGIN, DOC, END, RECORD, render, splice
+from ghflow.commands.profile import DOC, RECORD
+from ghflow.profiling import BEGIN, END, render, splice
 
 #: Things in prose that contain digits but are not measurements: inline code, story ids,
 #: gotcha references, HTTP status codes, and ISO dates.

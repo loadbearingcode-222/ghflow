@@ -8,7 +8,7 @@ from datetime import timedelta
 import pytest
 
 from ghflow.hours import Hour
-from ghflow.profile import (
+from ghflow.profiling import (
     bisect_boundary,
     profile_lines,
     pull_request_is_trimmed,
@@ -83,7 +83,7 @@ def test_bisection_refuses_wrong_brackets() -> None:
 
 
 def test_census_counts_every_event_by_shape() -> None:
-    from ghflow.profile import census_lines
+    from ghflow.profiling import census_lines
 
     lines = [
         event("PushEvent", {"commits": []}),
