@@ -38,9 +38,17 @@ def window(last: str) -> list[Hour]:
 
 
 def verdict_report(
-    expected: list[Hour], verdicts: dict[datetime, str], attempts: dict[datetime, int]
+    expected: list[Hour],
+    verdicts: dict[datetime, str],
+    attempts: dict[datetime, int],
+    finals: dict[datetime, int],
 ) -> dict[str, Any]:
-    """Every expected hour must have exactly one final verdict; anything else is named."""
+    """Every expected hour must have exactly one final verdict; anything else is named.
+
+    A *duplicate* is an hour with more than one final (accepted/refused) attempt. A *retry* is
+    a non-final attempt (failed, crashed) before the one that counted: expected on a flaky
+    network, reported, but not a duplicate.
+    """
     final = {h.key: verdicts[h.start] for h in expected if verdicts.get(h.start) in FINAL}
     return {
         "expected_hours": len(expected),
@@ -52,22 +60,27 @@ def verdict_report(
             for h in expected
             if verdicts.get(h.start) not in FINAL | {None}
         },
-        "attempted_more_than_once": {
-            h.key: n for h in expected if (n := attempts.get(h.start, 0)) > 1
+        "duplicated": {h.key: n for h in expected if (n := finals.get(h.start, 0)) > 1},
+        "retried": {
+            h.key: n - finals.get(h.start, 0)
+            for h in expected
+            if (n := attempts.get(h.start, 0)) > finals.get(h.start, 0)
         },
-        "complete": len(final) == len(expected),
+        "complete": len(final) == len(expected)
+        and not any(finals.get(h.start, 0) > 1 for h in expected),
     }
 
 
 # ------------------------------------------------------------------ Airflow's side
 
 
-def active_backfill(api: Airflow) -> dict[str, Any]:
+def latest_backfill(api: Airflow, *, open_only: bool) -> dict[str, Any]:
+    """The newest backfill of the DAG; with open_only, the newest one not yet completed."""
     backfills = api.call("GET", "/api/v2/backfills", dag_id=DAG)["backfills"]
-    open_ = [b for b in backfills if b.get("completed_at") is None]
-    if not open_:
-        raise LookupError(f"no open backfill for {DAG}")
-    return dict(open_[-1])
+    candidates = [b for b in backfills if not open_only or b.get("completed_at") is None]
+    if not candidates:
+        raise LookupError(f"no {'open ' if open_only else ''}backfill for {DAG}")
+    return dict(max(candidates, key=lambda b: b["id"]))
 
 
 def runs_in_state(api: Airflow, *states: str) -> int:
@@ -101,7 +114,7 @@ def start(api: Airflow, last: str) -> int:
 
 
 def park(api: Airflow, wait: bool) -> int:
-    backfill = active_backfill(api)
+    backfill = latest_backfill(api, open_only=True)
     api.call("PUT", f"/api/v2/backfills/{backfill['id']}/pause")
     deadline = time.monotonic() + 15 * 60
     in_flight = runs_in_state(api, "running")
@@ -125,7 +138,7 @@ def park(api: Airflow, wait: bool) -> int:
 
 
 def resume(api: Airflow) -> int:
-    backfill = active_backfill(api)
+    backfill = latest_backfill(api, open_only=True)
     api.call("PUT", f"/api/v2/backfills/{backfill['id']}/unpause")
     print(json.dumps({"backfill_id": backfill["id"], "paused": False}))
     return ExitCode.PASSED
@@ -141,7 +154,7 @@ def progress(conn: Any, api: Airflow, last: str) -> dict[str, Any]:
     done = sum(v in FINAL for v in verdicts.values())
     now = datetime.now(UTC)
     recent = audit.attempt_counts(conn, hours[0].start, end, since=now - timedelta(minutes=10))
-    backfill = active_backfill(api)
+    backfill = latest_backfill(api, open_only=False)
     # The rate is over the last 10 minutes, or since the backfill began if that is sooner, so
     # a fresh backfill does not read as ten times slower than it is.
     began = datetime.fromisoformat(backfill["created_at"].replace("Z", "+00:00"))
@@ -155,6 +168,7 @@ def progress(conn: Any, api: Airflow, last: str) -> dict[str, Any]:
         "refused": sum(v == "refused" for v in verdicts.values()),
         "in_flight": runs_in_state(api, "running"),
         "paused": backfill.get("is_paused"),
+        "completed_at": backfill.get("completed_at"),
         "hours_per_min": per_min,
         "eta_min": round((len(hours) - done) / per_min) if per_min else None,
     }
@@ -177,6 +191,7 @@ def verify(conn: Any, last: str, out: Path | None) -> int:
         hours,
         audit.final_verdicts(conn, hours[0].start, end),
         audit.attempt_counts(conn, hours[0].start, end, since=datetime(1970, 1, 1, tzinfo=UTC)),
+        audit.final_attempt_counts(conn, hours[0].start, end),
     )
     report["window"] = {"first": hours[0].key, "last": hours[-1].key}
     report["totals"] = audit.totals(conn, hours[0].start, end)

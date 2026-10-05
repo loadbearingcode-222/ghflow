@@ -132,3 +132,16 @@ def totals(conn: psycopg.Connection[Any], first: datetime, end: datetime) -> dic
     names = ("hours", "gz_bytes", "rows_in", "rows_accepted", "rows_rejected", "refused",
              "first_attempt", "last_attempt", "task_ms")  # fmt: skip
     return dict(zip(names, row, strict=True))
+
+
+def final_attempt_counts(
+    conn: psycopg.Connection[Any], first: datetime, end: datetime
+) -> dict[datetime, int]:
+    """Accepted or refused archive attempts per hour in [first, end): above 1 is a duplicate."""
+    cur = conn.execute(
+        b"select hour_start, count(*) from ingest_audit where source = 'archive' "
+        b"and outcome in ('accepted', 'refused') and hour_start >= %s and hour_start < %s "
+        b"group by hour_start",
+        (first, end),
+    )
+    return {row[0]: int(row[1]) for row in cur.fetchall()}

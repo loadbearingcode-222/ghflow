@@ -64,3 +64,12 @@ def test_raw_retention_runs_daily_on_its_own_interval() -> None:
     assert isinstance(dag.timetable, CronDataIntervalTimetable) and dag.max_active_runs == 1
     task = dag.get_task("delete_expired_raw")
     assert "data_interval_end" in str(task.op_kwargs["as_of"]), "the interval is the clock"
+
+
+def test_every_dag_starts_no_later_than_the_window() -> None:
+    """A run before start_date gets no tasks yet reports success (gotcha #44)."""
+    import pendulum
+
+    window_start = pendulum.datetime(2026, 8, 3, tz="UTC")
+    for dag_id, dag in DagBag(dag_folder=str(DAGS)).dags.items():
+        assert dag.start_date <= window_start, f"{dag_id} starts after the window"

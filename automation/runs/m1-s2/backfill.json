@@ -1,0 +1,147 @@
+{
+  "story": "M1-S2",
+  "recorded_at": "2026-10-05",
+  "window": {
+    "first": "2026-08-03-0",
+    "last": "2026-10-05-11"
+  },
+  "hours": {
+    "expected": 1524,
+    "with_final_verdict": 1524,
+    "outcomes": {
+      "accepted": 1524
+    },
+    "missing": [],
+    "not_final": {},
+    "duplicated": {},
+    "retried": {
+      "2026-08-08-13": 1,
+      "2026-08-09-8": 1,
+      "2026-08-13-16": 1,
+      "2026-08-14-3": 1,
+      "2026-08-14-15": 1,
+      "2026-08-16-17": 1,
+      "2026-08-19-12": 1,
+      "2026-08-20-7": 1,
+      "2026-08-22-2": 1,
+      "2026-08-25-15": 1,
+      "2026-08-28-7": 1,
+      "2026-09-01-6": 1,
+      "2026-09-01-7": 1,
+      "2026-09-02-1": 1
+    },
+    "complete": true
+  },
+  "retries_explained": "14 hours needed a retry: 11 first attempts failed with TimeoutError reading the body, 1 with RemoteDisconnected, and 2 crashed on http.client.IncompleteRead (2026-08-08-13: 21,136,527 bytes read, 23,035 more expected; 2026-08-19-12: 5,102,865 read, 108,190 more), which is not an OSError. Airflow retried each 5 min later and every retry was accepted. IncompleteRead is now a recorded `failed`, and crash rows now carry their reason (Also fixes).",
+  "bytes": {
+    "raw_gz_downloaded": 32932390511,
+    "bronze_objects_bytes_incl_sidecars_and_4_live_hours": 9654521322
+  },
+  "rows": {
+    "in": 142903946,
+    "accepted": 142902896,
+    "rejected_to_sidecars": 1050,
+    "refused_hours": 0
+  },
+  "wall_time": {
+    "backfill_created": "2026-10-05T14:17:07Z",
+    "completed_at": "2026-10-05T16:12:59Z",
+    "elapsed": "1h55m52s (incl. 4 min parked)",
+    "first_attempt": "2026-10-05 14:17:40.411296+00:00",
+    "last_attempt": "2026-10-05 16:12:51.796807+00:00",
+    "sum_of_task_time_s": 13261
+  },
+  "airflow_side": {
+    "backfill_id": 1,
+    "max_active_runs": 4,
+    "reprocess_behavior": "none",
+    "runs": 1524,
+    "distinct_logical_dates": 1524,
+    "max_runs_per_date": 1,
+    "states": {
+      "success": 1524
+    }
+  },
+  "park_resume_watch": {
+    "park": {
+      "command": "make.ps1 park  (backfill park --wait)",
+      "at": "14:19:44",
+      "in_flight_at_park": 4,
+      "progress_lines": [
+        "waiting for 4 hour(s) in flight",
+        "4",
+        "3",
+        "1"
+      ],
+      "result": {
+        "backfill_id": 1,
+        "paused": true,
+        "in_flight": 0,
+        "verdict": "SAFE TO WALK AWAY"
+      },
+      "safe_at": "14:20:45",
+      "exit_code": 0
+    },
+    "held_while_parked": [
+      [
+        "14:20:53",
+        23,
+        0
+      ],
+      [
+        "14:21:49",
+        23,
+        0
+      ],
+      [
+        "14:22:45",
+        23,
+        0
+      ],
+      [
+        "14:23:41",
+        23,
+        0
+      ]
+    ],
+    "held_columns": [
+      "at",
+      "hours_done",
+      "in_flight"
+    ],
+    "resume": {
+      "at": "14:23:45",
+      "result": {
+        "backfill_id": 1,
+        "paused": false
+      },
+      "after_100s": {
+        "at": "14:25:27",
+        "done": 38,
+        "in_flight": 4
+      }
+    },
+    "watch_first_line_after_start": {
+      "started": "14:17:07",
+      "first_line": "14:17:32",
+      "first_progress": "14:18:23 done 13"
+    }
+  },
+  "retention": {
+    "as_of": "2026-10-05T01:00:00+00:00",
+    "cutoff": "2026-09-21T01:00:00+00:00",
+    "raw_before": 1528,
+    "dry_run_would_delete": 1177,
+    "independent_expectation_equal": true,
+    "real_run": "scheduled__2026-10-05T01:00:00+00:00 (DAG raw_retention)",
+    "deleted": 1177,
+    "deleted_equals_dry_run": true,
+    "raw_after": 351,
+    "first_deleted": "raw/gharchive/date=2026-08-03/2026-08-03-0.json.gz",
+    "last_deleted": "raw/gharchive/date=2026-09-21/2026-09-21-0.json.gz",
+    "bronze_unchanged_paths_and_sizes": true,
+    "bronze_objects": 3056,
+    "trap_found": "a manual run for the interval before start_date got no tasks and reported success in 14 ms (gotcha #44); start_date moved to the window start"
+  },
+  "memory": "scheduler mem_limit 3g; observed ~750 MiB with 4 ingests in flight"
+}

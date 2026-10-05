@@ -23,7 +23,9 @@ DRY_RUN = "{{ 'true' if (dag_run.conf or {}).get('dry_run') else 'false' }}"
     schedule=CronDataIntervalTimetable(
         "0 1 * * *", timezone="UTC"
     ),  # daily, after midnight's hours land
-    start_date=pendulum.datetime(2026, 10, 5, tz="UTC"),
+    # The window start: a run whose logical date precedes start_date gets NO tasks and still
+    # reports success (gotcha #44), so a manual run for an earlier interval must be possible.
+    start_date=pendulum.datetime(2026, 8, 3, tz="UTC"),
     catchup=False,
     max_active_runs=1,
     tags=["ghflow", "batch", "M1"],

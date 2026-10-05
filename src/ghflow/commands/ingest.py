@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import gzip
+import http.client
 import io
 import json
 import os
@@ -29,6 +30,10 @@ from ghflow.contract import HourResult, Refusal, apply
 from ghflow.exitcodes import ExitCode, guarded
 from ghflow.hours import Hour
 from ghflow.storage import S3Config, Store
+
+#: A download that did not complete: retried by Airflow, recorded as `failed`, never `crashed`.
+#: http.client.IncompleteRead (a dropped connection mid-body) is not an OSError (M1-S2 backfill).
+TRANSPORT_ERRORS = (urllib.error.URLError, OSError, http.client.HTTPException)
 
 PROBE_EXIT = {
     Verdict.PUBLISHED: ExitCode.PASSED,
@@ -90,13 +95,16 @@ def run(hour: Hour, source: Path | None, store: Store, conn: Any) -> int:
     try:
         try:
             download = fetch(hour, source)
-        except (urllib.error.URLError, OSError) as exc:
-            attempt.outcome, attempt.detail = "failed", f"{type(exc).__name__}: {exc}"
+        except TRANSPORT_ERRORS as exc:
+            attempt.outcome, attempt.detail = "failed", f"{type(exc).__name__}: {exc}"[:500]
             return ExitCode.COULD_NOT_BUILD
         attempt.http_verdict = Verdict.PUBLISHED.value if source is None else None
         attempt.etag, attempt.last_modified = download.etag, download.last_modified
         attempt.content_length = len(download.data)
         return land(download, attempt, store, landed_raw=source is None)
+    except BaseException as exc:  # recorded as crashed WITH its reason, then raised
+        attempt.detail = f"{type(exc).__name__}: {exc}"[:500]
+        raise
     finally:
         attempt.duration_ms = int((time.monotonic() - started) * 1000)
         audit.record(conn, attempt)
