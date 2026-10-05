@@ -117,7 +117,7 @@ switch ($Target) {
         Write-Host ''
     }
     'hooks'     { Invoke-Checked 'git' @('config', 'core.hooksPath', '.githooks'); Write-Host 'git hooks installed from .githooks/' }
-    'sync'      { Invoke-Uv @('sync', '--locked', '--group', 'dev', '--group', 'integration') }
+    'sync'      { Invoke-Uv @('sync', '--locked', '--group', 'dev', '--group', 'integration', '--group', 'dbt') }
     'lint'      { Invoke-Uv @('run', 'ruff', 'check', '.'); Invoke-Uv @('run', 'ruff', 'format', '--check', '.') }
     'format'    { Invoke-Uv @('run', 'ruff', 'check', '--fix', '.'); Invoke-Uv @('run', 'ruff', 'format', '.') }
     'typecheck' { Invoke-Uv @('run', 'mypy') }
