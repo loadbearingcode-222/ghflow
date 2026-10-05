@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import subprocess
@@ -100,3 +101,14 @@ def test_the_dag_test_runner_is_the_locked_pytest() -> None:
     baked = re.search(r'"pytest==([^"]+)"', dockerfile)
     assert locked and baked, "pytest pin not found in uv.lock or the Dockerfile"
     assert baked[1] == locked[1], f"Dockerfile bakes pytest {baked[1]}, uv.lock has {locked[1]}"
+
+
+EVIDENCE = sorted((REPO_ROOT / "automation" / "runs").rglob("*.json"))
+
+
+@pytest.mark.parametrize(
+    "path", EVIDENCE, ids=[p.relative_to(REPO_ROOT).as_posix() for p in EVIDENCE]
+)
+def test_every_evidence_record_is_valid_json(path: Path) -> None:
+    """A hand-edited record with a bad escape is evidence nobody can read (M0-S5 nearly shipped one)."""
+    json.loads(path.read_text(encoding="utf-8"))

@@ -96,7 +96,7 @@ flowchart TB
   subgraph CORE["pure core · no network, no files, no printing"]
     CON["contract<br/>the one cast · row rules · refusals"]
     PRO["profiling<br/>counts · era classifiers · bisection · the doc block"]
-    EVT["events<br/>the one JSON-line reader (orjson, stdlib-exact)"]
+    EVT["events<br/>the one JSON-line reader"]
     FLD["fields<br/>keys · types · payload fields and their eras"]
     HRS["hours<br/>Hour values"]
     SET["settings<br/>every knob"]

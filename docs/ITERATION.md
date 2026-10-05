@@ -46,9 +46,12 @@ Every Refine story's Accept-when includes these:
 3. **Performance is a measurement, not a claim.** A prediction is committed before the change.
    Then `scripts/bench.py` records before/after medians of at least 5 runs on the same cached
    input, with its sha256 in the record. Before and after run alternately in the same session,
-   the "before" from a worktree of the base commit. A change is kept only if the after and
-   before interquartile ranges do not overlap on every reference hour; otherwise it is reverted.
-   A missed prediction is recorded as missed, with why — never re-set after the fact.
+   the "before" from a worktree of the base commit. A change is kept only if it **meets its
+   committed prediction**, its after and before interquartile ranges do not overlap on every
+   reference hour, and every output hash is identical; otherwise it is reverted. A missed
+   prediction is recorded as missed, with why, and never re-set after the fact; a retry is a new
+   `refine` issue with a new prediction drawn from the measurements. (M0-S5: orjson was 18–21%
+   faster, short of its committed 28%, and was reverted.)
 4. **Ratchets only tighten.** Complexity, size and import-layer limits live in `pyproject.toml`;
    their floors live in `tests/unit/test_laws.py`. A refine may tighten them. Loosening one needs
    an ADR.
