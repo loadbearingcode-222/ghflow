@@ -84,7 +84,8 @@ $Targets = [ordered]@{
     'format'           = 'Auto-fix formatting and lint rules'
     'typecheck'        = 'mypy --strict'
     'test'             = 'Unit tests'
-    'check'            = 'sync + lint + typecheck + test (what CI runs)'
+    'layers'           = 'Import layers: the shell sits on the core, never the reverse (import-linter)'
+    'check'            = 'sync + lint + typecheck + layers + test (what CI quality, import-layers and ratchet run)'
     'profile'          = 'Measure GH Archive (network), write the record, render docs/data/gharchive.md'
     'profile-render'   = 'Re-render docs/data/gharchive.md from the committed record (no network)'
     'contract-check'   = 'Apply the event contract to seven real hours (network) -> automation/runs/m0-s3/'
@@ -95,7 +96,7 @@ $Targets = [ordered]@{
     'ps'               = 'Show every service and its state'
     'logs'             = 'Follow the stack logs'
     'reset'            = 'down -v: delete every volume (needs -Force)'
-    'dags'             = 'Build the Airflow image and run the DAG-integrity tests inside it'
+    'dags'             = "Build the Airflow image's dag-test stage; run the DAG-integrity tests in it, network off"
     'test-integration' = 'Tests against the running stack (needs up)'
 }
 
@@ -113,6 +114,7 @@ switch ($Target) {
     'lint'      { Invoke-Uv @('run', 'ruff', 'check', '.'); Invoke-Uv @('run', 'ruff', 'format', '--check', '.') }
     'format'    { Invoke-Uv @('run', 'ruff', 'check', '--fix', '.'); Invoke-Uv @('run', 'ruff', 'format', '.') }
     'typecheck' { Invoke-Uv @('run', 'mypy') }
+    'layers'    { Invoke-Uv @('run', 'lint-imports') }
     'test'      { Invoke-Uv @('run', 'pytest', 'tests/unit') }
     'profile'   { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.profile', 'measure') }
     'profile-render' { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.profile', 'render') }
@@ -157,8 +159,9 @@ switch ($Target) {
         & $PSCommandPath sync
         & $PSCommandPath lint
         & $PSCommandPath typecheck
+        & $PSCommandPath layers
         & $PSCommandPath test
-        Write-Host 'check: lint, types and unit tests all passed' -ForegroundColor Green
+        Write-Host 'check: lint, types, layers and unit tests all passed' -ForegroundColor Green
     }
     default {
         Write-Host "Unknown target '$Target'. Run .\make.ps1 help" -ForegroundColor Red
