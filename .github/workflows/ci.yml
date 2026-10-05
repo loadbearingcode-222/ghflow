@@ -78,8 +78,7 @@ jobs:
         run: |
           sed 's/=$/=ci-dummy/' .env.example > .env
           docker compose config --quiet
-          echo "services: $(docker compose config --services | tr '
-' ' ')"
+          echo "services: $(docker compose config --services | xargs)"
       - name: Every third-party image is pinned by tag AND digest (ADR-0001)
         # Images this repo builds (ghflow/*) are exempt: their own Dockerfile pins its bases.
         run: |

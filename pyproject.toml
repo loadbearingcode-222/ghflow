@@ -12,6 +12,8 @@ dev = [
     "ruff>=0.8",
     "mypy>=1.13",
     "pre-commit>=4.0",
+    "pyyaml>=6.0",
+    "types-PyYAML>=6.0",
 ]
 # Talks to the running stack (.\make.ps1 test-integration); CI installs it for type checks only.
 integration = [

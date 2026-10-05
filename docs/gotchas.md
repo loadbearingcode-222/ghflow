@@ -149,3 +149,10 @@ olist-lakehouse). Provenance is in brackets. Entries below it are earned by THIS
     and a shell pipeline redirecting that output carries on with an empty file. *Check:* write
     files with `encoding="utf-8"` instead of redirecting `print`, or run through `uv run` (Python
     3.12) with `PYTHONUTF8=1`; read back what you created (`gh issue view N --json body`). (M0-S4)
+42. **A generated file breaks only after it reaches GitHub: "no checks reported", or a run that
+    "likely failed because of a workflow file issue" with no jobs.** Backslash escapes did not
+    survive the trip into generated text: `\n` inside a Python string became a real newline in
+    `ci.yml` (GitHub could not parse it, so CI ran nothing), and `\U` in `C:\Users` was a Python
+    SyntaxError. *Check:* write generated text with raw strings (`r"""…"""`) or no backslashes
+    at all, and parse what you generated before pushing — `tests/unit/test_workflows.py` parses
+    every workflow. (M0-S4)
