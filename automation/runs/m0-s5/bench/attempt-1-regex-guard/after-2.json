@@ -1,0 +1,129 @@
+{
+  "benchmark": "contract",
+  "recorded_at": "2026-10-05T12:26:09Z",
+  "git_head": "a662973",
+  "machine": {
+    "python": "3.12.13",
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel"
+  },
+  "results": [
+    {
+      "hour": "2026-10-02-15",
+      "input_sha256": "2dfe227250407f417988bf47bcaa61ff01299ed10b1a027c68f6aec00cb7ace6",
+      "rows_in": 84804,
+      "raw_mb": 95.0,
+      "contract_apply": {
+        "runs": 7,
+        "median_s": 3.2645,
+        "min_s": 3.1184,
+        "max_s": 3.5276,
+        "spread_pct": 12.5,
+        "rows_per_s": 25978,
+        "all_s": [
+          3.2645,
+          3.2181,
+          3.1557,
+          3.5276,
+          3.346,
+          3.3878,
+          3.1184
+        ]
+      },
+      "json_parse_only": {
+        "runs": 7,
+        "median_s": 1.0496,
+        "min_s": 1.0203,
+        "max_s": 1.1032,
+        "spread_pct": 7.9,
+        "rows_per_s": 80793,
+        "all_s": [
+          1.0713,
+          1.1032,
+          1.0496,
+          1.0203,
+          1.0353,
+          1.0529,
+          1.0375
+        ]
+      },
+      "reader_parse_only": {
+        "runs": 7,
+        "median_s": 1.8651,
+        "min_s": 1.7499,
+        "max_s": 2.1054,
+        "spread_pct": 19.1,
+        "rows_per_s": 45469,
+        "all_s": [
+          1.7922,
+          1.8651,
+          1.9393,
+          2.035,
+          2.1054,
+          1.7963,
+          1.7499
+        ]
+      },
+      "parse_share_pct": 32.2,
+      "output_sha256": "a999484c501993b7783ac385cf43570f4c231925e3c91d1d0448191eea8be842"
+    },
+    {
+      "hour": "2026-09-05-15",
+      "input_sha256": "2e2ddd12a987ae0d7892c33d1668f0ceff30c3fbb91ba64b56596f300da24403",
+      "rows_in": 84492,
+      "raw_mb": 383.5,
+      "contract_apply": {
+        "runs": 7,
+        "median_s": 7.949,
+        "min_s": 7.639,
+        "max_s": 8.9156,
+        "spread_pct": 16.1,
+        "rows_per_s": 10629,
+        "all_s": [
+          7.639,
+          7.6646,
+          8.9156,
+          7.949,
+          7.8339,
+          8.684,
+          8.8378
+        ]
+      },
+      "json_parse_only": {
+        "runs": 7,
+        "median_s": 3.6895,
+        "min_s": 3.468,
+        "max_s": 3.7657,
+        "spread_pct": 8.1,
+        "rows_per_s": 22901,
+        "all_s": [
+          3.6895,
+          3.7205,
+          3.7657,
+          3.504,
+          3.4849,
+          3.468,
+          3.7059
+        ]
+      },
+      "reader_parse_only": {
+        "runs": 7,
+        "median_s": 6.7383,
+        "min_s": 6.1903,
+        "max_s": 6.9889,
+        "spread_pct": 11.9,
+        "rows_per_s": 12539,
+        "all_s": [
+          6.9889,
+          6.8803,
+          6.6681,
+          6.7383,
+          6.9119,
+          6.6139,
+          6.1903
+        ]
+      },
+      "parse_share_pct": 46.4,
+      "output_sha256": "f5acd71d2e0208e5c54cb1a56f8a5f1d755b682262e9ac5d75325b62f34fa632"
+    }
+  ]
+}

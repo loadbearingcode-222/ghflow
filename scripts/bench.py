@@ -31,6 +31,7 @@ from typing import Any
 
 from ghflow.archive import download_hour
 from ghflow.contract import apply
+from ghflow.events import parse
 from ghflow.hours import Hour
 
 #: A typical recent hour and the heaviest broken-mix hour (both inside the backfill window).
@@ -84,7 +85,13 @@ def summary(seconds: list[float], rows: int) -> dict[str, Any]:
 
 
 def parse_all(lines: list[bytes]) -> list[Any]:
+    """The standard library's parse alone: the reference cost, comparable across versions."""
     return [json.loads(line) for line in lines]
+
+
+def read_all(lines: list[bytes]) -> list[Any]:
+    """The one reader's parse alone (ghflow.events, from M0-S5)."""
+    return [parse(line) for line in lines]
 
 
 def bench_contract(runs: int, hours: list[str]) -> list[dict[str, Any]]:
@@ -94,6 +101,7 @@ def bench_contract(runs: int, hours: list[str]) -> list[dict[str, Any]]:
         hour = Hour.parse(key)
         result = apply(lines, hour)
         parse_only = timed(partial(parse_all, lines), runs)
+        reader_only = timed(partial(read_all, lines), runs)
         full = timed(partial(apply, lines, hour), runs)
         results.append(
             {
@@ -103,6 +111,7 @@ def bench_contract(runs: int, hours: list[str]) -> list[dict[str, Any]]:
                 "raw_mb": round(sum(map(len, lines)) / 1e6, 1),
                 "contract_apply": summary(full, len(lines)),
                 "json_parse_only": summary(parse_only, len(lines)),
+                "reader_parse_only": summary(reader_only, len(lines)),
                 "parse_share_pct": round(
                     100 * statistics.median(parse_only) / statistics.median(full), 1
                 ),

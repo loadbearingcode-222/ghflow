@@ -9,7 +9,7 @@ from typing import Any
 import orjson
 import pytest
 
-from ghflow.events import events, parse, sized, text
+from ghflow.events import _has_wide_int, events, parse, sized, text
 
 #: Lines where orjson, left alone, disagrees with the standard library or refuses.
 TRICKY: list[bytes] = [
@@ -68,3 +68,17 @@ def test_events_and_sized_read_in_order() -> None:
 
 def test_text_replaces_undecodable_bytes_and_drops_the_newline() -> None:
     assert text(b'{"s": "\xff"}\n') == '{"s": "�"}'
+
+
+@pytest.mark.parametrize(
+    ("line", "wide"),
+    [
+        (b'{"id": 1234567890123456789}', True),  # exactly 19 digits
+        (b'{"id": 123456789012345678}', False),  # 18
+        (b'{"ref": "x-1788620212863445451"}', True),  # inside a string: the slow path, still exact
+        (b'{"a": 123456789, "b": 1234567890}', False),  # two short runs never add up
+    ],
+)
+def test_the_wide_integer_guard_matches_a_19_digit_run(line: bytes, wide: bool) -> None:
+    assert _has_wide_int(line) is wide
+    assert _has_wide_int(line.decode()) is wide
