@@ -82,5 +82,36 @@ Two boundaries the diagram encodes on purpose:
 A later insight that changes an earlier design is handled by a Realign story inserted into the
 plan (see `MILESTONES.md`), and this blueprint changes with it.
 
-Status at this revision (M0-S4): the repo, the source profile, the event contract and the platform
-core (SeaweedFS, Postgres, Airflow 3) run; everything else above is planned.
+## Inside `src/ghflow`: a pure core and an I/O shell
+
+Since M0-S5 the Python package has two layers. The arrows are the only imports allowed;
+import-linter (CI job `import-layers`) and `tests/unit/test_laws.py` refuse any other.
+
+```mermaid
+flowchart TB
+  subgraph SHELL["I/O shell · network, files, exit codes"]
+    CMD["commands/<br/>profile · contract CLIs, each through guarded()"]
+    ARC["archive<br/>HEAD/GET · SweepPolicy · download"]
+  end
+  subgraph CORE["pure core · no network, no files, no printing"]
+    CON["contract<br/>the one cast · row rules · refusals"]
+    PRO["profiling<br/>counts · era classifiers · bisection · the doc block"]
+    EVT["events<br/>the one JSON-line reader (orjson, stdlib-exact)"]
+    FLD["fields<br/>keys · types · payload fields and their eras"]
+    HRS["hours<br/>Hour values"]
+    SET["settings<br/>every knob"]
+  end
+  EXC["exitcodes<br/>0–4 vocabulary"]
+  CMD --> ARC & CON & PRO & EXC
+  CON --> EVT & FLD
+  PRO --> EVT
+  ARC & CON & PRO --> HRS
+  HRS --> SET
+  ARC & CON & PRO --> SET
+```
+
+The DAGs (M1 onward) belong to the shell: they call core functions and hold no parsing logic.
+
+Status at this revision (M0-S5): the repo, the source profile, the event contract and the platform
+core (SeaweedFS, Postgres, Airflow 3) run, refined into the core/shell layers above with the
+first benchmark recorded; everything else above is planned.

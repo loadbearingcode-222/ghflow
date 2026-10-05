@@ -16,8 +16,7 @@ agree to the event: a **batch path** (Airflow 3 → SeaweedFS (S3) bronze → db
 interval is the watermark, and a **replayed stream** (Redpanda + Schema Registry → lander,
 repo-state processor, ClickHouse) where committed offsets are. It ends in a Quarto dashboard for
 non-technical readers. It is built iteratively: every milestone ends with a Refine story, and a
-later insight that changes an earlier design becomes a Realign story (`docs/ITERATION.md` from
-M0-S5; until then `docs/MILESTONES.md`'s header). Plan, layout and stories: `docs/MILESTONES.md`. Blueprint:
+later insight that changes an earlier design becomes a Realign story (`docs/ITERATION.md`). Plan, layout and stories: `docs/MILESTONES.md`. Blueprint:
 `docs/architecture.md`. Traps: `docs/gotchas.md`. Decisions: `docs/adr/`. Source facts:
 `docs/data/gharchive.md` (from M0-S2).
 
@@ -97,7 +96,7 @@ that adopts it (ADR-0001 onward).
 
 | Component | Observed | Adopted in |
 |---|---|---|
-| Python / uv | 3.12.13 / 0.11.25 (host) | M0-S1 |
+| Python / uv | 3.12.13 / 0.11.25 (host); uv 0.12.23 in the Airflow image (re-verified 2026-10-05) | M0-S1, M0-S5 |
 | Airflow | `apache/airflow:3.3.2-python3.12` | M0-S4 |
 | SeaweedFS / Postgres | `chrislusf/seaweedfs:4.48` / `postgres:17.11-bookworm` (MinIO dropped: unpullable) | M0-S4 |
 | duckdb / dbt-core / dbt-duckdb | 1.5.6 / 1.12.5 / 1.11.0 | M1-S3 |
@@ -116,12 +115,14 @@ that adopts it (ADR-0001 onward).
 .\make.ps1 profile     # network, ~2 min: re-measure GH Archive -> automation/runs/m0-s2/profile.json + doc
 .\make.ps1 profile-render  # no network: re-render docs/data/gharchive.md from the record
 .\make.ps1 contract-check  # network: the contract over seven real hours -> automation/runs/m0-s3/
+uv run lint-imports    # the core/shell layers (CI job import-layers)
+uv run python scripts/bench.py contract --out automation/runs/<story>/bench.json  # cached reference hours
 .\make.ps1 env         # .env with generated secrets (never rewrites an existing one)
 .\make.ps1 doctor      # read-only preflight: port holders, RAM vs budget (foreign stacks at mem_limit)
 .\make.ps1 up          # env + doctor + compose up --build --wait (~1 min)
 .\make.ps1 down        # stop and remove containers; volumes kept
 .\make.ps1 reset -Force  # down -v: deletes every volume
-.\make.ps1 dags        # build the Airflow image, run tests/dags inside it
+.\make.ps1 dags        # build the image's dag-test stage, run tests/dags in it with --network none
 .\make.ps1 test-integration  # S3 round-trip, ghflow_ops round-trip, Airflow health (needs up)
 ```
 
@@ -137,6 +138,12 @@ GitHub trimmed PushEvent and `pull_request` payloads in ONE hour, 2025-10-08 17:
 the whole backfill window, so every hour ghflow ingests has the trimmed shape. Probes use
 `ghflow.archive` (User-Agent set, 4 in flight, three verdicts: published / not published /
 request failed).
+
+Code layers (M0-S5, `docs/ITERATION.md`): pure core `settings`, `hours`, `events`, `fields`,
+`contract`, `profiling` (no I/O); shell `archive`, `commands/` (every CLI through `guarded()`).
+One cast (`contract.py`), one JSON-line reader (`events.py`), one home per knob (`settings.py`);
+ruff floors complexity 8 / args 5 / branches 10 / statements 40, modules <= 300 lines — all in
+`tests/unit/test_laws.py`, loosening needs an ADR.
 
 ## Conventions
 

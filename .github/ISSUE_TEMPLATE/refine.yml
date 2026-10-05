@@ -1,0 +1,55 @@
+name: Refine
+description: An improvement noticed while building, captured for a Refine story (docs/ITERATION.md)
+title: "Refine: "
+labels: ["refine"]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Captured, not acted on mid-story. A bug in merged work goes under "Also fixes" in the
+        next PR instead; a change to an earlier design is a Realign proposal (add the
+        `architecture` label and draft an ADR).
+  - type: input
+    id: where
+    attributes:
+      label: Where
+      description: Files, functions, jobs or docs.
+      placeholder: src/ghflow/archive.py — sweep
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: What was observed, with numbers, a log line or a tool's output; not a feeling.
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: Proposed change
+    validations:
+      required: true
+  - type: textarea
+    id: gain
+    attributes:
+      label: Expected gain and how it is measured
+      description: >-
+        The check that will show it worked: a test, a ratchet, a bench record (a prediction is
+        committed before the change), identical output hashes.
+    validations:
+      required: true
+  - type: dropdown
+    id: target
+    attributes:
+      label: Target
+      options:
+        - "M0-S5 (Refine M0)"
+        - "M1-S5 (Refine M1)"
+        - "M2-S4 (Refine M2)"
+        - "M3-S3 (Refine M3)"
+        - "M4-S3 (Refine M4)"
+        - "M5-S3 (Refine the whole system)"
+        - "post-v1"
+    validations:
+      required: true
