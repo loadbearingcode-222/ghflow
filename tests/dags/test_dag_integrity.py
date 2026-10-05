@@ -1,8 +1,7 @@
 """DAG integrity, run INSIDE the Airflow image (CI's dag-integrity job, `.\\make.ps1 dags`).
 
 Positive artifacts, not absent errors: the image runs the pinned Airflow, the project venv
-imports ghflow, and every DAG file parses into exactly one DAG. Until M1-S1 the folder is empty,
-and the count must say so (zero files, zero DAGs) rather than pass vacuously on an import error.
+imports ghflow, and every DAG file parses into exactly one DAG; then each DAG's shape.
 """
 
 from __future__ import annotations
@@ -35,10 +34,24 @@ def test_the_project_venv_imports_ghflow() -> None:
         [
             python,
             "-c",
-            "import ghflow.archive, ghflow.contract, ghflow.commands.contract, ghflow.commands.profile; print('ghflow ok')",
+            "import ghflow.archive, ghflow.contract, ghflow.bronze, ghflow.storage, ghflow.audit, ghflow.commands.ingest; print('ghflow ok')",
         ],
         capture_output=True,
         text=True,
         check=True,
     )
     assert result.stdout.strip() == "ghflow ok"
+
+
+def test_gharchive_ingest_waits_then_ingests_one_interval() -> None:
+    dag = DagBag(dag_folder=str(DAGS)).dags["gharchive_ingest"]
+    sensor, ingest = dag.get_task("wait_for_publication"), dag.get_task("ingest")
+    assert [t.task_id for t in sensor.downstream_list] == ["ingest"]
+    assert sensor.mode == "reschedule", "a waiting hour must not hold a worker slot"
+    assert dag.catchup is False and dag.max_active_runs == 4
+    # The interval is the closed hour [H, H+1), triggered at H+1 — never a zero-length point.
+    from airflow.timetables.interval import CronDataIntervalTimetable
+
+    assert isinstance(dag.timetable, CronDataIntervalTimetable)
+    for task in (sensor, ingest):
+        assert "data_interval_start" in str(task.op_kwargs["hour"]), "the interval is the watermark"

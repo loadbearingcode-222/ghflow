@@ -123,7 +123,8 @@ uv run python scripts/bench.py contract --out automation/runs/<story>/bench.json
 .\make.ps1 down        # stop and remove containers; volumes kept
 .\make.ps1 reset -Force  # down -v: deletes every volume
 .\make.ps1 dags        # build the image's dag-test stage, run tests/dags in it with --network none
-.\make.ps1 test-integration  # S3 round-trip, ghflow_ops round-trip, Airflow health (needs up)
+.\make.ps1 test-integration  # S3 + ghflow_ops round-trips, Airflow health, ingest on planted 2020 hours (needs up)
+# inside the stack (docker compose exec airflow-scheduler ...): $GHFLOW_PYTHON -m ghflow.commands.ingest probe|run <hour>
 ```
 
 Platform (M0-S4, ADR-0001): SeaweedFS S3 at http://127.0.0.1:39000 (buckets raw, bronze, stream,
@@ -138,6 +139,11 @@ GitHub trimmed PushEvent and `pull_request` payloads in ONE hour, 2025-10-08 17:
 the whole backfill window, so every hour ghflow ingests has the trimmed shape. Probes use
 `ghflow.archive` (User-Agent set, 4 in flight, three verdicts: published / not published /
 request failed).
+
+Batch ingest (M1-S1, ADR-0002): DAG `gharchive_ingest` on `CronDataIntervalTimetable` (run [H, H+1)
+ingests file H; gotcha #43) → raw `.gz` + projected bronze Parquet + sidecar in S3 → one row per
+attempt in `ghflow_ops.ingest_audit`. Airflow 3.3's `airflow tasks clear` CLI silently matches
+nothing; clear through the REST API (`/api/v2/dags/<dag>/clearTaskInstances`).
 
 Code layers (M0-S5, `docs/ITERATION.md`): pure core `settings`, `hours`, `events`, `fields`,
 `contract`, `profiling` (no I/O); shell `archive`, `commands/` (every CLI through `guarded()`).

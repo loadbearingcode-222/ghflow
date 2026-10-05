@@ -113,6 +113,28 @@ def sweep(
     return settled
 
 
+@dataclass(frozen=True)
+class Download:
+    """One hour's .json.gz, with the headers of the same response that carried it."""
+
+    hour: Hour
+    data: bytes
+    etag: str | None
+    last_modified: str | None
+
+
+def fetch_hour(hour: Hour, timeout: float = settings.HTTP_TIMEOUT_S) -> Download:
+    """GET one hour into memory. Raises urllib.error.HTTPError (404: not published) or OSError."""
+    with urllib.request.urlopen(_request(hour, "GET"), timeout=timeout) as response:
+        data = response.read()
+        length = response.headers.get("Content-Length")
+        if length is not None and int(length) != len(data):
+            raise OSError(f"{hour.key}: short read, {len(data)} of {length} bytes")
+        return Download(
+            hour, data, response.headers.get("ETag"), response.headers.get("Last-Modified")
+        )
+
+
 @contextmanager
 def open_hour(hour: Hour, timeout: float = settings.HTTP_TIMEOUT_S) -> Iterator[gzip.GzipFile]:
     """Stream one hour's decompressed JSON lines; nothing touches the disk."""
