@@ -1,7 +1,7 @@
 # The stakeholder dashboard (M5-S2, ADR-0013). The .qmd pages here are templates: `python -m
 # ghflow.commands.dashboard build` fills their numbers, names and charts from the mart snapshots
-# into a build directory and renders that. Each page embeds its resources, so the built site
-# opens from a folder or a zip, without the stack.
+# into a build directory and renders that. Pages share one assets folder (M5-S3); the built site
+# still opens from a folder or a zip, without the stack.
 project:
   type: website
   output-dir: _site
@@ -29,7 +29,7 @@ website:
 format:
   html:
     theme: [cosmo, theme.scss]
-    embed-resources: true
+    embed-resources: false   # M5-S3 (D1): one shared assets folder, not 4.6 MB of Plotly per page
     toc: false
     page-layout: article
     include-after-body: assets/scripts.html

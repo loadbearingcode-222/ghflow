@@ -34,12 +34,3 @@ class Airflow:
         if query:
             path = f"{path}?{urllib.parse.urlencode(query, doseq=True)}"
         return self._send(method, path, body, self.token)
-
-    def paged(self, path: str, key: str, **query: Any) -> list[dict[str, Any]]:
-        """Every item of a paginated list endpoint."""
-        items: list[dict[str, Any]] = []
-        while True:
-            page = self.call("GET", path, limit=100, offset=len(items), **query)
-            items += page[key]
-            if not page[key] or len(items) >= page["total_entries"]:
-                return items

@@ -41,3 +41,12 @@ would notice.
   render time and bundle size against a prediction (a partial Plotly bundle is the obvious
   candidate).
 - The dashboard is as fresh as the daily build, and that is what the pages say.
+
+## Amendment (M5-S3, 2026-10-10): one shared assets folder
+
+The site is still a folder (and a zip) that opens without the stack, but pages no longer embed
+their resources: plotly.min.js and Quarto's libraries sit once beside the pages, instead of
+being inlined into each one.
+- render time: 11.57 → 3.64 s (median of 5, interleaved);
+- zip: 14.5 → 1.84 MB;
+- check, red team and offline test unchanged (`automation/runs/m5-s3/dashboard.json`).

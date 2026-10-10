@@ -241,3 +241,10 @@ olist-lakehouse). Provenance is in brackets. Entries below it are earned by THIS
     - a transactional topic is "consumed" when nothing readable is left after the committed
       offset, not when committed equals the high watermark (the trailing commit marker is
       never committed past). (M4-S1)
+57. **Two daily jobs in the wrong order look fine for a day and are wrong every day.**
+    `dbt_build` (02:30) built the marts, and `gharchive_quality` (03:30) judged that day's hours
+    an hour later. Marts treated unjudged hours as clean, so the newest day's broken hours
+    counted as clean on the stakeholder dashboard until the next day's build. Nothing failed:
+    the numbers were plausible. *Check:* chain dependent daily jobs on data (Airflow assets:
+    build → judge → marts → dashboard), not on clock times an hour apart; and make a consumer
+    refuse incomplete inputs (a day is complete only when all 24 hours are judged). (M5-S3)

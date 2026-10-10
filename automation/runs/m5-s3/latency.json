@@ -1,0 +1,31 @@
+{
+  "story": "M5-S3",
+  "change": "E1 (+ Also fixes: marts built before the day was judged)",
+  "prediction": "prediction.json (5cd662f)",
+  "definition": "minutes from the publication of a day's last hour to a published dashboard release that includes that day WITH its verdicts",
+  "publication": "hour 23:00 published 5.1 min after it ends (median of 1,652 hours; max 5.4)",
+  "before": {
+    "schedule": "dbt_build 02:30 (marts built then) -> gharchive_quality 03:30 judges the day -> the next 02:30 build is the first whose marts carry the day's verdicts",
+    "minutes": 1591.0,
+    "note": "the day itself reached the dashboard at ~02:36 the next morning (151 min), but with its broken hours counted as clean"
+  },
+  "after": {
+    "schedule": "dbt_build 00:30 -> warehouse asset -> gharchive_quality judge -> verdicts asset -> marts_publish -> marts asset -> dashboard_render",
+    "measured_chain": {
+      "dbt_build": "19:48:24-19:52:07",
+      "gharchive_quality judge": "19:52:07-~19:52:10",
+      "marts_publish": "19:52:11-19:53:02",
+      "dashboard_render": "19:53:02-19:53:08",
+      "seconds": 284
+    },
+    "minutes": 29.6
+  },
+  "verdict": {
+    "claim": "<= 60 min",
+    "kept": true
+  },
+  "also_fixed": {
+    "complete_days_with_an_unjudged_hour": 0,
+    "rule": "int_complete_days requires all 24 hours ingested AND judged"
+  }
+}

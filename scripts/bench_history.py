@@ -112,14 +112,15 @@ from pathlib import Path
 from ghflow.stream import repo_state
 t = time.monotonic()
 store, opened = repo_state.open_store(Path("/tmp/after.sqlite"))
-print(time.monotonic() - t, opened["restored_records"], opened["mode"].replace(" ", "_"))
+print(time.monotonic() - t, opened["restored_records"], opened["mode"].replace(" ", "_").replace(",", ""))
 """
 
 
 def timed(code: str, src: str) -> list[str]:
     """One side in its own interpreter, with its own code first on the path, on its own clock."""
     env = {**os.environ, "PYTHONPATH": src}
-    done = subprocess.run(["python", "-c", code], capture_output=True, text=True, env=env)
+    python = os.environ.get("BENCH_PYTHON", "python")
+    done = subprocess.run([python, "-c", code], capture_output=True, text=True, env=env)
     if done.returncode != 0:
         raise RuntimeError(done.stderr[-3000:])
     return done.stdout.split()
@@ -145,14 +146,46 @@ def restore(tail: bool = False) -> dict[str, Any]:
             "after": spread(times["after"]), "records_read_and_mode": records}  # fmt: skip
 
 
+DASHBOARD_BUILD = """
+import io, time, zipfile
+from pathlib import Path
+from ghflow.commands import dashboard
+t = time.monotonic()
+site = dashboard.build(Path("/tmp/dash-bench"))
+took = time.monotonic() - t
+buf = io.BytesIO()
+with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+    for f in sorted(site.rglob("*")):
+        if f.is_file():
+            z.write(f, f.relative_to(site).as_posix())
+print(took, len(buf.getvalue()))
+"""
+
+
+def dashboard_build() -> dict[str, Any]:
+    """M5-S3 (D1): `dashboard build` seconds and the site's zip bytes, main's code and templates
+    (/before) against this branch's (/repo), interleaved, in the Airflow image (it has Quarto)."""
+    times: dict[str, list[float]] = {"before": [], "after": []}
+    zips: dict[str, list[int]] = {"before": [], "after": []}
+    for _ in range(RUNS):
+        for side, src in (("before", "/before/src"), ("after", "/repo/src")):
+            took, size = timed(DASHBOARD_BUILD, src)
+            times[side].append(float(took))
+            zips[side].append(int(size))
+    return {"benchmark": "dashboard", "metric": "s of dashboard build (fill + quarto render); zip bytes of the site",
+            "before": {**spread(times["before"]), "zip_bytes": zips["before"]},
+            "after": {**spread(times["after"]), "zip_bytes": zips["after"]}}  # fmt: skip
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
-    parser.add_argument("benchmark", choices=["scd2", "restore"])
+    parser.add_argument("benchmark", choices=["scd2", "restore", "dashboard"])
     parser.add_argument(
         "--tail", action="store_true", help="restore: both sides start on a held store"
     )
     args = parser.parse_args()
-    record = scd2() if args.benchmark == "scd2" else restore(args.tail)
+    runs = {"scd2": scd2, "restore": lambda: restore(args.tail), "dashboard": dashboard_build}
+    record = runs[args.benchmark]()
     print(json.dumps(record, indent=2))
 
 

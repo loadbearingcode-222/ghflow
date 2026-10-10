@@ -8,7 +8,7 @@ what the data shows.
 The plan, the repo layout and every story: [docs/MILESTONES.md](docs/MILESTONES.md).
 This README grows as each milestone closes.
 
-## Where it stands (`v0.4.0`, M4)
+## Where it stands (M5)
 
 - **Batch path:** hourly ingest from 2026-08-03 into bronze, then silver on DuckDB with
   drift-aware contracts and event-mix quality checks. Repo and actor name history is kept as
@@ -21,7 +21,10 @@ This README grows as each milestone closes.
 - **ClickHouse** consumes both topics itself and is the third witness. **Grafana**
   (http://127.0.0.1:33000) shows ingest freshness, consumer lag per group, reconciliation and
   flagged hours.
-- **Next:** the stakeholder dashboard (M5).
+- **The stakeholder dashboard** (http://127.0.0.1:33001): six plain-language pages, every
+  number read back from the marts before publishing, broken hours shaded, rebuilt about 30
+  minutes after each day ends.
+- **Next:** the one-command demo and `v1.0.0`.
 
 How it is built: [docs/architecture.md](docs/architecture.md) · decisions: [docs/adr/](docs/adr/)
 · traps: [docs/gotchas.md](docs/gotchas.md).

@@ -33,3 +33,16 @@ judged.
   incremental, if measured worth it.
 - Repos are named and ranked (`mart_rising_repos`) by their current `dim_repo` name. Repo names
   contain owner logins; ranking repos is allowed, and ranking people is not (M5-S2's test).
+
+## Amendment (M5-S3, 2026-10-10): the marts are published after the verdicts
+
+This supersedes decision 5.
+- **The bug:** `dbt_build` (02:30) built the marts an hour before `gharchive_quality` (03:30)
+  judged that day, so the newest day's broken hours counted as clean until the next build
+  (gotcha #57).
+- **The chain:** `dbt_build` (now at 00:30) → warehouse asset → `gharchive_quality` `judge` →
+  verdicts asset → `marts_publish` (marts-only `dbt build` → twin → export) → marts asset →
+  `dashboard_render`.
+- **The rule:** `int_complete_days` also requires all 24 hours to be judged.
+- **Measured** (`automation/runs/m5-s3/latency.json`): a day reaches the dashboard with its
+  verdicts about 30 minutes after its last hour is published. Before, it took about 26 hours.

@@ -1,0 +1,106 @@
+{
+  "story": "M5-S3",
+  "change": "R3 (#36)",
+  "prediction": "prediction.json (5cd662f)",
+  "benchmark": "restore",
+  "metric": "s from process start to a usable store",
+  "setup_of_the_after_store": [
+    "205.408940911002",
+    "13774888",
+    "full:_no_stored_position"
+  ],
+  "before": {
+    "all_s": [
+      5.01,
+      5.01,
+      5.01,
+      5.07,
+      5.01
+    ],
+    "median_s": 5.01,
+    "iqr_s": [
+      5.01,
+      5.04
+    ]
+  },
+  "after": {
+    "all_s": [
+      0.01,
+      0.01,
+      0.01,
+      0.0,
+      0.0
+    ],
+    "median_s": 0.01,
+    "iqr_s": [
+      0.0,
+      0.01
+    ]
+  },
+  "records_read_and_mode": {
+    "before": [
+      [
+        "0",
+        "tail"
+      ],
+      [
+        "0",
+        "tail"
+      ],
+      [
+        "0",
+        "tail"
+      ],
+      [
+        "0",
+        "tail"
+      ],
+      [
+        "0",
+        "tail"
+      ]
+    ],
+    "after": [
+      [
+        "0",
+        "tail:_caught_up_nothing_to_read"
+      ],
+      [
+        "0",
+        "tail:_caught_up_nothing_to_read"
+      ],
+      [
+        "0",
+        "tail:_caught_up_nothing_to_read"
+      ],
+      [
+        "0",
+        "tail:_caught_up_nothing_to_read"
+      ],
+      [
+        "0",
+        "tail:_caught_up_nothing_to_read"
+      ]
+    ]
+  },
+  "verdict": {
+    "after_median_s": 0.01,
+    "claim": "<= 0.5 s",
+    "iqrs_disjoint": true,
+    "kept": true
+  },
+  "live": {
+    "after_sigkill": {
+      "mode": "tail: caught up, nothing to read",
+      "seconds": 0.0,
+      "repos": 13650573
+    },
+    "diff": "green",
+    "audit": {
+      "committed_records": 13774888,
+      "spurious_changes": 0,
+      "as_of_not_increasing": 0,
+      "aborted_records_visible_uncommitted": 0
+    }
+  }
+}
