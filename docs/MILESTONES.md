@@ -90,6 +90,7 @@ ghflow/
 ├─ scripts/
 │  ├─ doctor.ps1                                      M0-S4  port holders · Docker RAM vs budget (foreign stacks at their mem_limit) · path length
 │  ├─ bench.py                                        M0-S5  named benchmarks on cached reference hours → automation/runs/m#-s#/bench.json
+│  ├─ bench_stream.py                                 M2-S4  stream benchmark: replayer and lander events/s on disposable topics
 │  ├─ redteam/                                        M1-S4  one planting script per gate; disposable copies only
 │  ├─ dashboard_check.py                              M5-S2  every number on the pages read back from the marts; an empty chart fails
 │  └─ demo_acceptance.py                              M5-S4  end-to-end gate → automation/runs/

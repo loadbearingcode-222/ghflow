@@ -172,9 +172,17 @@ def bench_ingest_day(runs: int, _hours: list[str]) -> list[dict[str, Any]]:
     ]
 
 
+def bench_stream(runs: int, hours: list[str]) -> list[dict[str, Any]]:
+    """Replayer and lander events/s (scripts/bench_stream.py, kept apart for the size budget)."""
+    from bench_stream import bench_stream as run
+
+    return run(runs, hours)
+
+
 BENCHMARKS: dict[str, Callable[[int, list[str]], list[dict[str, Any]]]] = {
     "contract": bench_contract,
     "ingest-day": bench_ingest_day,
+    "stream": bench_stream,
 }
 
 

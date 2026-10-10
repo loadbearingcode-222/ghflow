@@ -80,8 +80,10 @@ class Buffer:
 
 
 class Lander:
-    def __init__(self, consumer: Consumer, store: Store, conn: psycopg.Connection[Any]) -> None:
-        self.consumer, self.store, self.conn = consumer, store, conn
+    def __init__(
+        self, consumer: Consumer, store: Store, conn: psycopg.Connection[Any], topic: str = TOPIC
+    ) -> None:
+        self.consumer, self.store, self.conn, self.topic = consumer, store, conn, topic
         self.buffers: dict[int, Buffer] = defaultdict(Buffer)
 
     def take(self, partition: int, offset: int, record: dict[str, Any]) -> dict[str, Any] | None:
@@ -104,7 +106,7 @@ class Lander:
         path = landed_path(partition, first, last)
         self.store.put(path, bytes(sink.getvalue().to_pybytes()))
         self.consumer.commit(
-            offsets=[TopicPartition(TOPIC, partition, last + 1)], asynchronous=False
+            offsets=[TopicPartition(self.topic, partition, last + 1)], asynchronous=False
         )
         events = sum(r["kind"] == "EVENT" for r in buf.rows)
         self.conn.execute(
