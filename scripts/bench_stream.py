@@ -22,10 +22,15 @@ STREAM_HOUR = "2026-08-03-0"
 
 
 class _NoStore:
-    """The lander's S3 PUT left out of the timing (disk and network, not code)."""
+    """The lander's S3 PUT left out of the timing; keeps each file's sha256 as the fingerprint."""
+
+    def __init__(self) -> None:
+        self.shas: list[str] = []
 
     def put(self, path: str, data: bytes) -> str:
-        return hashlib.sha256(data).hexdigest()
+        sha = hashlib.sha256(data).hexdigest()
+        self.shas.append(sha)
+        return sha
 
 
 class _NoConn:
@@ -33,7 +38,7 @@ class _NoConn:
         return None
 
 
-def _land_topic(topic: str, partitions: int) -> tuple[float, int]:
+def _land_topic(topic: str, partitions: int) -> tuple[float, int, list[str]]:
     """Consume a bench topic from the start through the real Lander until every partition lands."""
     from confluent_kafka import OFFSET_BEGINNING, TopicPartition
     from fastavro import parse_schema, schemaless_reader
@@ -43,7 +48,8 @@ def _land_topic(topic: str, partitions: int) -> tuple[float, int]:
     consumer = clients.peek_consumer()
     consumer.assign([TopicPartition(topic, p, OFFSET_BEGINNING) for p in range(partitions)])
     parsed = parse_schema(schema.schema())
-    land = lander.Lander(consumer, _NoStore(), _NoConn(), topic=topic)  # type: ignore[arg-type]
+    store = _NoStore()
+    land = lander.Lander(consumer, store, _NoConn(), topic=topic)  # type: ignore[arg-type]
     landed, events, started = 0, 0, time.perf_counter()
     while landed < partitions:
         msg = consumer.poll(1.0)
@@ -57,7 +63,7 @@ def _land_topic(topic: str, partitions: int) -> tuple[float, int]:
             events += done["events"]
     seconds = time.perf_counter() - started
     consumer.close()
-    return seconds, events
+    return seconds, events, sorted(store.shas)
 
 
 def bench_stream(runs: int, _hours: list[str]) -> list[dict[str, Any]]:
@@ -76,7 +82,7 @@ def bench_stream(runs: int, _hours: list[str]) -> list[dict[str, Any]]:
     store, admin = Store(s3_config()), clients.admin()
     serializer = schema.Serializer(register(clients.registry()))
     hour = Hour.parse(STREAM_HOUR)
-    produce_s, land_s, counts = [], [], []
+    produce_s, land_s, counts, fingerprints = [], [], [], set()
     for _ in range(runs):
         topic = f"bench.events.{uuid.uuid4().hex[:8]}"
         new_topic = kafka_admin.NewTopic  # type: ignore[attr-defined]  # real; the 2.16 stub omits it
@@ -88,7 +94,8 @@ def bench_stream(runs: int, _hours: list[str]) -> list[dict[str, Any]]:
             started = time.perf_counter()
             published = replayer.replay_hour(hour, store, producer, serializer, topic)
             produce_s.append(time.perf_counter() - started)
-            seconds, events = _land_topic(topic, settings.STREAM_PARTITIONS)
+            seconds, events, shas = _land_topic(topic, settings.STREAM_PARTITIONS)
+            fingerprints.add(hashlib.sha256("".join(shas).encode()).hexdigest())
             land_s.append(seconds)
             counts.append((published["delivered"], events))
         finally:
@@ -99,6 +106,7 @@ def bench_stream(runs: int, _hours: list[str]) -> list[dict[str, Any]]:
             "hour": STREAM_HOUR,
             "events": rows,
             "delivered_and_landed_every_run": sorted(set(counts)),
+            "landed_files_fingerprint": sorted(fingerprints),
             "linger_ms": settings.STREAM_LINGER_MS,
             "batch_bytes": settings.STREAM_BATCH_BYTES,
             "excluded": "the lander's S3 PUT and Postgres row (disk and network, not code)",
