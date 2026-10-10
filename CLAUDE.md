@@ -58,6 +58,13 @@ later insight that changes an earlier design becomes a Realign story (`docs/ITER
 - olist: "Yes, stop it (keep data)" → `docker compose stop` in olist-lakehouse when a story needs
   `up` (volumes kept; restart with `docker compose start` there). Never `down`.
 
+## User decisions (verbatim, 2026-10-10) — M1-S4 baseline
+
+- Asked because the plan's "clean baseline (Aug 3–16)" proved to be among the least normal
+  stretches (PullRequestEvents 189/h against 9,853/h in a 2024 reference hour): "Rolling clean
+  baseline (Recommended)" — each hour judged against the same hour of day on its previous clean
+  days, hours already flagged excluded, seeded by Aug 3–16.
+
 ## Environment facts (observed 2026-10-04)
 
 - Windows 11, Docker Desktop (WSL2 backend), WSL2 capped at **28 GB** (~27.4 GiB visible to

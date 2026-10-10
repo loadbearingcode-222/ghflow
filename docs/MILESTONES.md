@@ -239,15 +239,23 @@ Accept when:
 ### M1-S4: Event-mix quality checks, proven on the real broken hours
 Branch `feat/m1-s4-quality` · Role: data engineer
 Accept when:
-- The bars are argued from the clean baseline (Aug 3–16, two full weeks) and committed with their
-  argument; the prediction of which hours get flagged, including what must stay unflagged, is
-  committed after the bars and before the run. The order is checked from git.
+- Normal is a **rolling clean baseline** (owner's decision 2026-10-10, below): each hour is judged
+  against the same hour of day on its previous clean days (hours already flagged are excluded),
+  seeded by Aug 3–16. The bars are argued from how much clean hours vary against that baseline
+  inside the seed fortnight, and committed with their argument; the prediction of which hours
+  get flagged, including what must stay unflagged, is committed after the bars and before the
+  run. The order is checked from git.
 - The run is judged against the prediction, and every disagreement is explained in
   `automation/runs/m1-s4/`.
 - A row-count-only control passes Sep 5 15:00, reproducing the finding that counts alone miss it.
 - Red team: a clean hour planted with a broken hour's event mix goes red naming the event type;
   every other hour keeps its verdict.
 - A planted ETag change, in a copy of the audit table, schedules exactly that hour for re-ingest.
+
+Why the baseline changed (found 2026-10-05, measured): Aug 3–16 is not representative. Against a
+2024 reference hour (9,853 PullRequestEvents/h, 66% pushes) it carries 189 PullRequestEvents/h and
+95% pushes, while Oct 1–4 carries 3,102/h and 74%. A fixed August baseline would call most of
+mid-September–October broken.
 
 ### M1-S5: Refine M1: faster ingest, thinner DAGs, same bytes
 Branch `feat/m1-s5-refine-batch` · Role: data engineer · label `refine` · **Release `v0.1.0`**
