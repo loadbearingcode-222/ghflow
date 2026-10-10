@@ -186,6 +186,13 @@ Kafka clients only via `ghflow.stream.clients` (law test). `dbt_build` = build -
 warehouse copied into a fresh file each run, M2-S4). Stream bench: `scripts/bench.py stream`
 (disposable topics); measure before/after INTERLEAVED (a worktree of the base commit + `.env`).
 
+Gold (M3-S1, ADR-0008): `main_gold.dim_repo` / `dim_actor`, SCD2 recomputed in full from staging
+every dbt_build (~50 s); a version is an island of same-name events (A→B→A = 3), one name per
+(id, second) by highest event id, `valid_to` = next `valid_from`; dbt test `scd2_invariants`.
+Order-independence proof: `$GHFLOW_PYTHON -m ghflow.commands.history late-hour` (in the stack,
+disposable warehouse). Heavy DuckDB experiments go in a one-off container with its own
+`--memory`, never the scheduler (gotcha #52).
+
 Code layers (M0-S5, `docs/ITERATION.md`): pure core `settings`, `hours`, `events`, `fields`,
 `contract`, `profiling` (no I/O); shell `archive`, `commands/` (every CLI through `guarded()`).
 One cast (`contract.py`), one JSON-line reader (`events.py`), one home per knob (`settings.py`);

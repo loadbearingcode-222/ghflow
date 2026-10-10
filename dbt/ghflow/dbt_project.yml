@@ -21,6 +21,8 @@ models:
       +schema: staging
     silver:
       +schema: silver
+    gold:
+      +schema: gold
 
 flags:
   send_anonymous_usage_stats: false
