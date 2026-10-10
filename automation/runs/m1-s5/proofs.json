@@ -1,0 +1,24 @@
+{
+  "story": "M1-S5",
+  "phase": "closing proofs",
+  "bronze_byte_identical_fixed_day": {
+    "hours": 24,
+    "identical": true,
+    "differing": []
+  },
+  "tests": {
+    "at_story_start_f9f7d34": 219,
+    "now": 235,
+    "missing_from_start": [],
+    "superset": true
+  },
+  "uv_lock_and_pyproject_unchanged_vs_main": true,
+  "dbt_row_counts_unchanged": {
+    "how": "per-hour, per-type counts in main_staging now vs automation/runs/m1-s4/hour_counts.json (after a compaction swap, the race-fixed rows test, and new hours appended)",
+    "hours_compared": 1635,
+    "hours_differing": [],
+    "new_hours_since": 1,
+    "unchanged": true
+  },
+  "dbt_test_results": "79 / 79 pass on the compacted warehouse (m1s5 run); dbt_build m1s5_after_race_fix succeeded live"
+}

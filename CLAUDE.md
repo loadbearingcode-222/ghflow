@@ -168,8 +168,9 @@ Quality (M1-S4, ADR-0004): DAG `gharchive_quality` (daily 03:30) judges every ho
 rolling clean baseline → `ghflow_ops.quality_verdicts` (status, findings, bars), re-checks 14 days
 of ETags → `reingest_requests` → re-ingest → dbt_build full_refresh. Offline:
 `uv run python -m ghflow.commands.quality argue|run|redteam --counts automation/runs/m1-s4/hour_counts.json`;
-`python -m ghflow.commands.etag check|process|redteam`. Known: the baseline over-flags
-Sep 18 - Oct 9 (issue #22, M1-S5); M5 must not shade those hours until it is fixed.
+`python -m ghflow.commands.etag check|process|redteam`. Verdicts (M1-S5, owner 2026-10-10):
+`flagged` = volume or PushEvent broke (M5 shades exactly these), `shifted` = only minor types'
+shares moved (recorded, never shaded). DAGs stay thin by law (`tests/unit/test_thin_dags.py`).
 
 Code layers (M0-S5, `docs/ITERATION.md`): pure core `settings`, `hours`, `events`, `fields`,
 `contract`, `profiling` (no I/O); shell `archive`, `commands/` (every CLI through `guarded()`).

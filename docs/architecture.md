@@ -112,6 +112,26 @@ flowchart TB
 
 The DAGs (M1 onward) belong to the shell: they call core functions and hold no parsing logic.
 
-Status at this revision (M0-S5): the repo, the source profile, the event contract and the platform
-core (SeaweedFS, Postgres, Airflow 3) run, refined into the core/shell layers above with the
-first benchmark recorded; everything else above is planned.
+## The batch path as it runs (M1)
+
+```mermaid
+flowchart LR
+  GA["GH Archive<br/>hourly .json.gz"] -->|"sensor: published?"| ING["gharchive_ingest<br/>hourly · catchup on"]
+  ING --> RAW[("raw .gz<br/>kept 14 days")]
+  ING --> BRZ[("bronze Parquet<br/>+ rejected sidecar")]
+  ING -.->|one row per attempt| AUD[("ingest_audit")]
+  RET["raw_retention<br/>daily 01:00"] -.->|older than 14 days| RAW
+  BRZ --> DBT["dbt_build · daily 02:30<br/>pool duckdb (one writer)"]
+  DBT --> WH[("DuckDB warehouse<br/>staging table + 17 silver views")]
+  WH --> QUA["gharchive_quality · daily 03:30<br/>rolling clean baseline"]
+  QUA -.-> VER[("quality_verdicts<br/>clean · flagged · shifted")]
+  QUA -->|ETag changed| REQ[("reingest_requests")] --> ING
+```
+
+Every DAG is thin by law (`tests/unit/test_thin_dags.py`): it calls `python -m ghflow.commands.…`
+in the project venv and maps exit codes; parsing, Parquet and SQL live in `src/ghflow`.
+
+Status at this revision (M1-S5, `v0.1.0`): the batch path runs end to end over the whole window
+(Aug 3 onward, hourly since): ingest with an audit row per attempt, a backfill that can be parked,
+silver generated from the contract, and quality verdicts that say how an hour differs. The stream
+(M2–M4) and the stakeholder dashboard (M5) are planned.
