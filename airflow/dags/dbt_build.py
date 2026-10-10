@@ -5,8 +5,9 @@ typed silver views and runs every test: the enforced contracts, the era tests (a
 its era fails by name) and silver rows = bronze rows per hour. Trigger with conf
 {"full_refresh": true} to rebuild the whole window from bronze.
 
-DuckDB has exactly one writer: this task runs in the one-slot `duckdb` pool, and nothing else
-writes the warehouse file.
+DuckDB has exactly one writer: both tasks run in the one-slot `duckdb` pool, and nothing else
+writes the warehouse file. `compact` then copies the warehouse into a fresh file, because DuckDB
+never shrinks its own (#26).
 """
 
 from __future__ import annotations
@@ -20,7 +21,8 @@ import pendulum
 from airflow.sdk import dag, task
 from airflow.timetables.interval import CronDataIntervalTimetable
 
-DBT = str(Path(os.environ.get("GHFLOW_PYTHON", "/opt/ghflow-venv/bin/python")).with_name("dbt"))
+GHFLOW_PYTHON = os.environ.get("GHFLOW_PYTHON", "/opt/ghflow-venv/bin/python")
+DBT = str(Path(GHFLOW_PYTHON).with_name("dbt"))
 PROJECT = "/opt/ghflow/dbt/ghflow"
 FULL_REFRESH = "{{ 'true' if (dag_run.conf or {}).get('full_refresh') else 'false' }}"
 
@@ -46,7 +48,20 @@ def dbt_build() -> None:
         if done.returncode != 0:
             raise RuntimeError(f"dbt build exited {done.returncode}")
 
-    build(full_refresh=FULL_REFRESH)
+    @task(pool="duckdb", execution_timeout=timedelta(hours=1), retries=0)
+    def compact() -> None:
+        """Copy the warehouse into a fresh file: DuckDB never shrinks its own (#26)."""
+        done = subprocess.run(
+            [GHFLOW_PYTHON, "-m", "ghflow.commands.warehouse", "compact"],
+            capture_output=True,
+            text=True,
+        )
+        print(done.stdout, end="")
+        print(done.stderr, end="")
+        if done.returncode != 0:
+            raise RuntimeError(f"warehouse compact exited {done.returncode}")
+
+    build(full_refresh=FULL_REFRESH) >> compact()
 
 
 dbt_build()
