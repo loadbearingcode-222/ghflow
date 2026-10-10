@@ -1,0 +1,45 @@
+{
+  "story": "M2-S4",
+  "phase": "verdicts on prediction-stream.json",
+  "method": "interleaved: before = worktree of ae4901c, after = the change; before, after, before, after; 5 runs each (records: stream-interleaved/)",
+  "verdicts": {
+    "R1": {
+      "claim": "replayer >= +12%",
+      "measured_pct": 6.9,
+      "iqr_before_s": [
+        6.16,
+        6.38
+      ],
+      "iqr_after_s": [
+        5.68,
+        6.48
+      ],
+      "verdict": "MISSED (and IQRs overlap): reverted"
+    },
+    "L1": {
+      "claim": "lander >= +15%",
+      "measured_pct": 17.7,
+      "iqr_before_s": [
+        5.43,
+        5.63
+      ],
+      "iqr_after_s": [
+        4.61,
+        5.56
+      ],
+      "verdict": "median met, but IQRs overlap (by 0.13 s): REVERTED under the committed keep rule; not re-measured until it passes"
+    },
+    "B1": {
+      "claim": "linger 100 ms / batch 2 MB: no gain (within +/-5%)",
+      "measured_pct": 2.1,
+      "verdict": "HELD: as predicted, the producer is not the bottleneck; not kept"
+    },
+    "F1": {
+      "claim": "fingerprints identical",
+      "landed_files_fingerprint": "5c9232c628938294413c3bb1b534dc32fb0418da23bc005e81143b4fd1c6fbd1 in every run, before and after",
+      "verdict": "HELD"
+    }
+  },
+  "what_it_taught": "both clients spend their time in Python Avro work, not in Kafka: Serializer.__call__ 5.16 s of an 8.65 s hour; decode ~3.3 s and a per-row dict copy ~1.3 s of the lander's 7.6 s. Batching knobs cannot move that.",
+  "decision": "no throughput change shipped; the stream code is unchanged. Retry as a refine issue with a pre-registered larger sample (the spreads are 13-25%)."
+}
