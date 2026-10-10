@@ -14,7 +14,8 @@ import pytest
 
 from ghflow.commands import repo_state as cli
 from ghflow.stream import repo_state
-from ghflow.stream.repo_state import PartitionHour, Processor, StateStore, Stored, net_changes
+from ghflow.stream.repo_state import PartitionHour, Processor, net_changes
+from ghflow.stream.state_store import StateStore, Stored, micros
 
 
 def at(hour: int, second: int = 0) -> datetime:
@@ -106,7 +107,7 @@ def test_net_changes_new_renamed_unchanged_and_older() -> None:
     for record in [event(1, at(5), 1, "o/new"), event(2, at(5), 2, "o/renamed"),
                    event(3, at(5), 3, "o/same"), event(4, at(5), 4, "o/older-replay")]:  # fmt: skip
         buf.add(record)
-    late = repo_state.micros(at(6))
+    late = micros(at(6))
     stored = {2: Stored("o/before", 0, 0), 3: Stored("o/same", 0, 0), 4: Stored("o/now", late, 9)}
     assert [c["repo_id"] for c in net_changes(buf, stored)] == [1, 2]
 
@@ -174,7 +175,7 @@ def test_hours_never_mix_on_a_partition(tmp_path: Path) -> None:
 def test_the_store_round_trips(tmp_path: Path) -> None:
     store = StateStore(tmp_path / "s.sqlite", fresh=True)
     store.put([{"repo_id": 5, "repo_name": "o/q", "as_of": at(4), "event_id": 3, "hour": "x"}])
-    assert store.lookup([5, 6]) == {5: Stored("o/q", repo_state.micros(at(4)), 3)}
+    assert store.lookup([5, 6]) == {5: Stored("o/q", micros(at(4)), 3)}
     assert store.count() == 1
 
 

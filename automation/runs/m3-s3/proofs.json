@@ -1,0 +1,21 @@
+{
+  "story": "M3-S3",
+  "dims_equal_before_and_after": {
+    "how": "S1 was reverted, so `git diff main -- dbt/` is empty: dim_repo and dim_actor are built by the same code as before; and in every S1 bench run the incremental tables equalled the full ones row for row (scd2.json)",
+    "dbt_diff_vs_main_lines": 0
+  },
+  "topic_agrees_with_dim_repo": "restore.json also_required.diff: green, 13,587,017 equal, 19,137 ahead, 0 stale / missing / extra, after the R1 deploy and a live SIGKILL",
+  "reconcile": {
+    "run_id": "reconcile-e980d004",
+    "window": "2026-08-03-0 .. 2026-10-10-11",
+    "green": 1644,
+    "red": 0,
+    "events_batch": 147528128,
+    "events_stream": 147528128,
+    "missing": 0,
+    "extra": 0,
+    "note": "2026-10-10-11 was landed by the L1 lander (deployed before it landed at 12:07 UTC)"
+  },
+  "lock": "uv lock --check: unchanged (90 packages); pyproject.toml unchanged",
+  "ratchets": "no limit loosened; tests only added or moved (test_repo_state fakes gained the partition and watermark the new code calls)"
+}

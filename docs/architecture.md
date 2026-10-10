@@ -122,7 +122,7 @@ flowchart LR
   ING -.->|one row per attempt| AUD[("ingest_audit")]
   RET["raw_retention<br/>daily 01:00"] -.->|older than 14 days| RAW
   BRZ --> DBT["dbt_build · daily 02:30<br/>pool duckdb (one writer)"]
-  DBT --> WH[("DuckDB warehouse<br/>staging table + 17 silver views")]
+  DBT --> WH[("DuckDB warehouse<br/>staging table + 17 silver views<br/>+ gold dim_repo, dim_actor")]
   WH --> QUA["gharchive_quality · daily 03:30<br/>rolling clean baseline"]
   QUA -.-> VER[("quality_verdicts<br/>clean · flagged · shifted")]
   QUA -->|ETag changed| REQ[("reingest_requests")] --> ING
@@ -148,10 +148,33 @@ flowchart LR
 ```
 
 Every Kafka client is built by `ghflow.stream.clients` (a test refuses client settings anywhere
-else). Status at this revision (M2-S4, `v0.2.0`):
-- **Batch path:** runs end to end over the whole window (Aug 3 onward, hourly since), and
-  `dbt_build` compacts the warehouse after each build.
-- **Replayed stream:** carries the same window, and reconciles with the batch path to the event
-  (1,640 hours green, 0 missing, 0 extra).
-- **Still planned:** repo history (M3), ClickHouse and Grafana (M4), and the stakeholder
-  dashboard (M5).
+else).
+
+## History and repo state as they run (M3)
+
+```mermaid
+flowchart LR
+  STG[("staging<br/>every event")] --> GOLD["dbt gold · each dbt_build<br/>full recompute (ADR-0008)"]
+  GOLD --> DIM[("dim_repo · dim_actor<br/>SCD2: islands of one name")]
+  RP[["gharchive.events"]] --> RS["repo-state · service<br/>one transaction per (partition, hour)<br/>changes + offsets"]
+  RS --> RST[["gharchive.repo_state<br/>compacted · keyed by repo id"]]
+  RS <-.->|"store + position<br/>(volume repo-state)"| SQL[("SQLite")]
+  RST -.->|"start: tail after the stored position"| RS
+  RST & DIM --> DIFF["repo_state diff<br/>latest per repo = dim_repo current"]
+```
+
+Two witnesses of the same fact, built differently:
+- **Batch:** `dim_repo` is a function of every staged event, recomputed in full, so arrival order
+  cannot matter (proved by `history late-hour`).
+- **Stream:** `gharchive.repo_state` is a log of net changes committed atomically with the
+  offsets. Its store survives restarts with the changelog position it reflects; a start reads
+  only the tail, and a missing or impossible store means a full rebuild.
+- **`diff`** compares the two over the hours both have seen. It found 0 stale, missing or extra
+  repos over 13.59M repos.
+
+Status at this revision (M3-S3, `v0.3.0`):
+- **Batch path:** runs end to end over the whole window (Aug 3 onward, hourly since);
+  `dbt_build` compacts the warehouse after each build and now also builds the SCD2 dimensions.
+- **Replayed stream:** carries the same window and reconciles with the batch path to the event;
+  the repo-state topic agrees with `dim_repo`.
+- **Still planned:** ClickHouse and Grafana (M4), the stakeholder dashboard (M5).
