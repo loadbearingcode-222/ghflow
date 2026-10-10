@@ -1,0 +1,21 @@
+{
+  "story": "M4-S2",
+  "command": "python -m ghflow.commands.grafana gate --plant",
+  "panels": 10,
+  "rows": {
+    "Ingest freshness (minutes since the newest ingested hour ended)": 1,
+    "Reconciliation: hours by status (latest run)": 1,
+    "Flagged hours per day (quality)": 8,
+    "Events per hour (ClickHouse)": 167,
+    "Consumer lag \u00b7 lander": 80,
+    "Consumer lag \u00b7 repo-state": 80,
+    "Consumer lag \u00b7 clickhouse": 81,
+    "Consumer lag \u00b7 clickhouse-repo-state": 81,
+    "Flagged hours (latest verdict)": 200,
+    "planted: a panel whose query returns nothing": 0
+  },
+  "empty": [
+    "planted: a panel whose query returns nothing"
+  ],
+  "passed": false
+}

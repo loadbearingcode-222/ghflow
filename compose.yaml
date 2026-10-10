@@ -397,6 +397,9 @@ services:
       GF_ANALYTICS_REPORTING_ENABLED: "false"
       GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
       GF_USERS_DEFAULT_THEME: light
+      # Read-only without a login; the port is bound to 127.0.0.1 only (ADR-0011).
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
       CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?run .\make.ps1 env}
     ports:
       - "127.0.0.1:33000:3000"

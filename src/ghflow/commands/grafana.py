@@ -35,6 +35,7 @@ class Panel:
     sql: str
     width: int = 12
     description: str = ""
+    time_from: str | None = None  # a panel's own window (Grafana's relative time override)
 
 
 def _lag(group: str, topic: str) -> Panel:
@@ -46,6 +47,7 @@ def _lag(group: str, topic: str) -> Panel:
         6,
         f"Messages {group} has not yet committed on {topic}, summed over partitions. Flat is "
         "healthy; a steady climb means the consumer stopped.",
+        "3h",
     )
 
 
@@ -92,7 +94,7 @@ def dashboard() -> dict[str, Any]:
             x, y = 0, y + 8
         panels.append({"id": n, "title": panel.title, "type": panel.kind, "description": panel.description,
                        "datasource": DATASOURCE, "gridPos": {"x": x, "y": y, "w": panel.width, "h": 8},
-                       "targets": [_target(panel)]})  # fmt: skip
+                       "targets": [_target(panel)], **({"timeFrom": panel.time_from} if panel.time_from else {})})  # fmt: skip
         x += panel.width
     return {"uid": "ghflow-ops", "title": "ghflow · ops", "tags": ["ghflow", "M4"],
             "time": {"from": "now-7d", "to": "now"}, "refresh": "30s", "schemaVersion": 39,

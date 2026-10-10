@@ -156,7 +156,8 @@
           "queryType": "timeseries",
           "format": 0
         }
-      ]
+      ],
+      "timeFrom": "3h"
     },
     {
       "id": 6,
@@ -185,7 +186,8 @@
           "queryType": "timeseries",
           "format": 0
         }
-      ]
+      ],
+      "timeFrom": "3h"
     },
     {
       "id": 7,
@@ -214,7 +216,8 @@
           "queryType": "timeseries",
           "format": 0
         }
-      ]
+      ],
+      "timeFrom": "3h"
     },
     {
       "id": 8,
@@ -243,7 +246,8 @@
           "queryType": "timeseries",
           "format": 0
         }
-      ]
+      ],
+      "timeFrom": "3h"
     },
     {
       "id": 9,
