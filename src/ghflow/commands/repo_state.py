@@ -157,17 +157,24 @@ def plant_stale(con: Any, cutoff: Any) -> dict[str, Any]:
     return {"repo_id": repo, "planted_name": "the repo's previous name (from dim_repo)"}
 
 
+# Strings stay out of aggregate states (gotcha #52): the latest record per repo is found by its
+# max offset and joined back; repo ids are listed only for red verdicts, and only a few.
 DIFF_SQL = """
-with t as (select repo_id, arg_max(repo_name, off) as name, arg_max(as_of, off) as as_of
-           from topic group by repo_id),
-     d as (select repo_id, repo_name from ghflow.main_gold.dim_repo where is_current),
-     j as (select coalesce(t.repo_id, d.repo_id) as repo_id, t.name, t.as_of, d.repo_name,
-                  case when t.as_of >= $cutoff then 'ahead'
-                       when t.repo_id is null then 'missing_in_topic'
-                       when d.repo_id is null then 'extra_in_topic'
-                       when t.name = d.repo_name then 'equal' else 'stale' end as verdict
-           from t full join d on t.repo_id = d.repo_id)
-select verdict, count(*), list(repo_id order by repo_id)[1:$named] from j group by verdict
+create or replace table verdicts as
+with latest as (select repo_id, max(off) as off from topic group by repo_id),
+     t as (select repo_id, repo_name as name, as_of from topic join latest using (repo_id, off)),
+     d as (select repo_id, repo_name from ghflow.main_gold.dim_repo where is_current)
+select coalesce(t.repo_id, d.repo_id) as repo_id,
+       case when t.as_of >= $cutoff then 'ahead'
+            when t.repo_id is null then 'missing_in_topic'
+            when d.repo_id is null then 'extra_in_topic'
+            when t.name = d.repo_name then 'equal' else 'stale' end as verdict
+from t full join d on t.repo_id = d.repo_id
+"""
+COUNTS_SQL = "select verdict, count(*) from verdicts group by verdict"
+NAMED_SQL = """
+select verdict, repo_id from verdicts where verdict not in ('equal', 'ahead')
+qualify row_number() over (partition by verdict order by repo_id) <= $named order by verdict, repo_id
 """
 
 
@@ -193,11 +200,15 @@ def diff(plant: bool) -> dict[str, Any]:
             return {"verdict": "pending", "progress": where, "warehouse_through": str(staged)}
         read = load_topic(con)
         planted = plant_stale(con, cutoff) if plant else None
-        rows = con.execute(
-            DIFF_SQL, {"cutoff": cutoff, "named": settings.RECONCILE_NAMED_IDS}
-        ).fetchall()
+        con.execute(DIFF_SQL, {"cutoff": cutoff})
+        counts: dict[str, Any] = {
+            v: {"repos": n, "named": []} for v, n in con.execute(COUNTS_SQL).fetchall()
+        }
+        for verdict, repo in con.execute(
+            NAMED_SQL, {"named": settings.RECONCILE_NAMED_IDS}
+        ).fetchall():
+            counts[verdict]["named"].append(repo)
     Path(SCRATCH).unlink(missing_ok=True)
-    counts = {v: {"repos": n, "named": ids} for v, n, ids in rows}
     red = {k: v for k, v in counts.items() if k not in ("equal", "ahead")}
     return {"verdict": "red" if red else "green", "records_read": read, "warehouse_until": str(cutoff),
             "progress": where, "counts": counts, "planted": planted}  # fmt: skip

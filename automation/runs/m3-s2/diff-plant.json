@@ -1,0 +1,41 @@
+{
+  "story": "M3-S2",
+  "accept_when": "a planted stale record is named by the diff",
+  "command": "python -m ghflow.commands.repo_state diff --plant (the plant lives in the scratch DuckDB copy; the topic is untouched)",
+  "caught": true,
+  "verdict": "red",
+  "records_read": 13717015,
+  "warehouse_until": "2026-10-10 09:00:00+00:00",
+  "progress": {
+    "partitions": {
+      "0": "2026-10-10-9",
+      "1": "2026-10-10-9",
+      "2": "2026-10-10-9",
+      "3": "2026-10-10-9",
+      "4": "2026-10-10-9",
+      "5": "2026-10-10-9"
+    },
+    "closed_through": "2026-10-10-9"
+  },
+  "counts": {
+    "stale": {
+      "repos": 1,
+      "named": [
+        68016
+      ]
+    },
+    "equal": {
+      "repos": 13587208,
+      "named": []
+    },
+    "ahead": {
+      "repos": 6473,
+      "named": []
+    }
+  },
+  "planted": {
+    "repo_id": 68016,
+    "planted_name": "the repo's previous name (from dim_repo)",
+    "note": "repo id only; no name recorded (no real user data in the repo)"
+  }
+}

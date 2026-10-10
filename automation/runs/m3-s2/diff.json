@@ -1,0 +1,31 @@
+{
+  "story": "M3-S2",
+  "accept_when": "the latest value per repo in the topic equals dim_repo's current rows",
+  "command": "python -m ghflow.commands.repo_state diff (one-off airflow-image container, compose network, warehouse read-only)",
+  "seconds": 128,
+  "verdict": "green",
+  "records_read": 13717015,
+  "warehouse_until": "2026-10-10 09:00:00+00:00",
+  "progress": {
+    "partitions": {
+      "0": "2026-10-10-9",
+      "1": "2026-10-10-9",
+      "2": "2026-10-10-9",
+      "3": "2026-10-10-9",
+      "4": "2026-10-10-9",
+      "5": "2026-10-10-9"
+    },
+    "closed_through": "2026-10-10-9"
+  },
+  "counts": {
+    "ahead": {
+      "repos": 6473,
+      "named": []
+    },
+    "equal": {
+      "repos": 13587209,
+      "named": []
+    }
+  },
+  "planted": null
+}
