@@ -1,0 +1,86 @@
+{
+  "story": "M1-S4",
+  "phase": "bars, committed before the prediction and before any run",
+  "decided": "2026-10-10",
+  "baseline": "rolling clean (owner's decision 2026-10-10): the same hour of day on up to 7 earlier clean days within 28; at least 3 or no verdict; the seed fortnight Aug 3-16 is judged against its own other days",
+  "input": "automation/runs/m1-s4/hour_counts.json (1,635 hours, 2026-08-03-0 .. 2026-10-10-2, from main_staging.stg_gharchive__events)",
+  "evidence": "automation/runs/m1-s4/seed_spread.json (each seed hour's ratio to its seed reference)",
+  "bars": {
+    "QUALITY_VOLUME_LOW": {
+      "value": 0.35,
+      "argument": "Seed volume ratios: p2.5 0.435, natural minimum 0.406 (2026-08-06-14, weekday working hours; push share normal at 0.957). Everything below 0.40 is 2026-08-07 09:00-15:00 (0.24-0.30), one contiguous block running into that day's push collapse: an incident, not a dip. Near-empty hours (M0-S2: < 5 MB gzipped) sit near 0.01. 0.35 is below every natural dip and above the incident."
+    },
+    "QUALITY_VOLUME_HIGH": {
+      "value": 2.0,
+      "argument": "Seed maximum 1.383 (p99.5 1.362). A spike loses no data, so the bar is generous: 2.0."
+    },
+    "QUALITY_MIX_MIN_SHARE": {
+      "value": 0.05,
+      "argument": "Types at 1-3% of the reference swing far from noise alone: CreateEvent 0.25-3.19, DeleteEvent 0.24-4.30 (clusters on Aug 11-13). A band wide enough for them (>= 4.3x) could not catch the Aug 7 push incident (needs < 3.4x). Judging only types with >= 5% of the reference keeps the bar meaningful; in the seed that is PushEvent alone, later CreateEvent joins when it grows."
+    },
+    "QUALITY_MIX_LOW": {
+      "value": 0.6,
+      "argument": "PushEvent share ratio in the seed: p2.5 0.922, median 1.000, max 1.033; its low tail is 2026-08-07 16:00-19:00 (0.149-0.553). 0.6 sits between the natural floor (0.92) and the incident (<= 0.55)."
+    },
+    "QUALITY_MIX_HIGH": {
+      "value": 1.67,
+      "argument": "The log-mirror of 0.6 (1/0.6), so a share rising as far as one falling is judged alike. PushEvent cannot exceed ~1.05 of a 0.95 reference anyway; the bar matters for CreateEvent once it reaches 5%."
+    },
+    "QUALITY_REFERENCE_SIZE": {
+      "value": 7,
+      "argument": "One week of the same hour of day: covers both weekend and weekday behaviour; the median is robust to a single odd day."
+    },
+    "QUALITY_MIN_REFERENCE": {
+      "value": 3,
+      "argument": "A median of fewer than 3 is not a baseline; such an hour gets no verdict rather than a guess."
+    },
+    "QUALITY_LOOKBACK_DAYS": {
+      "value": 28,
+      "argument": "Long enough to reach past the longest broken stretch seen (Sep 2-10) for clean references."
+    }
+  },
+  "seed_spread_summary": {
+    "volume_ratio": {
+      "n": 336,
+      "min": 0.2426,
+      "p0.5": 0.2779,
+      "p2.5": 0.4354,
+      "median": 1.0,
+      "p97.5": 1.2705,
+      "p99.5": 1.3624,
+      "max": 1.3831
+    },
+    "share_ratio_by_type": {
+      "CreateEvent": {
+        "n": 336,
+        "min": 0.2546,
+        "p0.5": 0.3487,
+        "p2.5": 0.5012,
+        "median": 1.0,
+        "p97.5": 2.449,
+        "p99.5": 2.8337,
+        "max": 3.1868
+      },
+      "DeleteEvent": {
+        "n": 175,
+        "min": 0.2418,
+        "p0.5": 0.2436,
+        "p2.5": 0.4058,
+        "median": 0.8972,
+        "p97.5": 2.7563,
+        "p99.5": 3.1236,
+        "max": 4.3029
+      },
+      "PushEvent": {
+        "n": 336,
+        "min": 0.1489,
+        "p0.5": 0.2559,
+        "p2.5": 0.9218,
+        "median": 1.0,
+        "p97.5": 1.0244,
+        "p99.5": 1.0307,
+        "max": 1.0332
+      }
+    }
+  }
+}

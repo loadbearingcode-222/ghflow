@@ -60,3 +60,26 @@ BRONZE_ROW_GROUP_ROWS = 1_000_000
 #: fetched from GH Archive again. Age is the hour's own timestamp, not the upload time: a
 #: backfill uploads August today, and August is still old.
 RAW_KEEP_DAYS = 14
+
+# ---- Data quality (M1-S4, ADR-0004): the rolling clean baseline and its bars.
+#: An hour is judged against up to this many earlier clean hours at the same hour of day ...
+QUALITY_REFERENCE_SIZE = 7
+#: ... found within this many days back; fewer than QUALITY_MIN_REFERENCE gives no verdict.
+QUALITY_LOOKBACK_DAYS = 28
+QUALITY_MIN_REFERENCE = 3
+#: The seed fortnight: judged against its own other days (it has no clean past).
+QUALITY_SEED_FIRST = date(2026, 8, 3)
+QUALITY_SEED_LAST = date(2026, 8, 16)
+#: Bars: ratios to the reference median, argued from the seed fortnight BEFORE any hour was
+#: judged (automation/runs/m1-s4/bars.json has the full argument and the numbers).
+#: Volume: natural weekday dips go down to 0.406; the Aug 7 09-15 incident sits at 0.24-0.30 and
+#: near-empty hours near 0.01. Highs reach 1.38; spikes cost less, so the high bar is generous.
+QUALITY_VOLUME_LOW = 0.35
+QUALITY_VOLUME_HIGH = 2.0
+#: Event mix: only types making up >= 5% of the reference are judged by share. Types at 1-3%
+#: swing 0.24-4.3x from noise alone, which a bar catching real incidents cannot tolerate.
+QUALITY_MIX_MIN_SHARE = 0.05
+#: PushEvent's share stays within 0.92-1.03 of its reference; the Aug 7 16-19 incident drops it
+#: to 0.15-0.55. 0.6 sits between with margin; the high bar is its log-mirror (1/0.6).
+QUALITY_MIX_LOW = 0.6
+QUALITY_MIX_HIGH = 1.67
