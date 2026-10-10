@@ -1,0 +1,32 @@
+{
+  "story": "M3-S1",
+  "accept_when": "re-processing an earlier hour after later ones yields a dimension equal, row for row, to a full rebuild",
+  "command": "python -m ghflow.commands.history late-hour (in the stack; disposable warehouse, dbt target redteam)",
+  "method": "three real bronze days built without one early hour; the hour then arrives and the normal incremental build runs; compared with --full-refresh by symmetric EXCEPT ALL; control: the state before the hour arrived must differ",
+  "window": "2026-08-04 .. 2026-08-06",
+  "late_hour": "2026-08-04-10",
+  "hours": 72,
+  "rows": {
+    "before": {
+      "dim_repo": 917075,
+      "dim_actor": 619257
+    },
+    "late": {
+      "dim_repo": 925116,
+      "dim_actor": 625071
+    },
+    "full": {
+      "dim_repo": 925116,
+      "dim_actor": 625071
+    }
+  },
+  "late_vs_full": {
+    "dim_repo": 0,
+    "dim_actor": 0
+  },
+  "control_before_vs_full": {
+    "dim_repo": 17997,
+    "dim_actor": 14266
+  },
+  "verdict": "pass"
+}

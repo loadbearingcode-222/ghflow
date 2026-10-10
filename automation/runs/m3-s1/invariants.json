@@ -1,0 +1,35 @@
+{
+  "story": "M3-S1",
+  "accept_when": "SCD2 invariants hold: one current row per id, no overlapping validity, valid_from strictly increasing per id",
+  "dbt_build": {
+    "run_id": "m3-s1-gold-090848",
+    "result": "PASS=109 ERROR=0",
+    "dim_repo_seconds": 51.22,
+    "dim_actor_seconds": 33.25,
+    "note": "built concurrently; dbt test scd2_invariants green on both"
+  },
+  "independent_recheck": "queries written apart from the dbt test, read-only on the production warehouse after compaction",
+  "staging_events": 147405015,
+  "dim_repo": {
+    "versions": 13715629,
+    "ids": 13587310,
+    "current_rows": 13587310,
+    "ids_in_staging": 13587310,
+    "ids_with_history": 121376,
+    "most_versions_on_one_id": 143,
+    "ids_not_exactly_one_current": 0,
+    "overlaps_gaps_or_non_increasing": 0,
+    "current_name_differs_from_latest_event": 0
+  },
+  "dim_actor": {
+    "versions": 7140326,
+    "ids": 7111783,
+    "current_rows": 7111783,
+    "ids_in_staging": 7111783,
+    "ids_with_history": 27524,
+    "most_versions_on_one_id": 37,
+    "ids_not_exactly_one_current": 0,
+    "overlaps_gaps_or_non_increasing": 0,
+    "current_name_differs_from_latest_event": 0
+  }
+}
