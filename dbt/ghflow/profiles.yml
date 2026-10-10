@@ -7,7 +7,13 @@ ghflow:
       type: duckdb
       path: "{{ env_var('GHFLOW_WAREHOUSE', '/opt/ghflow/warehouse/ghflow.duckdb') }}"
       threads: 4
-      extensions: [httpfs]
+      extensions: [httpfs, postgres]
+      # ghflow_ops, read-only (M5-S1): the quality verdicts are the one definition of a broken hour.
+      attach:
+        - path: "{{ env_var('GHFLOW_OPS_DSN', 'postgresql://unset@localhost/ghflow_ops') }}"
+          type: postgres
+          alias: ops
+          read_only: true
       settings:
         memory_limit: "{{ env_var('GHFLOW_DUCKDB_MEMORY', '1GB') }}"
         preserve_insertion_order: false

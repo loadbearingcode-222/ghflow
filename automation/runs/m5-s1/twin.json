@@ -1,0 +1,85 @@
+{
+  "story": "M5-S1",
+  "accept_when": "each mart's headline number is recomputed from silver by an independent twin query and matches",
+  "warehouse": "production, after dbt_build run m5-s1-marts-185132 (build, compact, twin, export all success)",
+  "kpis": {
+    "K01": {
+      "mart": [
+        2228544.5,
+        null
+      ],
+      "twin": [
+        2228544.5,
+        null
+      ],
+      "match": true
+    },
+    "K02": {
+      "mart": [
+        0.8899801377711329,
+        null
+      ],
+      "twin": [
+        0.8899801377711329,
+        null
+      ],
+      "match": true
+    },
+    "K03": {
+      "mart": [
+        141292.0,
+        "Monday 1:00 UTC"
+      ],
+      "twin": [
+        141292.0,
+        "Monday 1:00 UTC"
+      ],
+      "match": true
+    },
+    "K04": {
+      "mart": [
+        903,
+        "eternity4719/HowToLiveBetter"
+      ],
+      "twin": [
+        903,
+        "eternity4719/HowToLiveBetter"
+      ],
+      "match": true
+    },
+    "K05": {
+      "mart": [
+        0.11275091967707754,
+        null
+      ],
+      "twin": [
+        0.11275091967707754,
+        null
+      ],
+      "match": true
+    },
+    "K06": {
+      "mart": [
+        10200747,
+        "github-actions[bot]"
+      ],
+      "twin": [
+        10200747,
+        "github-actions[bot]"
+      ],
+      "match": true
+    },
+    "K07": {
+      "mart": [
+        0.9993939393939394,
+        null
+      ],
+      "twin": [
+        0.9993939393939394,
+        null
+      ],
+      "match": true
+    }
+  },
+  "all_match": true
+}

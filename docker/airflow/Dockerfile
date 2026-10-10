@@ -16,8 +16,8 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/ghflow-venv \
 WORKDIR /opt/ghflow
 COPY pyproject.toml uv.lock README.md ./
 RUN uv sync --locked --no-dev --group dbt --group stream --group clickhouse --no-install-project
-# DuckDB's httpfs extension, baked in so dbt builds never download at run time (M1-S3).
-RUN /opt/ghflow-venv/bin/python -c "import duckdb; c = duckdb.connect(); c.execute(\"set extension_directory='/opt/ghflow/duckdb-extensions'\"); c.install_extension('httpfs')"
+# DuckDB's httpfs and postgres (M5-S1) extensions, baked in so dbt builds never download at run time (M1-S3).
+RUN /opt/ghflow-venv/bin/python -c "import duckdb; c = duckdb.connect(); c.execute(\"set extension_directory='/opt/ghflow/duckdb-extensions'\"); c.install_extension('httpfs'); c.install_extension('postgres')"
 COPY src ./src
 COPY tests/dags ./tests/dags
 COPY dbt ./dbt

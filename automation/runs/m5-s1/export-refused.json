@@ -1,0 +1,9 @@
+{
+  "story": "M5-S1",
+  "accept_when": "the export refuses if any mart is empty",
+  "how": "a disposable copy of the warehouse with mart_top_bots emptied, export run against it",
+  "result": {
+    "refused": "empty marts: ['mart_top_bots']; nothing written"
+  },
+  "objects_under_marts_after": []
+}
