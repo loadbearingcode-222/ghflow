@@ -206,3 +206,10 @@ olist-lakehouse). Provenance is in brackets. Entries below it are earned by THIS
     an offset rewind in that window did not take (the next start read the old commit). *Check:*
     close consumers on SIGTERM/SIGINT; before altering a group's offsets, confirm the group is
     empty and read the per-partition result for errors. (M2-S2)
+52. **DuckDB's `memory_limit` does not bound string aggregate states, and `tmpfs` spill is RAM.**
+    `any_value(repo_name)` over 13.4M groups ran a 3 GiB container out of memory under a 1 GB
+    limit; the same names as *grouping keys* (`group by repo_id, repo_name`) spilled and peaked
+    at 1.1 GiB. A first test also spilled to a `--tmpfs` mount, which counts against the
+    container's memory, and to an in-memory database, which cannot spill at all. *Check:* put
+    strings in the group key, not in an aggregate; spill to a disk-backed file; try a heavy
+    query in a one-off container with its own `--memory`, never in the scheduler. (M3-S1)
