@@ -1,0 +1,45 @@
+{
+  "story": "M5-S3",
+  "phase": "prediction, committed before any change (the order is checked from git)",
+  "frozen_scope": [
+    "E1: end-to-end latency, an hour's publication -> visible (with its verdict) on the dashboard",
+    "D1: dashboard render time and bundle size",
+    "#36: tail restore floor (second attempt, the idea recorded on the issue)",
+    "cohesion: no duplicated helper across packages, no unused public function (tool + reviewed allowlist), size budget",
+    "#35 and #37: carried to post-v1 with written reasons (label post-v1)",
+    "Also fixes (found while scoping): dbt_build (02:30) builds the marts before gharchive_quality (03:30) judges the newest day, and marts treat 'unjudged' hours as clean, so the newest day's broken hours count as clean on the dashboard until the next day's build"
+  ],
+  "baselines_measured_before_this_file": {
+    "publication_delay_min": "GH Archive Last-Modified after the hour's end over 1,652 hours: median 5.1, p99 5.3, max 5.4",
+    "schedule": "ingest hourly on publication; dbt_build daily 02:30; gharchive_quality daily 03:30; dashboard_render on the marts asset (~30 s)",
+    "bundle": "6 pages x ~6.8 MB (each embeds plotly.min.js, 4.6 MB), site zip 14.5 MB (automation/runs/m5-s2/served.json)",
+    "tail_restore_s": "5.02 median (automation/runs/m4-s3/restore-tail.json, before side)"
+  },
+  "changes_and_claims": [
+    {
+      "id": "E1",
+      "change": "dbt_build moves to 00:30 and emits a warehouse asset after compact; gharchive_quality runs on that asset; its judge emits a verdicts asset; a new marts_publish DAG (marts-only dbt build -> twin -> export) runs on it and emits the marts asset; dashboard_render follows. A day is complete only when all 24 hours are judged",
+      "metric": "minutes from the publication of a day's last hour (23:00 + 5.1 min) to a published dashboard release that includes that day with its verdicts = schedule offset + the measured chain (dbt_build start -> release)",
+      "claim": "after <= 60 min, against before ~1,590 min (02:30 next day's build is the first to carry the day's verdicts: 26.4 h)",
+      "argument": "00:30 is 25 min after the last publication (max delay 5.4 min) and the chain (build ~4 min, judge, marts ~1 min, render ~0.5 min) is ~10 min",
+      "also_required": "twin all match; dashboard check passes; no hour is unjudged in the marts' complete days"
+    },
+    {
+      "id": "D1",
+      "change": "pages stop embedding resources: one shared assets folder (plotly.min.js, Quarto's site_libs) next to the pages; the folder (and its zip) still opens without the stack",
+      "metric": "site zip bytes, and `dashboard build` seconds (5 interleaved runs per side: before = a worktree of main, after = this branch)",
+      "claim": "zip <= 3.0 MB (from 14.5 MB) and render median <= 0.8x before, IQRs disjoint",
+      "argument": "plotly.min.js once instead of six times; Quarto stops base64-inlining per page",
+      "also_required": "dashboard check passes with 0 problems; 0 tags load anything over http(s); the red team still catches all three plants"
+    },
+    {
+      "id": "R3",
+      "issue": 36,
+      "change": "open_store skips read_to_end when the stored position equals the topic's end on every partition (positions are already compared with ends())",
+      "metric": "scripts/bench_history.py restore --tail, 5 runs per side interleaved",
+      "claim": "after median <= 0.5 s (from 5.02 s), IQRs disjoint",
+      "also_required": "a full rebuild still reads every committed record; repo_state diff green; audit 0 spurious after a live restart"
+    }
+  ],
+  "keep_rule": "unchanged: claim met on interleaved medians, IQRs disjoint, also_required holds; otherwise reverted with a refine issue"
+}
