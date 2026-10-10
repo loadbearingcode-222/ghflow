@@ -136,3 +136,46 @@ GROUP BY hour_start, type;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS ghflow.repo_current_mv TO ghflow.repo_current AS
 SELECT * FROM ghflow.repo_state_queue;
+
+CREATE TABLE IF NOT EXISTS ghflow.ops_ingest_audit (
+    `hour` String,
+    `hour_start` DateTime64(6, 'UTC'),
+    `attempted_at` DateTime64(6, 'UTC'),
+    `outcome` String,
+    `rows_accepted` Nullable(Int64)
+)
+ENGINE = PostgreSQL(ghflow_ops, table = 'ingest_audit');
+
+CREATE TABLE IF NOT EXISTS ghflow.ops_reconcile_results (
+    `run_id` String,
+    `checked_at` DateTime64(6, 'UTC'),
+    `hour` String,
+    `status` String,
+    `batch_ids` Int64,
+    `missing_count` Int64,
+    `extra_count` Int64,
+    `ch_missing_count` Int64,
+    `ch_extra_count` Int64
+)
+ENGINE = PostgreSQL(ghflow_ops, table = 'reconcile_results');
+
+CREATE TABLE IF NOT EXISTS ghflow.ops_quality_verdicts (
+    `hour` String,
+    `hour_start` DateTime64(6, 'UTC'),
+    `judged_at` DateTime64(6, 'UTC'),
+    `status` String
+)
+ENGINE = PostgreSQL(ghflow_ops, table = 'quality_verdicts');
+
+CREATE TABLE IF NOT EXISTS ghflow.consumer_lag (
+    `ts` DateTime('UTC'),
+    `group` LowCardinality(String),
+    `topic` LowCardinality(String),
+    `partition` UInt16,
+    `committed` Int64,
+    `end` Int64,
+    `lag` Int64
+)
+ENGINE = MergeTree
+ORDER BY (`group`, ts, partition)
+TTL ts + INTERVAL 30 DAY;

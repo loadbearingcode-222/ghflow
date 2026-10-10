@@ -62,6 +62,7 @@ function Invoke-Env {
         'AIRFLOW_FERNET_KEY'     = (New-FernetKey)
         'AIRFLOW_JWT_SECRET'     = (New-Secret 48)
         'CLICKHOUSE_PASSWORD'    = (New-Secret)
+        'GRAFANA_ADMIN_PASSWORD' = (New-Secret 16)
     }
     $keys = @(Get-Content -LiteralPath '.env.example' | Where-Object { $_ -match '^([A-Z0-9_]+)=$' } | ForEach-Object { $_.TrimEnd('=') })
     $missing = @($keys | Where-Object { -not $values.ContainsKey($_) })

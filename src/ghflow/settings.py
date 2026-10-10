@@ -103,3 +103,8 @@ RECONCILE_NAMED_IDS = 20
 #: gathers before sending a batch. Changed only against a committed throughput prediction (M2-S4).
 STREAM_LINGER_MS = 50
 STREAM_BATCH_BYTES = 1_000_000
+
+# ---- Ops dashboards (M4-S2).
+#: How often the lag sampler records every consumer group's lag into ClickHouse. A stopped
+#: consumer must show rising lag on its panel within 5 minutes (M4-S2 Accept-when).
+LAG_SAMPLE_S = 15

@@ -1,0 +1,278 @@
+{
+  "uid": "ghflow-ops",
+  "title": "ghflow \u00b7 ops",
+  "tags": [
+    "ghflow",
+    "M4"
+  ],
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "editable": false,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Ingest freshness (minutes since the newest ingested hour ended)",
+      "type": "stat",
+      "description": "GH Archive publishes an hour a few minutes after it ends; above ~90 means ingest is stuck.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "ghflow-clickhouse"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "ghflow-clickhouse"
+          },
+          "editorType": "sql",
+          "rawSql": "SELECT dateDiff('minute', max(hour_start) + INTERVAL 1 HOUR, now()) AS minutes\nFROM ghflow.ops_ingest_audit WHERE outcome = 'accepted'",
+          "queryType": "table",
+          "format": 1
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Reconciliation: hours by status (latest run)",
+      "type": "table",
+      "description": "Batch = stream = ClickHouse per hour. Anything but green names its ids in reconcile_results.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "ghflow-clickhouse"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "ghflow-clickhouse"
+          },
+          "editorType": "sql",
+          "rawSql": "SELECT status, count() AS hours FROM (\n  SELECT hour, argMax(status, checked_at) AS status FROM ghflow.ops_reconcile_results\n  WHERE checked_at > now() - INTERVAL 3 HOUR GROUP BY hour\n) GROUP BY status ORDER BY status",
+          "queryType": "table",
+          "format": 1
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Flagged hours per day (quality)",
+      "type": "timeseries",
+      "description": "flagged: volume or PushEvent broke (shaded on the stakeholder dashboard); shifted: minor types moved.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "ghflow-clickhouse"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "ghflow-clickhouse"
+          },
+          "editorType": "sql",
+          "rawSql": "SELECT toStartOfDay(hour_start) AS time, countIf(status = 'flagged') AS flagged,\n  countIf(status = 'shifted') AS shifted FROM (\n  SELECT hour, any(hour_start) AS hour_start, argMax(status, judged_at) AS status\n  FROM ghflow.ops_quality_verdicts GROUP BY hour\n) WHERE $__timeFilter(hour_start) GROUP BY time ORDER BY time",
+          "queryType": "timeseries",
+          "format": 0
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Events per hour (ClickHouse)",
+      "type": "timeseries",
+      "description": "Distinct events per hour, as the third witness holds them.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "ghflow-clickhouse"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "ghflow-clickhouse"
+          },
+          "editorType": "sql",
+          "rawSql": "SELECT hour_start AS time, groupBitmapMerge(ids) AS events FROM ghflow.events_hourly\nWHERE $__timeFilter(hour_start) GROUP BY time ORDER BY time",
+          "queryType": "timeseries",
+          "format": 0
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Consumer lag \u00b7 lander",
+      "type": "timeseries",
+      "description": "Messages lander has not yet committed on gharchive.events, summed over partitions. Flat is healthy; a steady climb means the consumer stopped.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "ghflow-clickhouse"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "ghflow-clickhouse"
+          },
+          "editorType": "sql",
+          "rawSql": "SELECT ts AS time, sum(lag) AS lag FROM ghflow.consumer_lag\nWHERE `group` = 'lander' AND $__timeFilter(ts)\nGROUP BY time ORDER BY time",
+          "queryType": "timeseries",
+          "format": 0
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Consumer lag \u00b7 repo-state",
+      "type": "timeseries",
+      "description": "Messages repo-state has not yet committed on gharchive.events, summed over partitions. Flat is healthy; a steady climb means the consumer stopped.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "ghflow-clickhouse"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 8,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "ghflow-clickhouse"
+          },
+          "editorType": "sql",
+          "rawSql": "SELECT ts AS time, sum(lag) AS lag FROM ghflow.consumer_lag\nWHERE `group` = 'repo-state' AND $__timeFilter(ts)\nGROUP BY time ORDER BY time",
+          "queryType": "timeseries",
+          "format": 0
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Consumer lag \u00b7 clickhouse",
+      "type": "timeseries",
+      "description": "Messages clickhouse has not yet committed on gharchive.events, summed over partitions. Flat is healthy; a steady climb means the consumer stopped.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "ghflow-clickhouse"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "ghflow-clickhouse"
+          },
+          "editorType": "sql",
+          "rawSql": "SELECT ts AS time, sum(lag) AS lag FROM ghflow.consumer_lag\nWHERE `group` = 'clickhouse' AND $__timeFilter(ts)\nGROUP BY time ORDER BY time",
+          "queryType": "timeseries",
+          "format": 0
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Consumer lag \u00b7 clickhouse-repo-state",
+      "type": "timeseries",
+      "description": "Messages clickhouse-repo-state has not yet committed on gharchive.repo_state, summed over partitions. Flat is healthy; a steady climb means the consumer stopped.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "ghflow-clickhouse"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 8,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "ghflow-clickhouse"
+          },
+          "editorType": "sql",
+          "rawSql": "SELECT ts AS time, sum(lag) AS lag FROM ghflow.consumer_lag\nWHERE `group` = 'clickhouse-repo-state' AND $__timeFilter(ts)\nGROUP BY time ORDER BY time",
+          "queryType": "timeseries",
+          "format": 0
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Flagged hours (latest verdict)",
+      "type": "table",
+      "description": "",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "ghflow-clickhouse"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "ghflow-clickhouse"
+          },
+          "editorType": "sql",
+          "rawSql": "SELECT hour, hour_start FROM (\n  SELECT hour, any(hour_start) AS hour_start, argMax(status, judged_at) AS status\n  FROM ghflow.ops_quality_verdicts GROUP BY hour\n) WHERE status = 'flagged' ORDER BY hour_start DESC LIMIT 200",
+          "queryType": "table",
+          "format": 1
+        }
+      ]
+    }
+  ]
+}
