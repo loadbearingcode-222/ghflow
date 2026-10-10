@@ -39,6 +39,9 @@ x-airflow-common: &airflow-common
     GHFLOW_PYTHON: /opt/ghflow-venv/bin/python
     S3_ENDPOINT: http://seaweedfs:8333
     GHFLOW_OPS_DSN: postgresql://ghflow:${GHFLOW_OPS_PASSWORD:?run .\make.ps1 env}@platform-db:5432/ghflow_ops
+    # The stream, for the commands that read it from Airflow's containers (M5-S4 demo).
+    KAFKA_BOOTSTRAP: redpanda:9092
+    SCHEMA_REGISTRY_URL: http://redpanda:8081
     # The third reconcile witness (M4-S1).
     CLICKHOUSE_URL: http://clickhouse:8123
     CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?run .\make.ps1 env}
@@ -285,6 +288,8 @@ services:
       KAFKA_BOOTSTRAP: redpanda:9092
       SCHEMA_REGISTRY_URL: http://redpanda:8081
       REPLAY_FROM: 2026-08-03-0
+      # Unset: replay forever. The demo bounds its window (M5-S4).
+      REPLAY_UNTIL: ${REPLAY_UNTIL:-}
     depends_on:
       redpanda-init:
         condition: service_completed_successfully

@@ -108,3 +108,12 @@ STREAM_BATCH_BYTES = 1_000_000
 #: How often the lag sampler records every consumer group's lag into ClickHouse. A stopped
 #: consumer must show rising lag on its panel within 5 minutes (M4-S2 Accept-when).
 LAG_SAMPLE_S = 15
+
+# ---- The one-command demo (M5-S4): a bounded window from a clean clone.
+#: Aug 3-7: four clean days and Aug 7, which has broken hours; all five sit in the quality seed
+#: fortnight, so every hour is judged against the other demo days (>= QUALITY_MIN_REFERENCE).
+DEMO_FIRST = date(2026, 8, 3)
+DEMO_LAST = date(2026, 8, 7)
+DEMO_BROKEN_DAY = date(2026, 8, 7)
+#: How long the demo waits for the stream (replay, land, compact, ClickHouse) to close every hour.
+DEMO_STREAM_DEADLINE_S = 3600
