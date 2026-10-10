@@ -1,0 +1,33 @@
+{
+  "story": "M2-S4",
+  "issue": 26,
+  "phase": "verdict on prediction-warehouse.json",
+  "one_copy": {
+    "how": "warehouse compact on the current file",
+    "bytes_before": 13509603328,
+    "bytes_after": 13342879744,
+    "staging_rows": 147239986,
+    "seconds": 70.3
+  },
+  "W1": {
+    "run": "dbt_build m2s4_w_full_refresh (build -> compact)",
+    "after_full_refresh_bytes": 26848014336,
+    "after_compact_bytes": 13349171200,
+    "vs_one_copy_pct": 0.05,
+    "dbt": "PASS=97 ERROR=0",
+    "verdict": "HELD (band +/-10%)"
+  },
+  "W2": {
+    "run": "dbt_build m2s4_w_incremental (build -> compact)",
+    "after_incremental_bytes": 13570158592,
+    "after_compact_bytes": 13369618432,
+    "vs_one_copy_pct": 0.2,
+    "dbt": "PASS=97 ERROR=0",
+    "verdict": "HELD (band +/-5%)"
+  },
+  "W3": {
+    "claim": "rows and dbt unchanged by compaction",
+    "verdict": "HELD: the compact command compares staging rows before and after the copy (147,364,029 = 147,364,029 both times) and refuses otherwise; dbt passed 97 / 97"
+  },
+  "decision": "KEPT: dbt_build now runs build -> compact in the duckdb pool; the file stays one copy"
+}

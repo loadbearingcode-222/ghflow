@@ -1,0 +1,23 @@
+{
+  "story": "M2-S4",
+  "issue": 25,
+  "phase": "prediction, committed before the contract change",
+  "evidence": "M1-S5 profile of 2026-10-02-15 (6.7 s under cProfile): _envelope 3.05 s cumulative, of which _strptime 1.27 s (19%); _project 1.42 s",
+  "change": "created_at: a canonical 20-character timestamp is built from its slices (datetime(int(..)...)); any other shape falls back to the original strptime, so the accepted set is unchanged",
+  "claims": [
+    {
+      "id": "C1",
+      "claim": "ingest-day (the fixed day, 24 cached hours) >= +10% faster, interleaved medians, IQRs disjoint",
+      "argument": "strptime is ~19% of an hour; slicing costs a small fraction of it; Parquet encoding and the rest are untouched. 19% minus the new cost minus profiling inflation: bar 10%"
+    },
+    {
+      "id": "C2",
+      "claim": "all 24 bronze sha256s identical to bench-before (automation/runs/m1-s5/bench-before.json)"
+    },
+    {
+      "id": "C3",
+      "claim": "exact acceptance: on canonical, non-canonical, out-of-range and junk timestamps the new cast returns what strptime returns (unit test)"
+    }
+  ],
+  "keep_rule": "kept only if C1 (with disjoint IQRs), C2 and C3 all hold; otherwise reverted"
+}

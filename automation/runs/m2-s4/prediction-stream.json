@@ -1,0 +1,43 @@
+{
+  "story": "M2-S4",
+  "phase": "prediction, committed before any stream change",
+  "baseline": "automation/runs/m2-s4/bench-stream-before.json (spreads 25% / 13%: the verdict uses before/after INTERLEAVED, before = a worktree of the commit carrying this file)",
+  "profile_one_hour": {
+    "replayer_8.65s": {
+      "Serializer.__call__ (Avro writes)": 5.16,
+      "Hour.key per row": 0.6,
+      "produce+poll": 0.5,
+      "bronze read": 0.27
+    },
+    "lander_7.63s": {
+      "Avro decode (in the consume loop)": 3.29,
+      "land(): per-row dict comprehension + Parquet": 2.21,
+      "poll": 0.75
+    }
+  },
+  "changes_and_claims": [
+    {
+      "id": "R1",
+      "change": "replayer: the hour key once per hour, one reused Avro buffer, no per-record dict copy",
+      "claim": "replayer events/s >= +12% (interleaved medians)",
+      "argument": "Hour.key 0.60 s + ~0.4 s of buffer/copy overhead of ~6.3 s per hour = ~16%; bar 12%"
+    },
+    {
+      "id": "L1",
+      "change": "lander: Arrow builds the landed table straight from the buffered records (no per-row dict comprehension)",
+      "claim": "lander events/s >= +15% (interleaved medians)",
+      "argument": "the comprehension is ~1.3-1.5 s of ~5.7 s per hour = 23-26%; bar 15%"
+    },
+    {
+      "id": "B1",
+      "change": "batching: linger.ms 50 -> 100, batch.size 1 MB -> 2 MB",
+      "claim": "replayer events/s within +/-5%: NO gain",
+      "argument": "produce + poll are ~0.5 s of 8.65 s; the producer is not the bottleneck, serialization is. Predicted not kept."
+    },
+    {
+      "id": "F1",
+      "claim": "every change: landed-file fingerprint and delivered/landed counts identical to before"
+    }
+  ],
+  "keep_rule": "a change is kept only if its claim holds on interleaved medians, its IQRs are disjoint from before (for R1, L1), and F1 holds; otherwise reverted"
+}

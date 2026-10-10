@@ -25,9 +25,10 @@ from confluent_kafka import Consumer, TopicPartition
 
 from ghflow import bronze
 from ghflow.storage import Store
+from ghflow.stream import clients
 
-TOPIC = "gharchive.events"
-GROUP = "lander"
+TOPIC = clients.TOPIC
+GROUP = clients.LANDER_GROUP
 BUCKET = "stream"
 
 HOURS_SQL = b"""
@@ -72,16 +73,6 @@ def compact_path(hour_key: str) -> str:
     return f"{BUCKET}/compact/date={day}/hour={int(hh):02d}/events.parquet"
 
 
-def consumer_config(bootstrap: str) -> dict[str, Any]:
-    return {
-        "bootstrap.servers": bootstrap,
-        "group.id": GROUP,
-        "enable.auto.commit": False,  # commit only after the file is written
-        "auto.offset.reset": "earliest",
-        "max.poll.interval.ms": 600_000,
-    }
-
-
 @dataclass
 class Buffer:
     hour: str | None = None
@@ -89,8 +80,10 @@ class Buffer:
 
 
 class Lander:
-    def __init__(self, consumer: Consumer, store: Store, conn: psycopg.Connection[Any]) -> None:
-        self.consumer, self.store, self.conn = consumer, store, conn
+    def __init__(
+        self, consumer: Consumer, store: Store, conn: psycopg.Connection[Any], topic: str = TOPIC
+    ) -> None:
+        self.consumer, self.store, self.conn, self.topic = consumer, store, conn, topic
         self.buffers: dict[int, Buffer] = defaultdict(Buffer)
 
     def take(self, partition: int, offset: int, record: dict[str, Any]) -> dict[str, Any] | None:
@@ -113,7 +106,7 @@ class Lander:
         path = landed_path(partition, first, last)
         self.store.put(path, bytes(sink.getvalue().to_pybytes()))
         self.consumer.commit(
-            offsets=[TopicPartition(TOPIC, partition, last + 1)], asynchronous=False
+            offsets=[TopicPartition(self.topic, partition, last + 1)], asynchronous=False
         )
         events = sum(r["kind"] == "EVENT" for r in buf.rows)
         self.conn.execute(

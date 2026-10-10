@@ -11,23 +11,20 @@ from __future__ import annotations
 import argparse
 import io
 import json
-import os
 import signal
 import sys
 import threading
 from itertools import pairwise
 from typing import Any
 
-from confluent_kafka import Consumer, TopicPartition
+from confluent_kafka import TopicPartition
 from fastavro import parse_schema, schemaless_reader
 
 from ghflow import audit, settings
 from ghflow.commands.local import ops_dsn, s3_config
 from ghflow.exitcodes import ExitCode, guarded
 from ghflow.storage import Store
-from ghflow.stream import compact, lander, schema
-
-BOOTSTRAP = os.environ.get("KAFKA_BOOTSTRAP", "127.0.0.1:39092")
+from ghflow.stream import clients, compact, lander, schema
 
 
 def run() -> int:
@@ -37,7 +34,7 @@ def run() -> int:
     for sig in (signal.SIGTERM, signal.SIGINT):
         signal.signal(sig, lambda *_: stopping.set())
     store, parsed = Store(s3_config()), parse_schema(schema.schema())
-    consumer = Consumer(lander.consumer_config(BOOTSTRAP))
+    consumer = clients.lander_consumer()
     consumer.subscribe([lander.TOPIC])
     try:
         with audit.connect(ops_dsn()) as conn:
@@ -101,9 +98,7 @@ def compact_hour(conn: Any, store: Store, hour: str) -> dict[str, Any]:
 
 
 def coverage(conn: Any) -> dict[str, Any]:
-    admin = Consumer(
-        {"bootstrap.servers": BOOTSTRAP, "group.id": lander.GROUP, "enable.auto.commit": False}
-    )
+    admin = clients.peek_consumer(clients.LANDER_GROUP)
     parts = [TopicPartition(lander.TOPIC, p) for p in range(settings.STREAM_PARTITIONS)]
     committed = {tp.partition: tp.offset for tp in admin.committed(parts, timeout=30)}
     admin.close()
@@ -122,9 +117,7 @@ def coverage(conn: Any) -> dict[str, Any]:
 
 
 def lag() -> dict[str, Any]:
-    consumer = Consumer(
-        {"bootstrap.servers": BOOTSTRAP, "group.id": lander.GROUP, "enable.auto.commit": False}
-    )
+    consumer = clients.peek_consumer(clients.LANDER_GROUP)
     parts = [TopicPartition(lander.TOPIC, p) for p in range(settings.STREAM_PARTITIONS)]
     out = {}
     for tp in consumer.committed(parts, timeout=30):

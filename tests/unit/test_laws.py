@@ -211,3 +211,41 @@ def test_every_module_fits_the_size_budget(root: str) -> None:
         if (n := len(p.read_bytes().splitlines())) > MODULE_LINES
     }
     assert sizes == {}, f"over {MODULE_LINES} lines: split by responsibility: {sizes}"
+
+
+# ------------------------------------------------------------------ one client configuration
+
+KAFKA_KEYS = {
+    "bootstrap.servers", "group.id", "acks", "enable.idempotence", "enable.auto.commit",
+    "auto.offset.reset", "linger.ms", "batch.size", "compression.type", "partitioner",
+    "isolation.level", "transactional.id", "max.poll.interval.ms", "queue.buffering.max.messages",
+}  # fmt: skip
+CLIENTS = SRC / "stream" / "clients.py"
+
+
+def kafka_settings(module: ast.Module) -> list[str]:
+    """Dict keys that are Kafka client settings: only clients.py may write them."""
+    return [
+        f"line {key.lineno}: {key.value}"
+        for node in ast.walk(module)
+        if isinstance(node, ast.Dict)
+        for key in node.keys
+        if isinstance(key, ast.Constant) and key.value in KAFKA_KEYS
+    ]
+
+
+def test_kafka_client_settings_live_only_in_clients_py() -> None:
+    roots = [SRC, REPO_ROOT / "scripts", REPO_ROOT / "tests"]
+    paths = [
+        p
+        for root in roots
+        for p in sorted(root.rglob("*.py"))
+        if p != CLIENTS and p.name != "test_laws.py"
+    ]
+    offenders = {rel(p): f for p in paths if (f := kafka_settings(tree(p)))}
+    assert offenders == {}, f"build Kafka clients with ghflow.stream.clients: {offenders}"
+
+
+def test_the_client_check_catches_a_planted_setting() -> None:
+    planted = 'from confluent_kafka import Producer\nP = Producer({"bootstrap.servers": "x", "acks": "1"})\n'
+    assert len(kafka_settings(ast.parse(planted))) == 2

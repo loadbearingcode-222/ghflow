@@ -70,6 +70,7 @@ ghflow/
 │  ├─ stream/
 │  │  ├─ __init__.py · replayer.py                    M2-S1  bronze hour → topic; checkpoint after flush; end-of-hour markers
 │  │  ├─ schema.py                                   M2-S1  pure: the Avro schema generated from bronze, named record rules, BACKWARD check
+│  │  ├─ clients.py                                  M2-S4  the one Kafka / registry client configuration (a test refuses settings anywhere else)
 │  │  ├─ lander.py · compact.py                       M2-S2  topic → S3 files named by offset range; small-file compaction
 │  │  └─ repo_state.py                                M3-S2  stateful processor: SQLite store + compacted changelog, transactional
 │  └─ reconcile.py                                    M2-S3  per-hour event-id sets: batch ↔ stream (↔ ClickHouse from M4-S1)
@@ -89,6 +90,7 @@ ghflow/
 ├─ scripts/
 │  ├─ doctor.ps1                                      M0-S4  port holders · Docker RAM vs budget (foreign stacks at their mem_limit) · path length
 │  ├─ bench.py                                        M0-S5  named benchmarks on cached reference hours → automation/runs/m#-s#/bench.json
+│  ├─ bench_stream.py                                 M2-S4  stream benchmark: replayer and lander events/s on disposable topics
 │  ├─ redteam/                                        M1-S4  one planting script per gate; disposable copies only
 │  ├─ dashboard_check.py                              M5-S2  every number on the pages read back from the marts; an empty chart fails
 │  └─ demo_acceptance.py                              M5-S4  end-to-end gate → automation/runs/

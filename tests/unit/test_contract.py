@@ -181,3 +181,41 @@ def test_the_ast_check_catches_a_planted_second_cast() -> None:
     assert len(casts_of_source_fields(ast.parse(planted))) == 2
     harmless = 'def f(response):\n    return int(response.headers.get("Content-Length"))\n'
     assert casts_of_source_fields(ast.parse(harmless)) == []
+
+
+# ------------------------------------------------------------------ created_at: exact acceptance (#25)
+
+
+#: Full-width digits: str.isdigit() accepts them, so the fast path must not take them.
+FULLWIDTH_YEAR = "".join(chr(0xFF10 + int(d)) for d in "2026")
+
+
+def _strptime_reference(value: object) -> object:
+    """The cast before M2-S4: the fast path must agree with it on every input."""
+    from datetime import UTC, datetime
+
+    if not isinstance(value, str):
+        return None
+    try:
+        return datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+    except ValueError:
+        return None
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "2026-08-03T00:07:00Z", "2024-02-29T23:59:59Z", "2025-02-29T00:00:00Z",  # leap / not leap
+        "2026-13-01T00:00:00Z", "2026-00-10T00:00:00Z", "2026-08-32T00:00:00Z",  # out of range
+        "2026-08-03T24:00:00Z", "2026-08-03T23:60:00Z", "2026-08-03T23:59:60Z",
+        "2026-8-3T0:7:0Z", "2026-08-03T00:07:00", "2026-08-03 00:07:00Z",  # non-canonical shapes
+        "2026-08-03T00:07:00+00:00", "2026-08-03T00:07:00.000Z", " 2026-08-03T00:07:00Z",
+        FULLWIDTH_YEAR + "-08-03T00:07:00Z", "2026-0" + chr(0xFF18) + "-03T00:07:00Z",  # full-width digits
+        "0000-01-01T00:00:00Z",  # year 0
+        "", "garbage", None, 20260803, b"2026-08-03T00:07:00Z",
+    ],
+)  # fmt: skip
+def test_the_created_at_cast_accepts_exactly_what_strptime_accepts(value: object) -> None:
+    from ghflow.contract import _as_timestamp
+
+    assert _as_timestamp(value) == _strptime_reference(value)

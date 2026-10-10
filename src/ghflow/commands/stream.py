@@ -19,13 +19,12 @@ import sys
 import time
 import urllib.error
 import urllib.request
-import uuid
 from collections import Counter
 from pathlib import Path
 from typing import Any
 
 import pyarrow.parquet as pq
-from confluent_kafka import OFFSET_BEGINNING, Consumer, Producer, TopicPartition
+from confluent_kafka import OFFSET_BEGINNING, TopicPartition
 from fastavro import parse_schema, schemaless_reader
 
 from ghflow import audit, bronze, settings
@@ -33,11 +32,9 @@ from ghflow.commands.local import REPO_ROOT, ops_dsn, s3_config
 from ghflow.exitcodes import ExitCode, guarded
 from ghflow.hours import Hour
 from ghflow.storage import Store
-from ghflow.stream import replayer, schema
+from ghflow.stream import clients, replayer, schema
 
 AVSC = REPO_ROOT / "config" / "schemas" / "gh_event.avsc"
-BOOTSTRAP = os.environ.get("KAFKA_BOOTSTRAP", "127.0.0.1:39092")
-REGISTRY = os.environ.get("SCHEMA_REGISTRY_URL", "http://127.0.0.1:38081")
 
 
 def register(registry: str) -> int:
@@ -65,8 +62,8 @@ def register(registry: str) -> int:
 
 def run(first: Hour, until: Hour | None) -> int:
     """The service: replay every bronze hour after the last checkpoint, in order, forever."""
-    store, serialize = Store(s3_config()), schema.Serializer(register(REGISTRY))
-    producer = Producer(replayer.producer_config(BOOTSTRAP))
+    store, serialize = Store(s3_config()), schema.Serializer(register(clients.registry()))
+    producer = clients.producer()
     with audit.connect(ops_dsn()) as conn:
         conn.execute(replayer.CHECKPOINT_SQL)
         while True:
@@ -82,32 +79,24 @@ def run(first: Hour, until: Hour | None) -> int:
 
 
 def replay_one(hour: Hour) -> dict[str, Any]:
-    store, serialize = Store(s3_config()), schema.Serializer(register(REGISTRY))
+    store, serialize = Store(s3_config()), schema.Serializer(register(clients.registry()))
     with audit.connect(ops_dsn()) as conn:
         conn.execute(replayer.CHECKPOINT_SQL)
-        result = replayer.replay_hour(
-            hour, store, Producer(replayer.producer_config(BOOTSTRAP)), serialize
-        )
+        result = replayer.replay_hour(hour, store, clients.producer(), serialize)
         replayer.checkpoint(conn, result, hour)
     return result
 
 
 def read_topic() -> list[dict[str, Any]]:
     """Every record in gharchive.events, from the beginning to the current end of each partition."""
-    consumer = Consumer(
-        {
-            "bootstrap.servers": BOOTSTRAP,
-            "group.id": f"verify-{uuid.uuid4().hex}",
-            "enable.auto.commit": False,
-        }
-    )
+    consumer = clients.peek_consumer()
     parsed = parse_schema(schema.schema())
-    meta = consumer.list_topics(replayer.TOPIC, timeout=30).topics[replayer.TOPIC]
+    meta = consumer.list_topics(clients.TOPIC, timeout=30).topics[clients.TOPIC]
     ends = {
-        p: consumer.get_watermark_offsets(TopicPartition(replayer.TOPIC, p), timeout=30)[1]
+        p: consumer.get_watermark_offsets(TopicPartition(clients.TOPIC, p), timeout=30)[1]
         for p in meta.partitions
     }
-    consumer.assign([TopicPartition(replayer.TOPIC, p, OFFSET_BEGINNING) for p in meta.partitions])
+    consumer.assign([TopicPartition(clients.TOPIC, p, OFFSET_BEGINNING) for p in meta.partitions])
     records, done = [], {p for p, end in ends.items() if end == 0}
     while len(done) < len(ends):
         msg = consumer.poll(5)
@@ -156,7 +145,7 @@ def redteam() -> dict[str, Any]:
     body = json.dumps({"schema": json.dumps(broken)}).encode()
     headers = {"Content-Type": "application/vnd.schemaregistry.v1+json"}
     request = urllib.request.Request(
-        f"{REGISTRY}/subjects/{schema.SUBJECT}/versions", body, headers, method="POST"
+        f"{clients.registry()}/subjects/{schema.SUBJECT}/versions", body, headers, method="POST"
     )
     try:
         with urllib.request.urlopen(request, timeout=30) as response:
@@ -217,7 +206,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     one_shot = {
         "compat": lambda: compat(args.old),
-        "register": lambda: {"subject": schema.SUBJECT, "id": register(REGISTRY)},
+        "register": lambda: {"subject": schema.SUBJECT, "id": register(clients.registry())},
         "replay": lambda: replay_one(Hour.parse(args.hour)),
         "verify": lambda: verify(Hour.parse(args.hour)),
         "redteam": redteam,

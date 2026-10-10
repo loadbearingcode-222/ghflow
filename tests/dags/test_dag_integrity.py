@@ -78,7 +78,8 @@ def test_every_dag_starts_no_later_than_the_window() -> None:
 
 def test_dbt_build_is_the_one_duckdb_writer() -> None:
     dag = DagBag(dag_folder=str(DAGS)).dags["dbt_build"]
-    assert [t.pool for t in dag.tasks] == ["duckdb"], "DuckDB has exactly one writer (ADR-0003)"
+    assert {t.pool for t in dag.tasks} == {"duckdb"}, "DuckDB has exactly one writer (ADR-0003)"
+    assert "compact" in dag.get_task("build").downstream_task_ids, "compact after every build (#26)"
     assert dag.max_active_runs == 1
 
 

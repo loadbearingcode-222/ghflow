@@ -1,0 +1,30 @@
+{
+  "story": "M2-S4",
+  "issue": 25,
+  "phase": "verdict on prediction-contract.json",
+  "method": "ingest-day, interleaved: before = worktree of 7dfdd92, after = the change; 2 rounds x 5 runs (contract-interleaved/)",
+  "C1": {
+    "claim": ">= +10%, IQRs disjoint",
+    "before_median_s": 77.13,
+    "after_median_s": 70.0,
+    "gain_pct": 10.2,
+    "iqr_before_s": [
+      74.63,
+      78.26
+    ],
+    "iqr_after_s": [
+      68.3,
+      71.22
+    ],
+    "verdict": "HELD (narrowly: 10.2% against a 10% bar)"
+  },
+  "C2": {
+    "claim": "24 bronze sha256s identical",
+    "verdict": "HELD: identical to automation/runs/m1-s5/bench-before.json in every run, before and after"
+  },
+  "C3": {
+    "claim": "exact acceptance vs strptime",
+    "verdict": "HELD: tests/unit/test_contract.py, 33 canonical, out-of-range, non-canonical, full-width and junk values"
+  },
+  "decision": "KEPT: the first optimisation in this project to meet its committed prediction"
+}

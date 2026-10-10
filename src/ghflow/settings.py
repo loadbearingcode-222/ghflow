@@ -99,3 +99,7 @@ STREAM_IDLE_SLEEP_S = 60
 #: Reconciliation (M2-S3): how many missing / extra event ids a red hour names in full (the counts
 #: are always exact).
 RECONCILE_NAMED_IDS = 20
+#: Producer batching (librdkafka linger.ms / batch.size): how long and how much the replayer
+#: gathers before sending a batch. Changed only against a committed throughput prediction (M2-S4).
+STREAM_LINGER_MS = 50
+STREAM_BATCH_BYTES = 1_000_000

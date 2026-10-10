@@ -103,14 +103,36 @@ def _as_bool(value: Any) -> bool | None:
     return value if isinstance(value, bool) else None
 
 
+#: Positions of the separators in the canonical `YYYY-MM-DDTHH:MM:SSZ` shape GH Archive writes.
+_CANONICAL = {4: "-", 7: "-", 10: "T", 13: ":", 16: ":", 19: "Z"}
+
+
 def _as_timestamp(value: Any) -> datetime | None:
+    """`created_at` as a UTC datetime, accepting exactly what strptime("%Y-%m-%dT%H:%M:%SZ") does.
+
+    The canonical 20-character shape (every GH Archive row) is built from its slices: strptime
+    was 19% of an hour's contract time (M2-S4, #25). Any other shape takes the original strptime
+    path, so lenient forms it accepts (e.g. single-digit fields) are still accepted.
+    """
     if not isinstance(value, str):
         return None
+    digits = value[0:4] + value[5:7] + value[8:10] + value[11:13] + value[14:16] + value[17:19]
+    canonical = len(value) == 20 and all(value[i] == c for i, c in _CANONICAL.items())
     try:
-        parsed = datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+        if canonical and digits.isascii() and digits.isdigit():
+            fields = (
+                digits[0:4],
+                digits[4:6],
+                digits[6:8],
+                digits[8:10],
+                digits[10:12],
+                digits[12:14],
+            )
+            year, month, day, hour, minute, second = (int(f) for f in fields)
+            return datetime(year, month, day, hour, minute, second, tzinfo=UTC)
+        return datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
     except ValueError:
         return None
-    return parsed.replace(tzinfo=UTC)
 
 
 def _cast(kind: str, value: Any) -> Any:

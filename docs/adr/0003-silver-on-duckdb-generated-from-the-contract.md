@@ -58,3 +58,7 @@ must never become a second place where eras are declared.
 - An older re-ingested hour, beyond 2 days, needs `dbt_build` triggered with
   `{"full_refresh": true}`. M1-S4's ETag re-check must remember this.
 - Backup: the warehouse regenerates from bronze, so it needs none.
+- Amended in M2-S4 (#26): DuckDB never shrinks its file (a full refresh doubled it to 26.8 GB),
+  so `dbt_build` ends with `compact`: `COPY FROM DATABASE` into a fresh file, swapped in
+  atomically, inside the `duckdb` pool. Measured: after a full refresh 13.35 GB and after an
+  incremental build 13.37 GB, against one copy at 13.34 GB.

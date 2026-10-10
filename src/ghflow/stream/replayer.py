@@ -21,9 +21,9 @@ from confluent_kafka import KafkaError, Message, Producer
 from ghflow import bronze, settings
 from ghflow.hours import Hour
 from ghflow.storage import Store
-from ghflow.stream import schema
+from ghflow.stream import clients, schema
 
-TOPIC = "gharchive.events"
+TOPIC = clients.TOPIC
 
 CHECKPOINT_SQL = b"""
 create table if not exists replay_checkpoint (
@@ -38,18 +38,6 @@ create table if not exists replay_checkpoint (
 """
 
 
-def producer_config(bootstrap: str) -> dict[str, Any]:
-    return {
-        "bootstrap.servers": bootstrap,
-        "enable.idempotence": True,  # retries never duplicate within one producer session
-        "acks": "all",
-        "compression.type": "zstd",
-        "linger.ms": 50,
-        "partitioner": "murmur2_random",  # Java-compatible: same repo id, same partition
-        "queue.buffering.max.messages": 500_000,
-    }
-
-
 @dataclass
 class Deliveries:
     ok: int = 0
@@ -62,32 +50,43 @@ class Deliveries:
             self.failed.append(str(err))
 
 
-def _produce(producer: Producer, deliveries: Deliveries, **kwargs: Any) -> None:
+def _produce(producer: Producer, deliveries: Deliveries, topic: str, **kwargs: Any) -> None:
     while True:
         try:
-            producer.produce(TOPIC, on_delivery=deliveries, **kwargs)
+            producer.produce(topic, on_delivery=deliveries, **kwargs)
             return
         except BufferError:  # the local queue is full: let deliveries drain it
             producer.poll(0.5)
 
 
 def replay_hour(
-    hour: Hour, store: Store, producer: Producer, serialize: schema.Serializer
+    hour: Hour,
+    store: Store,
+    producer: Producer,
+    serialize: schema.Serializer,
+    topic: str = TOPIC,
 ) -> dict[str, Any]:
     """Publish one hour and its markers; returns counts. Raises if any delivery failed."""
     table = pq.read_table(io.BytesIO(store.get(bronze.bronze_path(hour))))
     rows = table.to_pylist()
-    partitions = len(producer.list_topics(TOPIC, timeout=30).topics[TOPIC].partitions)
+    partitions = len(producer.list_topics(topic, timeout=30).topics[topic].partitions)
     deliveries, started = Deliveries(), time.monotonic()
     for row in rows:
         key = None if row["repo_id"] is None else str(row["repo_id"]).encode()
-        _produce(producer, deliveries, key=key, value=serialize(schema.event_record(row, hour.key)))
+        _produce(
+            producer,
+            deliveries,
+            topic,
+            key=key,
+            value=serialize(schema.event_record(row, hour.key)),
+        )
         producer.poll(0)
     for partition in range(partitions):
         marker = schema.marker_record(hour.key, partition, len(rows))
         _produce(
             producer,
             deliveries,
+            topic,
             key=schema.MARKER_KEY,
             value=serialize(marker),
             partition=partition,

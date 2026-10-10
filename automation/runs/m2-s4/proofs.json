@@ -1,0 +1,35 @@
+{
+  "story": "M2-S4",
+  "phase": "closing proofs",
+  "reconciliation": {
+    "run_id": "reconcile-20f8b528",
+    "window": [
+      "2026-08-03-0",
+      "2026-10-10-7"
+    ],
+    "hours": {
+      "green": 1640,
+      "red": 0,
+      "pending": 0
+    },
+    "events": {
+      "batch": 147364029,
+      "stream": 147364029
+    },
+    "missing": 0,
+    "extra": 0
+  },
+  "compaction_content_equal": "unchanged code: every compacted hour passes compact.content_equal before its small files are deleted (a failure refuses the hour)",
+  "tests": {
+    "at_story_start_4d1c9b3": 245,
+    "now": 306,
+    "missing_from_start": []
+  },
+  "uv_lock_and_pyproject_unchanged_vs_story_start": true,
+  "frozen_scope": {
+    "#25": "kept (+10.2%, closes)",
+    "#26": "kept (one copy, closes)",
+    "throughput": "R1 missed, L1 IQR overlap, B1 no gain as predicted: nothing shipped -> #31",
+    "client_config": "ghflow.stream.clients + law test"
+  }
+}
