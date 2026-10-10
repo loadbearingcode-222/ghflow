@@ -1,0 +1,30 @@
+{
+  "story": "M3-S1",
+  "phase": "measured first, before any model",
+  "source": "main_staging.stg_gharchive__events (2026-08-03 00:00 .. 2026-10-10, 147.36M events), read-only",
+  "repos": {
+    "ids": 13580968,
+    "with_more_than_one_name": 121279,
+    "share_pct": 0.89,
+    "with_3_plus_names": 4975,
+    "most_names_on_one_id": 143
+  },
+  "actors": {
+    "ids": 7108418,
+    "with_more_than_one_name": 27498,
+    "share_pct": 0.39,
+    "with_3_plus_names": 654,
+    "most_names_on_one_id": 37
+  },
+  "shape": {
+    "multi_name_repos_with_flip_backs": 847,
+    "name_changes_in_event_order": 128227,
+    "minimum_changes_if_no_flip_backs": 127151,
+    "most_renamed_repo": "an automated account renaming its repository roughly hourly to generated names (143 changes in 144 events); identity not recorded (no real user data in the repo)"
+  },
+  "consequences": [
+    "renames are common enough for SCD2 to matter (the plan's 20% risk did not happen)",
+    "a version is an island of consecutive events with the same name: A -> B -> A is three versions",
+    "the dimension must be computed so that only the ~0.9% of multi-name ids pay the window function"
+  ]
+}
