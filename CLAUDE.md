@@ -179,6 +179,9 @@ generated from bronze (`uv run python -m ghflow.commands.stream schema|compat|ve
 runs continuously since M2-S2. `replay_checkpoint` in ghflow_ops moves only after the flush. Lander (M2-S2, ADR-0006): one file per
 (partition, hour) bounded by markers, commit after write (`ghflow.commands.lander run|compact|coverage|lag`);
 DAG `stream_compact` (15 min) compacts closed hours into stream/compact; `.\make.ps1 watch` = lander lag.
+Reconcile (M2-S3, ADR-0007): DAG `reconcile` (hourly :45) compares bronze ids with compacted stream
+ids per hour → `reconcile_results`; `uv run python -m ghflow.commands.reconcile run --to <hour>`.
+Operating and failure steps: `docs/RUNBOOK.md`, `docs/FAILURE_DRILLS.md`.
 
 Code layers (M0-S5, `docs/ITERATION.md`): pure core `settings`, `hours`, `events`, `fields`,
 `contract`, `profiling` (no I/O); shell `archive`, `commands/` (every CLI through `guarded()`).

@@ -1,0 +1,86 @@
+{
+  "story": "M2-S3",
+  "recorded_at": "2026-10-10",
+  "final_reconciliation": {
+    "run_id": "reconcile-9fabf30b",
+    "window": [
+      "2026-08-03-0",
+      "2026-10-10-6"
+    ],
+    "hours": {
+      "green": 1639,
+      "red": 0,
+      "pending": 0
+    },
+    "events": {
+      "batch": 147325235,
+      "stream": 147325235
+    },
+    "missing": 0,
+    "extra": 0,
+    "duplicates_removed_by_compaction": {
+      "2026-08-03-1": 67950,
+      "2026-08-07-22": 125466
+    },
+    "wall_s": 194
+  },
+  "drills": {
+    "A_kill_lander": [
+      "BEFORE 05:34:16 checkpoint=(datetime.datetime(2026, 8, 5, 22, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 71) \"total_lag\": 132709 coverage_\"exactly_once\": true}",
+      "KILLED lander at 05:34:17",
+      "DOWN60s 05:35:20 checkpoint=(datetime.datetime(2026, 8, 6, 11, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 84) \"total_lag\": 1834638 coverage_\"exactly_once\": true}",
+      "RESTARTED at 05:35:22",
+      "AFTER2m 05:37:25 checkpoint=(datetime.datetime(2026, 8, 7, 19, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 116) \"total_lag\": 1601666 coverage_\"exactly_once\": true}"
+    ],
+    "B_kill_replayer": [
+      "BEFORE 05:37:36 checkpoint=(datetime.datetime(2026, 8, 7, 21, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 118) \"total_lag\": 1538123 coverage_\"exactly_once\": true}",
+      "KILLED replayer at 05:37:36",
+      "LAST_LOG replayer-1  | {\"hour\": \"2026-08-07-21\", \"rows\": 122739, \"markers\": 6, \"delivered\": 122745, \"seconds\": 4.2}",
+      "DOWN30s 05:38:10 checkpoint=(datetime.datetime(2026, 8, 7, 21, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 118) \"total_lag\": 489344 coverage_\"exactly_once\": true}",
+      "RESTARTED at 05:38:12",
+      "FIRST_AFTER replayer-1  | {\"hour\": \"2026-08-07-22\", \"rows\": 135189, \"markers\": 6, \"delivered\": 135195, \"seconds\": 4.5}",
+      "FIRST_AFTER replayer-1  | {\"hour\": \"2026-08-07-23\", \"rows\": 151876, \"markers\": 6, \"delivered\": 151882, \"seconds\": 4.7}",
+      "AFTER 05:38:36 checkpoint=(datetime.datetime(2026, 8, 8, 0, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 121) \"total_lag\": 306488 coverage_\"exactly_once\": true}"
+    ],
+    "C_restart_broker": [
+      "BEFORE 05:38:48 checkpoint=(datetime.datetime(2026, 8, 8, 2, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 123) \"total_lag\": 266655 coverage_\"exactly_once\": true}",
+      "RESTARTING redpanda at 05:38:48",
+      " Container ghflow-redpanda-1 Started ",
+      "BROKER BACK at 05:38:49 starting",
+      "replayer: state=running restarts=0 lander: state=running restarts=0",
+      "REPLAYER replayer-1  | {\"hour\": \"2026-08-07-23\", \"rows\": 151876, \"markers\": 6, \"delivered\": 151882, \"seconds\": 4.7}",
+      "REPLAYER replayer-1  | {\"hour\": \"2026-08-08-0\", \"rows\": 164724, \"markers\": 6, \"delivered\": 164730, \"seconds\": 6.0}",
+      "REPLAYER replayer-1  | {\"hour\": \"2026-08-08-1\", \"rows\": 164320, \"markers\": 6, \"delivered\": 164326, \"seconds\": 5.7}",
+      "REPLAYER replayer-1  | {\"hour\": \"2026-08-08-2\", \"rows\": 163640, \"markers\": 6, \"delivered\": 163646, \"seconds\": 5.0}",
+      "REPLAYER replayer-1  | {\"hour\": \"2026-08-08-3\", \"rows\": 164151, \"markers\": 6, \"delivered\": 164157, \"seconds\": 5.3}",
+      "REPLAYER replayer-1  | {\"hour\": \"2026-08-08-4\", \"rows\": 163089, \"markers\": 6, \"delivered\": 163095, \"seconds\": 5.2}",
+      "LANDER lander-1  | %3|1791610728.695|FAIL|rdkafka#consumer-1| [thrd:redpanda:9092/bootstrap]: redpanda:9092/bootstrap: Connect to ipv4#172.20.0.4:9092 failed: Connection refused (after 0ms in state CONNECT, 1 identical error(s) suppressed)",
+      "AFTER 05:39:54 checkpoint=(datetime.datetime(2026, 8, 8, 12, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 133) \"total_lag\": 109498 coverage_\"exactly_once\": true}"
+    ]
+  },
+  "drill_outcomes": {
+    "A_kill_lander": "hours published while it was down (Aug 5 22:00 - Aug 6 11:00) all green; no duplicates (the lander only re-reads uncommitted offsets)",
+    "B_kill_replayer": "2026-08-07-22 republished whole: 125,466 duplicates removed at compaction, green (0 missing, 0 extra)",
+    "C_restart_broker": "hours in flight (2026-08-08-3..5) green, no duplicates: the idempotent producer retried through the outage"
+  },
+  "red_team": {
+    "planted": {
+      "hour": "2026-08-03-15",
+      "dropped_event_id": 12704840589
+    },
+    "hours": {
+      "green": 29,
+      "red": 1,
+      "pending": 0
+    },
+    "red": [
+      [
+        "2026-08-03-15",
+        [
+          12704840589
+        ]
+      ]
+    ],
+    "caught": true
+  }
+}
