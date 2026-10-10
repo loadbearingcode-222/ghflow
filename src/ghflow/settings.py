@@ -110,10 +110,12 @@ STREAM_BATCH_BYTES = 1_000_000
 LAG_SAMPLE_S = 15
 
 # ---- The one-command demo (M5-S4): a bounded window from a clean clone.
-#: Aug 3-7: four clean days and Aug 7, which has broken hours; all five sit in the quality seed
-#: fortnight, so every hour is judged against the other demo days (>= QUALITY_MIN_REFERENCE).
-DEMO_FIRST = date(2026, 8, 3)
-DEMO_LAST = date(2026, 8, 7)
+#: Aug 5-9 (Wed-Sun): four clean days and Aug 7, which has broken hours; all five sit in the
+#: quality seed fortnight, so every hour is judged against the other demo days (>=
+#: QUALITY_MIN_REFERENCE). It must hold a weekend: the dashboard compares weekdays with weekends
+#: and refuses an empty number (the first clean-clone run, Aug 3-7, had none).
+DEMO_FIRST = date(2026, 8, 5)
+DEMO_LAST = date(2026, 8, 9)
 DEMO_BROKEN_DAY = date(2026, 8, 7)
 #: How long the demo waits for the stream (replay, land, compact, ClickHouse) to close every hour.
 DEMO_STREAM_DEADLINE_S = 3600

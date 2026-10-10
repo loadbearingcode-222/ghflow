@@ -111,7 +111,7 @@ $Targets = [ordered]@{
     'replay-verify'    = 'Read one hour back from the topic: events, duplicates, missing ids, markers (-Hour)'
     'dags'             = "Build the Airflow image's dag-test stage; run the DAG-integrity tests in it, network off"
     'test-integration' = 'Tests against the running stack (needs up)'
-    'demo'             = 'From a clean clone: Aug 3-7 end to end in its own project (ghflow-demo), judged by scripts/demo_acceptance.py'
+    'demo'             = 'From a clean clone: Aug 5-9 end to end in its own project (ghflow-demo), judged by scripts/demo_acceptance.py'
 }
 
 switch ($Target) {
@@ -182,7 +182,8 @@ switch ($Target) {
         # Its own compose project and volumes, never a running ghflow's (M5-S4). DAGs stay paused;
         # the driver runs the daily chain's commands for the bounded window, then the acceptance.
         $env:COMPOSE_PROJECT_NAME = if ($env:GHFLOW_DEMO_PROJECT) { $env:GHFLOW_DEMO_PROJECT } else { 'ghflow-demo' }
-        $env:REPLAY_UNTIL = '2026-08-07-23'
+        $env:REPLAY_FROM = '2026-08-05-0'
+        $env:REPLAY_UNTIL = '2026-08-09-23'
         Invoke-Env
         & $PSCommandPath doctor
         Invoke-Compose @('up', '-d', '--build', '--wait')

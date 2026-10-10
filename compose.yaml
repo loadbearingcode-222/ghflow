@@ -287,7 +287,7 @@ services:
       GHFLOW_OPS_DSN: postgresql://ghflow:${GHFLOW_OPS_PASSWORD:?run .\make.ps1 env}@platform-db:5432/ghflow_ops
       KAFKA_BOOTSTRAP: redpanda:9092
       SCHEMA_REGISTRY_URL: http://redpanda:8081
-      REPLAY_FROM: 2026-08-03-0
+      REPLAY_FROM: ${REPLAY_FROM:-2026-08-03-0}
       # Unset: replay forever. The demo bounds its window (M5-S4).
       REPLAY_UNTIL: ${REPLAY_UNTIL:-}
     depends_on:

@@ -16,7 +16,8 @@ From a clean clone, on Windows with Docker Desktop:
 ```
 
 The demo runs in its own compose project, `ghflow-demo`, with its own volumes:
-- it takes 3–7 August 2026 (four clean days, and one with broken hours) through the whole system;
+- it takes 5–9 August 2026 (four clean days including a weekend, and one day with broken
+  hours) through the whole system;
 - it renders the dashboard;
 - `scripts/demo_acceptance.py` judges the result into `automation/runs/m5-s4/demo.json`.
 
