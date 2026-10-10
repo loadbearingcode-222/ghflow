@@ -172,9 +172,28 @@ Two witnesses of the same fact, built differently:
 - **`diff`** compares the two over the hours both have seen. It found 0 stale, missing or extra
   repos over 13.59M repos.
 
-Status at this revision (M3-S3, `v0.3.0`):
-- **Batch path:** runs end to end over the whole window (Aug 3 onward, hourly since);
-  `dbt_build` compacts the warehouse after each build and now also builds the SCD2 dimensions.
-- **Replayed stream:** carries the same window and reconciles with the batch path to the event;
-  the repo-state topic agrees with `dim_repo`.
-- **Still planned:** ClickHouse and Grafana (M4), the stakeholder dashboard (M5).
+## ClickHouse and Grafana as they run (M4)
+
+```mermaid
+flowchart LR
+  RP[["gharchive.events"]] -->|Kafka engine · group clickhouse| EQ["events_queue"]
+  RST[["gharchive.repo_state"]] -->|Kafka engine · group clickhouse-repo-state| SQ["repo_state_queue"]
+  EQ -->|"kind = EVENT"| EV[("events<br/>ReplacingMergeTree (hour, id)")]
+  EQ -->|"kind = END_OF_HOUR"| HM[("hour_markers")]
+  EQ --> EH[("events_hourly<br/>groupBitmap per (hour, type)")]
+  EH -->|"refresh every 5 min"| EC[("events_hour_counts")]
+  SQ --> RC[("repo_current<br/>ReplacingMergeTree(as_of)")]
+  PG[("Postgres ghflow_ops")] -.->|PostgreSQL engine| OPS[("ops_ingest_audit · ops_reconcile_results<br/>ops_quality_verdicts")]
+  LS["lag-sampler · 15 s"] --> CL[("consumer_lag")]
+  EC & OPS & CL --> GF["Grafana · ghflow-ops<br/>gate: every panel returns rows"]
+  EV & HM --> REC["reconcile --clickhouse<br/>the third witness"]
+```
+
+- **Every table tolerates a re-read block.** The Kafka engine delivers at least once, and ReplacingMergeTree, bitmap states and markers-as-data absorb the duplicates (ADR-0010).
+- **Grafana reads only ClickHouse** (ADR-0011). The ops data comes through PostgreSQL-engine tables, and lag through the sampler.
+
+Status at this revision (M4-S3, `v0.4.0`):
+- **Batch path:** runs end to end over the whole window (Aug 3 onward, hourly since), with the SCD2 dimensions.
+- **Replayed stream:** carries the same window. Batch = stream = ClickHouse for every hour (three witnesses), and the repo-state topic equals `dim_repo`.
+- **Ops:** the Grafana dashboard shows freshness, lag per consumer group, reconciliation and flagged hours.
+- **Still planned:** the stakeholder dashboard (M5).
