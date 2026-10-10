@@ -65,6 +65,11 @@ later insight that changes an earlier design becomes a Realign story (`docs/ITER
   baseline (Recommended)" — each hour judged against the same hour of day on its previous clean
   days, hours already flagged excluded, seeded by Aug 3–16.
 
+- 2026-10-10, M1-S5, after the rolling baseline proved walkable (#22): "Adopt 'shifted'
+  (Recommended)" — `flagged` means volume or the dominant type (PushEvent) collapsed and is what
+  the dashboard shades; `shifted` means only minor types' shares moved: recorded, not shaded, and
+  still joins the baseline.
+
 ## Environment facts (observed 2026-10-04)
 
 - Windows 11, Docker Desktop (WSL2 backend), WSL2 capped at **28 GB** (~27.4 GiB visible to

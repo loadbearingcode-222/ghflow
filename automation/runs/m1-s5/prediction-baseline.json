@@ -1,0 +1,38 @@
+{
+  "story": "M1-S5",
+  "issue": 22,
+  "phase": "prediction, committed before the 'shifted' change",
+  "decided": "owner, 2026-10-10: \"Adopt 'shifted' (Recommended)\"",
+  "basis": "Derived from the scratch exploration of candidate S on the SAME frozen counts (automation/runs/m1-s4/hour_counts.json): this checks that the implementation reproduces the explored design, not a blind forecast. U3 is restated: M1-S4's 'Oct 1-9 <= 5% flagged' assumed a cleaner month than exists (October judged against itself flags 51/216, with zero-push hours).",
+  "input": "automation/runs/m1-s4/hour_counts.json (unchanged)",
+  "claims_kept_from_m1_s4": [
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6",
+    "C1",
+    "U1",
+    "U2",
+    "N1"
+  ],
+  "new_claims": [
+    {
+      "id": "U3b",
+      "claim": "<= 25% of Oct 1-9 hours flagged, and every flagged October hour has a volume or PushEvent finding"
+    },
+    {
+      "id": "T1b",
+      "claim": "total flagged between 380 and 500 (M1-S4: 742)"
+    },
+    {
+      "id": "S1",
+      "claim": "'shifted' hours between 1 and 150; none of them has a volume or PushEvent finding"
+    },
+    {
+      "id": "R1",
+      "claim": "the mix red team still flags its planted hour on PushEvent, with 0 other hours changing status"
+    }
+  ]
+}
