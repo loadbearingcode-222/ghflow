@@ -193,6 +193,11 @@ Order-independence proof: `$GHFLOW_PYTHON -m ghflow.commands.history late-hour` 
 disposable warehouse). Heavy DuckDB experiments go in a one-off container with its own
 `--memory`, never the scheduler (gotcha #52).
 
+Repo state (M3-S2, ADR-0009): service `repo-state` (group `repo-state`) → compacted
+`gharchive.repo_state`, one transaction per (partition, hour) with its offsets; store rebuilt
+from the changelog on start. `python -m ghflow.commands.repo_state progress|diff [--plant]|audit`
+(diff/audit in a one-off airflow-image container on the compose network with the warehouse ro).
+
 Code layers (M0-S5, `docs/ITERATION.md`): pure core `settings`, `hours`, `events`, `fields`,
 `contract`, `profiling` (no I/O); shell `archive`, `commands/` (every CLI through `guarded()`).
 One cast (`contract.py`), one JSON-line reader (`events.py`), one home per knob (`settings.py`);
