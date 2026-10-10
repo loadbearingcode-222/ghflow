@@ -100,9 +100,11 @@ def top_bots(bots: Rows) -> dict[str, Any]:
 
 def trust(rows: Rows) -> dict[str, Any]:
     xs = [r["event_date"].isoformat() for r in rows]
-    data = [{"type": "bar", "name": label, "x": xs, "y": [r[col] for r in rows]}
-            for label, col in (("clean hours", "clean_hours"), ("shifted (kept)", "shifted_hours"),
-                               ("flagged (left out)", "flagged_hours"))]  # fmt: skip
+    # Explicit colours: Plotly's default palette drew "flagged" in green, which reads as good.
+    bars = (("clean hours", "clean_hours", "#1f77b4"), ("shifted (kept)", "shifted_hours", "#f2a900"),
+            ("flagged (left out)", "flagged_hours", "#d62728"))  # fmt: skip
+    data = [{"type": "bar", "name": label, "x": xs, "y": [r[col] for r in rows], "marker": {"color": colour}}
+            for label, col, colour in bars]  # fmt: skip
     data.append(
         {
             "type": "scatter",
@@ -110,6 +112,7 @@ def trust(rows: Rows) -> dict[str, Any]:
             "name": "hours reconciled green",
             "x": xs,
             "y": [r["reconciled_green"] for r in rows],
+            "marker": {"color": "#1f2328", "size": 5},
         }
     )
     return {"data": data, "layout": {**BASE_LAYOUT, "barmode": "stack", "shapes": shades(flagged_days(rows)),

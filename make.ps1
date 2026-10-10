@@ -111,6 +111,7 @@ $Targets = [ordered]@{
     'replay-verify'    = 'Read one hour back from the topic: events, duplicates, missing ids, markers (-Hour)'
     'dags'             = "Build the Airflow image's dag-test stage; run the DAG-integrity tests in it, network off"
     'test-integration' = 'Tests against the running stack (needs up)'
+    'demo'             = 'From a clean clone: Aug 5-9 end to end in its own project (ghflow-demo), judged by scripts/demo_acceptance.py'
 }
 
 switch ($Target) {
@@ -176,6 +177,29 @@ switch ($Target) {
         Invoke-Checked 'docker' @('run', '--rm', '--network', 'none', '-e', 'AIRFLOW__CORE__LOAD_EXAMPLES=false',
             '-v', "${dags}:/opt/airflow/dags:ro", 'ghflow/airflow:dag-test',
             'python', '-m', 'pytest', '-q', '-p', 'no:cacheprovider', '/opt/ghflow/tests/dags')
+    }
+    'demo'      {
+        # Its own compose project and volumes, never a running ghflow's (M5-S4). DAGs stay paused;
+        # the driver runs the daily chain's commands for the bounded window, then the acceptance.
+        $env:COMPOSE_PROJECT_NAME = if ($env:GHFLOW_DEMO_PROJECT) { $env:GHFLOW_DEMO_PROJECT } else { 'ghflow-demo' }
+        $env:REPLAY_FROM = '2026-08-05-0'
+        $env:REPLAY_UNTIL = '2026-08-09-23'
+        Invoke-Env
+        & $PSCommandPath doctor
+        Invoke-Compose @('up', '-d', '--build', '--wait')
+        $started = Get-Date
+        Invoke-Compose @('exec', '-T', 'airflow-scheduler', 'bash', '-c', 'cd /tmp && $GHFLOW_PYTHON -m ghflow.commands.demo run')
+        $out = Join-Path $PSScriptRoot 'automation/runs/m5-s4'
+        New-Item -ItemType Directory -Force $out | Out-Null
+        $record = & docker compose exec -T airflow-scheduler bash -c 'cd /tmp && $GHFLOW_PYTHON -m ghflow.commands.demo accept'
+        $passed = $LASTEXITCODE -eq 0
+        $minutes = [math]::Round(((Get-Date) - $started).TotalMinutes, 1)
+        # UTF-8 without a byte-order mark: the evidence must parse as JSON (PowerShell 5 adds one).
+        [IO.File]::WriteAllText((Join-Path $out 'demo.json'), ($record -join "`n"), (New-Object Text.UTF8Encoding($false)))
+        Write-Host ''
+        Write-Host "  demo: $minutes min, evidence in automation/runs/m5-s4/demo.json" -ForegroundColor Cyan
+        Write-Host '  dashboard  ->  http://127.0.0.1:33001     grafana  ->  http://127.0.0.1:33000' -ForegroundColor Green
+        if (-not $passed) { throw 'demo acceptance failed: see automation/runs/m5-s4/demo.json' }
     }
     'test-integration' { Invoke-Uv @('run', '--group', 'integration', 'pytest', '-m', 'integration', 'tests/integration') }
     'check'     {

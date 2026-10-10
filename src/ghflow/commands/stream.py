@@ -71,7 +71,10 @@ def run(first: Hour, until: Hour | None) -> int:
         while True:
             hour = replayer.next_hour(conn, first)
             if until and hour > until:
-                return ExitCode.PASSED
+                # Bounded (the demo, M5-S4): stay up and idle; exiting would only be restarted.
+                print(json.dumps({"replayed_through": until.key, "idle": True}), flush=True)
+                while True:
+                    time.sleep(settings.STREAM_IDLE_SLEEP_S)
             if not store.exists(bronze.bronze_path(hour)):
                 time.sleep(settings.STREAM_IDLE_SLEEP_S)  # caught up with bronze
                 continue

@@ -71,6 +71,28 @@ create index if not exists quality_verdicts_hour on quality_verdicts (hour_start
 alter table quality_verdicts drop constraint if exists quality_verdicts_status_check;
 alter table quality_verdicts add constraint quality_verdicts_status_check
     check (status in ('clean', 'flagged', 'shifted', 'no_verdict'));
+-- reconcile_results (M2-S3; three witnesses M4-S1): here since M5-S4, so the ops schema has one
+-- home and a fresh deployment has every table before anything (dbt's mart_trust) reads it.
+create table if not exists reconcile_results (
+    id             bigserial primary key,
+    run_id         text        not null,
+    checked_at     timestamptz not null default now(),
+    hour           text        not null,
+    status         text        not null check (status in ('green', 'red', 'pending')),
+    batch_ids      bigint      not null,
+    stream_ids     bigint      not null,
+    missing_count  bigint      not null,
+    extra_count    bigint      not null,
+    duplicates     bigint,
+    missing        bigint[]    not null,
+    extra          bigint[]    not null
+);
+-- the third witness (M4-S1)
+alter table reconcile_results add column if not exists clickhouse_ids bigint;
+alter table reconcile_results add column if not exists ch_missing_count bigint not null default 0;
+alter table reconcile_results add column if not exists ch_extra_count bigint not null default 0;
+alter table reconcile_results add column if not exists ch_missing bigint[] not null default '{}';
+alter table reconcile_results add column if not exists ch_extra bigint[] not null default '{}';
 """
 
 
@@ -102,7 +124,11 @@ COLUMNS = tuple(f.name for f in fields(Attempt))
 
 def connect(dsn: str) -> psycopg.Connection[Any]:
     conn = psycopg.connect(dsn, connect_timeout=10, autocommit=True)
-    conn.execute(SCHEMA_SQL)
+    # Serialized: four first ingests on a fresh database ran this DDL at once and deadlocked
+    # (found by the M5-S4 demo from a clean clone, gotcha #58). The lock ends with the transaction.
+    with conn.transaction():
+        conn.execute("select pg_advisory_xact_lock(hashtext('ghflow_ops schema'))")
+        conn.execute(SCHEMA_SQL)
     return conn
 
 

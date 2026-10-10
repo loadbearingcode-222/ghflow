@@ -98,7 +98,8 @@ ghflow/
 │  ├─ bench_history.py                                M3-S3  SCD2 build and repo-state restore, interleaved, on disposable copies inside one-off containers
 │  ├─ redteam/                                        M1-S4  one planting script per gate; disposable copies only
 │  ├─ dashboard_check.py                              M5-S2  every number on the pages read back from the marts; an empty chart fails
-│  └─ demo_acceptance.py                              M5-S4  end-to-end gate → automation/runs/
+│  ├─ demo_acceptance.py                              M5-S4  end-to-end gate → automation/runs/
+│  └─ readme_table.py                                 M5-S4  renders the README's "How it got better" table from the Refine stories' records
 ├─ automation/runs/                                   M0-S1  evidence JSON, tracked from the first story (pattern-based ignores)
 └─ docs/
    ├─ MILESTONES.md                                   M0-S1  sections 1 and 2 of this plan (CI parses it)

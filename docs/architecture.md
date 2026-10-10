@@ -54,6 +54,58 @@ Two boundaries the diagram encodes on purpose:
 - **The stream starts from bronze, not from raw.** Parsing happens once, so any difference the
   reconciliation finds can only come from the stream transport.
 
+## Every service and DAG (deployment)
+
+Every service in `compose.yaml` and every DAG in `airflow/dags/` is named below. A test
+(`tests/unit/test_architecture.py`) fails if one is missing.
+
+```mermaid
+flowchart TB
+  subgraph PLATFORM["Platform · M0"]
+    seaweedfs[("seaweedfs<br/>S3: raw · bronze · stream · marts")]
+    s3-init["s3-init (one-shot): buckets"]
+    platform-db[("platform-db<br/>Postgres: airflow · ghflow_ops")]
+    platform-db-init["platform-db-init (one-shot): dbs, roles"]
+  end
+  subgraph AIRFLOW["Airflow 3 · LocalExecutor"]
+    airflow-init["airflow-init (one-shot)"]
+    airflow-apiserver["airflow-apiserver :38082"]
+    airflow-scheduler["airflow-scheduler<br/>runs every task"]
+    airflow-dag-processor["airflow-dag-processor"]
+    airflow-triggerer["airflow-triggerer"]
+    subgraph DAGS["DAGs"]
+      gharchive_ingest["gharchive_ingest · hourly"]
+      raw_retention["raw_retention · daily"]
+      dbt_build["dbt_build · 00:30"]
+      gharchive_quality["gharchive_quality · on the warehouse asset"]
+      marts_publish["marts_publish · on the verdicts asset"]
+      dashboard_render["dashboard_render · on the marts asset"]
+      stream_compact["stream_compact · 15 min"]
+      reconcile["reconcile · hourly, three witnesses"]
+    end
+  end
+  subgraph STREAMING["Stream · M2-M3"]
+    redpanda[["redpanda<br/>Kafka :39092 · registry :38081"]]
+    redpanda-init["redpanda-init (one-shot): topics as code"]
+    console["console :38080"]
+    replayer["replayer"]
+    lander["lander"]
+    repo-state["repo-state"]
+  end
+  subgraph REALTIME["Real time · M4"]
+    clickhouse[("clickhouse :38123")]
+    lag-sampler["lag-sampler"]
+    grafana["grafana :33000"]
+  end
+  dashboard["dashboard · nginx :33001"]
+  gharchive_ingest --> seaweedfs
+  dbt_build --> gharchive_quality --> marts_publish --> dashboard_render --> dashboard
+  replayer --> redpanda --> lander & repo-state & clickhouse
+  lander --> seaweedfs
+  lag-sampler --> clickhouse --> grafana
+  airflow-scheduler --> platform-db
+```
+
 ## How each part knows what's new
 
 | Part | Mechanism | Story |
