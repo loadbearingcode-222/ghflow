@@ -133,10 +133,16 @@ def schema_yaml() -> str:
 _ROWS_TEST = """\
 -- {header}
 -- Per hour, the silver views together hold exactly the bronze rows (M1-S3): every hour
--- where they differ is a failing row. Bronze is counted from the Parquet files themselves.
-with bronze as (
+-- where they differ is a failing row. Bronze is counted from the Parquet files themselves, up to
+-- the newest hour staging loaded: an hour ingested while the build ran is the next run's work,
+-- not a mismatch (M1-S5: two scheduled builds failed on exactly that race).
+with loaded_until as (
+    select max(event_date + to_hours(event_hour)) as newest from {{{{ ref('{staging}') }}}}
+),
+bronze as (
     select cast(date as date) as event_date, cast(hour as integer) as event_hour, count(*) as n
     from read_parquet('{{{{ var("bronze_events") }}}}', hive_partitioning = true)
+    where cast(date as date) + to_hours(cast(hour as integer)) <= (select newest from loaded_until)
     group by all
 ),
 silver as (
@@ -163,7 +169,7 @@ def rows_test_sql() -> str:
         f"    select event_date, event_hour, count(*) as n from {{{{ ref('{m}') }}}} group by all"
         for m in models
     ]
-    return _ROWS_TEST.format(header=HEADER, union="\n    union all\n".join(selects))
+    return _ROWS_TEST.format(header=HEADER, staging=STAGING, union="\n    union all\n".join(selects))
 
 
 def files() -> dict[str, str]:

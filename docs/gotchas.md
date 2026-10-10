@@ -190,3 +190,9 @@ olist-lakehouse). Provenance is in brackets. Entries below it are earned by THIS
     *Check:* hourly ingest runs with `catchup=True`; fill an existing gap with a backfill
     (`reprocess_behavior=none` creates only the missing runs), then `dbt_build` with
     `full_refresh`, because the incremental model only re-reads its newest 2 days. (M1-S4)
+49. **A data test races the pipeline it checks.** `silver_rows_equal_bronze_rows` counted bronze
+    *after* the staging load, so an hour ingested while `dbt_build` ran was in bronze but not in
+    silver: two scheduled builds (Oct 6, Oct 10) failed on exactly 1 hour, and nothing alerted.
+    *Check:* a test that compares a source with a load compares the same snapshot (here: bronze
+    up to the newest hour staging loaded), and red-team both directions: the source moving on
+    must pass, a hole inside the loaded window must fail. (M1-S5)
