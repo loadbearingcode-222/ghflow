@@ -28,29 +28,6 @@ from ghflow.reconcile import NOT_USED, HourCheck, compare
 from ghflow.storage import Store
 from ghflow.stream import lander
 
-RESULTS_SQL = b"""
-create table if not exists reconcile_results (
-    id             bigserial primary key,
-    run_id         text        not null,
-    checked_at     timestamptz not null default now(),
-    hour           text        not null,
-    status         text        not null check (status in ('green', 'red', 'pending')),
-    batch_ids      bigint      not null,
-    stream_ids     bigint      not null,
-    missing_count  bigint      not null,
-    extra_count    bigint      not null,
-    duplicates     bigint,
-    missing        bigint[]    not null,
-    extra          bigint[]    not null
-);
--- the third witness (M4-S1)
-alter table reconcile_results add column if not exists clickhouse_ids bigint;
-alter table reconcile_results add column if not exists ch_missing_count bigint not null default 0;
-alter table reconcile_results add column if not exists ch_extra_count bigint not null default 0;
-alter table reconcile_results add column if not exists ch_missing bigint[] not null default '{}';
-alter table reconcile_results add column if not exists ch_extra bigint[] not null default '{}';
-"""
-
 
 def ids(store: Store, path: str) -> list[int] | None:
     if not store.exists(path):
@@ -180,7 +157,6 @@ def main(argv: list[str] | None = None) -> int:
 
     def go() -> int:
         with audit.connect(ops_dsn()) as conn:
-            conn.execute(RESULTS_SQL)
             record = (
                 reconcile(conn, hours, {}, args.clickhouse)
                 if args.command == "run"
