@@ -103,9 +103,13 @@ def run(counts: list[HourCounts], only: str | None) -> dict[str, Any]:
             if k.startswith("QUALITY_") and not k.startswith("QUALITY_SEED")
         },
         "summary": {
-            s: sum(v.status == s for v in verdicts) for s in ("clean", "flagged", "no_verdict")
+            s: sum(v.status == s for v in verdicts)
+            for s in ("clean", "flagged", "shifted", "no_verdict")
         },
         "flagged": {v.hour.key: [asdict(f) for f in v.findings] for v in flagged},
+        "shifted": {
+            v.hour.key: [asdict(f) for f in v.findings] for v in verdicts if v.status == "shifted"
+        },
         "no_verdict": [v.hour.key for v in verdicts if v.status == "no_verdict"],
     }
 

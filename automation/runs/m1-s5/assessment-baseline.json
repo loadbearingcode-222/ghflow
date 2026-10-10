@@ -1,0 +1,94 @@
+{
+  "story": "M1-S5",
+  "issue": 22,
+  "phase": "assessment against prediction-baseline.json",
+  "summary": {
+    "clean": 1109,
+    "flagged": 438,
+    "shifted": 88,
+    "no_verdict": 0
+  },
+  "held": 14,
+  "of": 14,
+  "results": [
+    {
+      "id": "F1",
+      "held": true,
+      "hours": 7,
+      "as_predicted": 7
+    },
+    {
+      "id": "F2",
+      "held": true,
+      "hours": 4,
+      "as_predicted": 4
+    },
+    {
+      "id": "F3",
+      "held": true,
+      "hours": 137,
+      "as_predicted": 137
+    },
+    {
+      "id": "F4",
+      "held": true,
+      "hours": 48,
+      "as_predicted": 48
+    },
+    {
+      "id": "F5",
+      "held": true,
+      "hours": 1,
+      "as_predicted": 1
+    },
+    {
+      "id": "F6",
+      "held": true,
+      "hours": 48,
+      "as_predicted": 45
+    },
+    {
+      "id": "C1",
+      "held": true,
+      "hours": 1,
+      "as_predicted": 1
+    },
+    {
+      "id": "U1",
+      "held": true,
+      "hours": 48,
+      "as_predicted": 48
+    },
+    {
+      "id": "U2",
+      "held": true,
+      "hours": 24,
+      "as_predicted": 24
+    },
+    {
+      "id": "N1",
+      "held": true
+    },
+    {
+      "id": "U3b",
+      "held": true,
+      "flagged": 43,
+      "of": 216
+    },
+    {
+      "id": "T1b",
+      "held": true,
+      "flagged": 438
+    },
+    {
+      "id": "S1",
+      "held": true,
+      "shifted": 88
+    },
+    {
+      "id": "R1",
+      "held": true,
+      "other_hours_changed": 0
+    }
+  ]
+}

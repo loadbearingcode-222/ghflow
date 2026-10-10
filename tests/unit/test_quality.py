@@ -90,3 +90,35 @@ def test_republished_hours_are_those_whose_etag_changed() -> None:
     a, b, c = (Hour.parse(f"2026-09-01-{n}") for n in (1, 2, 3))
     recorded = {a: '"x"', b: '"y"', c: '"z"'}
     assert republished(recorded, {a: '"x"', b: '"Y2"', c: None}) == [b]
+
+
+def test_a_minor_type_moving_is_shifted_not_broken() -> None:
+    ref = day_of(
+        "2026-09-01-0", 7, types={"PushEvent": 800, "CreateEvent": 120, "PullRequestEvent": 80}
+    )
+    moved = HourCounts(
+        Hour.parse("2026-09-08-12"), {"PushEvent": 800, "CreateEvent": 40, "PullRequestEvent": 160}
+    )
+    verdict = judge(moved, ref)
+    assert verdict.status == "shifted"
+    assert {f.subject for f in verdict.findings} == {"CreateEvent", "PullRequestEvent"}
+
+
+def test_the_dominant_type_collapsing_is_broken() -> None:
+    ref = day_of(
+        "2026-09-01-0", 7, types={"PushEvent": 800, "CreateEvent": 120, "PullRequestEvent": 80}
+    )
+    broken = HourCounts(
+        Hour.parse("2026-09-08-12"), {"PushEvent": 100, "CreateEvent": 500, "PullRequestEvent": 400}
+    )
+    assert judge(broken, ref).status == "flagged"
+
+
+def test_a_shifted_hour_joins_the_baseline_a_flagged_one_does_not() -> None:
+    hours = hours_between(Hour.parse("2026-09-01-12"), Hour.parse("2026-09-20-12"))[::24]
+    normal = {"PushEvent": 800, "CreateEvent": 120, "PullRequestEvent": 80}
+    regime = {"PushEvent": 800, "CreateEvent": 40, "PullRequestEvent": 160}
+    counts = [HourCounts(h, normal) for h in hours[:7]] + [HourCounts(h, regime) for h in hours[7:]]
+    statuses = [v.status for v in judge_all(counts, seed={c.hour for c in counts[:7]})]
+    assert statuses[7] == "shifted", "the first hour of the new regime is recorded"
+    assert statuses[-1] == "clean", "the new regime becomes the baseline instead of staying flagged"
