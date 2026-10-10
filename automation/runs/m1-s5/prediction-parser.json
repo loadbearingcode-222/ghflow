@@ -1,0 +1,32 @@
+{
+  "story": "M1-S5",
+  "issue": 17,
+  "phase": "prediction, committed before the parser change",
+  "baseline": {
+    "bench": "automation/runs/m1-s5/bench-before.json",
+    "git_head": "f9f7d34",
+    "ingest_day_median_s": 72.7413,
+    "spread_pct": 4.5,
+    "rows_in": 2040996,
+    "inputs_sha256": "87408d8b7fdffea752846af8be9190905c4f8917929a4db6f437e62008f892a9"
+  },
+  "measured_for_the_prediction": {
+    "how": "the fixed day's 2,040,996 lines parsed alone, 5 runs (scratch, orjson 3.12.0)",
+    "stdlib_parse_s": 26.71,
+    "orjson_plus_translate_guard_s": 10.59,
+    "gunzip_s": 7.87,
+    "note": "parse is 37% of ingest-day here (M0-S5 measured 51% of contract.apply on one hour: Parquet encoding is the rest)"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "claim": "ingest-day median <= 60.0 s (>= 17.5% faster)",
+      "argument": "72.74 - (26.71 - 10.59) = 56.6 s; the bar leaves ~3.4 s of margin for the decode the orjson path skips not being free"
+    },
+    {
+      "id": "P2",
+      "claim": "every one of the 24 bronze sha256s is identical to bench-before.json"
+    }
+  ],
+  "keep_rule": "kept only if P1 is met AND the after/before IQRs do not overlap AND P2 holds; otherwise reverted (docs/ITERATION.md)"
+}
