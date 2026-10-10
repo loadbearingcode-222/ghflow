@@ -48,7 +48,8 @@ def test_gharchive_ingest_waits_then_ingests_one_interval() -> None:
     sensor, ingest = dag.get_task("wait_for_publication"), dag.get_task("ingest")
     assert [t.task_id for t in sensor.downstream_list] == ["ingest"]
     assert sensor.mode == "reschedule", "a waiting hour must not hold a worker slot"
-    assert dag.catchup is False and dag.max_active_runs == 4
+    assert dag.catchup is True, "downtime must not lose hours (gotcha #48)"
+    assert dag.max_active_runs == 4
     # The interval is the closed hour [H, H+1), triggered at H+1 — never a zero-length point.
     from airflow.timetables.interval import CronDataIntervalTimetable
 

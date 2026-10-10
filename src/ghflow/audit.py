@@ -136,12 +136,16 @@ def totals(conn: psycopg.Connection[Any], first: datetime, end: datetime) -> dic
 
 def final_attempt_counts(
     conn: psycopg.Connection[Any], first: datetime, end: datetime
-) -> dict[datetime, int]:
-    """Accepted or refused archive attempts per hour in [first, end): above 1 is a duplicate."""
+) -> dict[datetime, tuple[int, int]]:
+    """Per hour in [first, end): (final attempts, distinct final results).
+
+    A result is the outcome plus the bronze sha256. Several finals with ONE result are re-runs
+    (idempotent by design, ADR-0002); more than one result is a conflict.
+    """
     cur = conn.execute(
-        b"select hour_start, count(*) from ingest_audit where source = 'archive' "
-        b"and outcome in ('accepted', 'refused') and hour_start >= %s and hour_start < %s "
-        b"group by hour_start",
+        b"select hour_start, count(*), count(distinct outcome || ':' || coalesce(bronze_sha256, '')) "
+        b"from ingest_audit where source = 'archive' and outcome in ('accepted', 'refused') "
+        b"and hour_start >= %s and hour_start < %s group by hour_start",
         (first, end),
     )
-    return {row[0]: int(row[1]) for row in cur.fetchall()}
+    return {row[0]: (int(row[1]), int(row[2])) for row in cur.fetchall()}
