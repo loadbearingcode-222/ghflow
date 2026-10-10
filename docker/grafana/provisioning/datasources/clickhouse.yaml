@@ -1,0 +1,16 @@
+# ClickHouse as Grafana's one data source (M4-S2, ADR-0011). The password comes from the
+# container's environment; nothing secret is committed.
+apiVersion: 1
+datasources:
+  - name: ClickHouse
+    uid: ghflow-clickhouse
+    type: grafana-clickhouse-datasource
+    isDefault: true
+    jsonData:
+      host: clickhouse
+      port: 8123
+      protocol: http
+      username: ghflow
+      defaultDatabase: ghflow
+    secureJsonData:
+      password: $CLICKHOUSE_PASSWORD

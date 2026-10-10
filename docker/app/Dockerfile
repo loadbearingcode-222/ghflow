@@ -10,10 +10,10 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/ghflow-venv \
     PATH=/opt/ghflow-venv/bin:$PATH
 WORKDIR /opt/ghflow
 COPY pyproject.toml uv.lock README.md ./
-RUN uv sync --locked --no-dev --group stream --no-install-project
+RUN uv sync --locked --no-dev --group stream --group clickhouse --no-install-project
 COPY src ./src
 COPY config/schemas ./config/schemas
-RUN uv sync --locked --no-dev --group stream \
+RUN uv sync --locked --no-dev --group stream --group clickhouse \
     && useradd --uid 50001 --no-create-home ghflow \
     && mkdir -p /var/lib/ghflow-state \
     && chown -R ghflow /opt/ghflow /opt/ghflow-venv /var/lib/ghflow-state

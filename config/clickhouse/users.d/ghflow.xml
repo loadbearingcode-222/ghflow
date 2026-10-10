@@ -1,0 +1,9 @@
+<!-- Merged into the user the image's entrypoint creates from CLICKHOUSE_USER (M4-S2): ghflow may
+     use the named collection ghflow_ops that the ops_* tables read Postgres through. -->
+<clickhouse>
+    <users>
+        <ghflow>
+            <named_collection_control>1</named_collection_control>
+        </ghflow>
+    </users>
+</clickhouse>

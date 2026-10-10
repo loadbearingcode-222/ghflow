@@ -36,9 +36,10 @@ def ddl(check_only: bool) -> int:
 
 def apply() -> dict[str, Any]:
     ch = client()
-    for statement in clickhouse.statements():
+    statements = clickhouse.statements() + clickhouse.ops_statements()
+    for statement in statements:
         ch.command(statement)
-    return {"applied": len(clickhouse.statements())}
+    return {"applied": len(statements)}
 
 
 def closed_hours(ch: Any) -> set[str]:

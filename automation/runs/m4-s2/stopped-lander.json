@@ -1,0 +1,142 @@
+{
+  "story": "M4-S2",
+  "accept_when": "a planted stopped lander shows rising lag on its panel within 5 minutes, while the other consumer groups' panels stay flat",
+  "how": "docker compose stop lander at :03, three minutes before the replayer publishes the next hour (~:06); lag read every 30 s from ghflow.consumer_lag, the table the lag panels query (sampled every 15 s); docker compose start lander after two minutes of raised lag",
+  "minutes_from_stop_to_rising_lag": 4.02,
+  "other_groups": "clickhouse 0, repo-state 0, clickhouse-repo-state 6 (one trailing commit marker per partition of the transactional topic) in every sample: flat",
+  "stopped_at": "2026-10-10T18:03:00.000717+00:00",
+  "first_rise_at": "2026-10-10T18:07:01.346478+00:00",
+  "log": [
+    {
+      "t": "2026-10-10T18:03:00+00:00",
+      "event": "lander stopped",
+      "lag": {
+        "clickhouse": 0,
+        "clickhouse-repo-state": 6,
+        "lander": 0,
+        "repo-state": 0
+      }
+    },
+    {
+      "t": "2026-10-10T18:03:31+00:00",
+      "lag": {
+        "clickhouse": 0,
+        "clickhouse-repo-state": 6,
+        "lander": 0,
+        "repo-state": 0
+      }
+    },
+    {
+      "t": "2026-10-10T18:04:01+00:00",
+      "lag": {
+        "clickhouse": 0,
+        "clickhouse-repo-state": 6,
+        "lander": 0,
+        "repo-state": 0
+      }
+    },
+    {
+      "t": "2026-10-10T18:04:31+00:00",
+      "lag": {
+        "clickhouse": 0,
+        "clickhouse-repo-state": 6,
+        "lander": 0,
+        "repo-state": 0
+      }
+    },
+    {
+      "t": "2026-10-10T18:05:01+00:00",
+      "lag": {
+        "clickhouse": 0,
+        "clickhouse-repo-state": 6,
+        "lander": 0,
+        "repo-state": 0
+      }
+    },
+    {
+      "t": "2026-10-10T18:05:31+00:00",
+      "lag": {
+        "clickhouse": 0,
+        "clickhouse-repo-state": 6,
+        "lander": 0,
+        "repo-state": 0
+      }
+    },
+    {
+      "t": "2026-10-10T18:06:01+00:00",
+      "lag": {
+        "clickhouse": 0,
+        "clickhouse-repo-state": 6,
+        "lander": 0,
+        "repo-state": 0
+      }
+    },
+    {
+      "t": "2026-10-10T18:06:31+00:00",
+      "lag": {
+        "clickhouse": 0,
+        "clickhouse-repo-state": 6,
+        "lander": 0,
+        "repo-state": 0
+      }
+    },
+    {
+      "t": "2026-10-10T18:07:01+00:00",
+      "lag": {
+        "clickhouse": 0,
+        "clickhouse-repo-state": 6,
+        "lander": 38559,
+        "repo-state": 0
+      }
+    },
+    {
+      "t": "2026-10-10T18:07:31+00:00",
+      "lag": {
+        "clickhouse": 0,
+        "clickhouse-repo-state": 6,
+        "lander": 38559,
+        "repo-state": 0
+      }
+    },
+    {
+      "t": "2026-10-10T18:08:01+00:00",
+      "lag": {
+        "clickhouse": 0,
+        "clickhouse-repo-state": 6,
+        "lander": 38559,
+        "repo-state": 0
+      }
+    },
+    {
+      "t": "2026-10-10T18:08:31+00:00",
+      "lag": {
+        "clickhouse": 0,
+        "clickhouse-repo-state": 6,
+        "lander": 38559,
+        "repo-state": 0
+      }
+    },
+    {
+      "t": "2026-10-10T18:09:01+00:00",
+      "lag": {
+        "clickhouse": 0,
+        "clickhouse-repo-state": 6,
+        "lander": 38559,
+        "repo-state": 0
+      }
+    },
+    {
+      "t": "2026-10-10T18:09:04+00:00",
+      "event": "lander started"
+    },
+    {
+      "t": "2026-10-10T18:09:34+00:00",
+      "lag": {
+        "clickhouse": 0,
+        "clickhouse-repo-state": 6,
+        "lander": 0,
+        "repo-state": 0
+      }
+    }
+  ]
+}

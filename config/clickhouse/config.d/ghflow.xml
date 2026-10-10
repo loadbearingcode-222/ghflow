@@ -12,6 +12,16 @@
     <uncompressed_cache_size>0</uncompressed_cache_size>
     <background_schedule_pool_size>16</background_schedule_pool_size>
     <background_message_broker_schedule_pool_size>4</background_message_broker_schedule_pool_size>
+    <!-- ghflow_ops, read live by the ops_* tables (M4-S2); the password never leaves the env. -->
+    <named_collections>
+        <ghflow_ops>
+            <host>platform-db</host>
+            <port>5432</port>
+            <database>ghflow_ops</database>
+            <user>ghflow</user>
+            <password from_env="GHFLOW_OPS_PASSWORD"/>
+        </ghflow_ops>
+    </named_collections>
     <kafka>
         <isolation_level>read_committed</isolation_level>
         <auto_offset_reset>earliest</auto_offset_reset>

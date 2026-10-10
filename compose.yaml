@@ -347,10 +347,13 @@ services:
       CLICKHOUSE_USER: ghflow
       CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?run .\make.ps1 env}
       CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "0"
+      # The ops_* tables read ghflow_ops live (M4-S2; named collection in config.d).
+      GHFLOW_OPS_PASSWORD: ${GHFLOW_OPS_PASSWORD:?run .\make.ps1 env}
     ports:
       - "127.0.0.1:38123:8123"   # HTTP interface
     volumes:
       - ./config/clickhouse/config.d/ghflow.xml:/etc/clickhouse-server/config.d/ghflow.xml:ro   # one file: the image keeps its own listen_host config
+      - ./config/clickhouse/users.d/ghflow.xml:/etc/clickhouse-server/users.d/ghflow.xml:ro
       - ./config/clickhouse/initdb:/docker-entrypoint-initdb.d:ro
       - clickhouse-data:/var/lib/clickhouse
     ulimits:
@@ -366,7 +369,57 @@ services:
     mem_limit: 2g
     restart: unless-stopped
 
+  lag-sampler:
+    # Every consumer group's lag per partition into ghflow.consumer_lag every LAG_SAMPLE_S, for
+    # Grafana's lag panels (M4-S2).
+    image: ghflow/app:dev
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    command: ["python", "-m", "ghflow.commands.lag_sampler", "run"]
+    environment:
+      KAFKA_BOOTSTRAP: redpanda:9092
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?run .\make.ps1 env}
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    mem_limit: 128m
+    restart: unless-stopped
+
+  grafana:
+    # Ops dashboards for engineers, provisioned as code over ClickHouse (M4-S2, ADR-0011).
+    image: grafana/grafana:13.2.3@sha256:b28bae15e219c998fb0e0424ed724930cc61b1f61fb404d47c862f9a23f9e572
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?run .\make.ps1 env}
+      GF_PLUGINS_PREINSTALL_SYNC: grafana-clickhouse-datasource@4.22.1
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_USERS_DEFAULT_THEME: light
+      # Read-only without a login; the port is bound to 127.0.0.1 only (ADR-0011).
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?run .\make.ps1 env}
+    ports:
+      - "127.0.0.1:33000:3000"
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3000/api/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 36
+    mem_limit: 256m
+    restart: unless-stopped
+
 volumes:
+  grafana-data:
   redpanda:
   clickhouse-data:
   repo-state:

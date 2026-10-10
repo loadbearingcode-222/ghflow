@@ -1,0 +1,18 @@
+{
+  "story": "M4-S2",
+  "command": "python -m ghflow.commands.grafana gate",
+  "panels": 9,
+  "rows": {
+    "Ingest freshness (minutes since the newest ingested hour ended)": 1,
+    "Reconciliation: hours by status (latest run)": 1,
+    "Flagged hours per day (quality)": 8,
+    "Events per hour (ClickHouse)": 167,
+    "Consumer lag \u00b7 lander": 79,
+    "Consumer lag \u00b7 repo-state": 79,
+    "Consumer lag \u00b7 clickhouse": 79,
+    "Consumer lag \u00b7 clickhouse-repo-state": 79,
+    "Flagged hours (latest verdict)": 200
+  },
+  "empty": [],
+  "passed": true
+}
