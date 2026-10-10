@@ -95,3 +95,7 @@ STREAM_RETENTION_DAYS = 7
 STREAM_FLUSH_TIMEOUT_S = 300
 #: The replayer looks for the next bronze hour this often once it has caught up.
 STREAM_IDLE_SLEEP_S = 60
+
+#: Reconciliation (M2-S3): how many missing / extra event ids a red hour names in full (the counts
+#: are always exact).
+RECONCILE_NAMED_IDS = 20

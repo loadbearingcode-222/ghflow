@@ -93,7 +93,7 @@ type = "layers"
 layers = [
     "ghflow.commands",
     "ghflow.stream",
-    "ghflow.archive | ghflow.audit | ghflow.storage | ghflow.retention | ghflow.contract | ghflow.profiling | ghflow.quality",
+    "ghflow.archive | ghflow.audit | ghflow.storage | ghflow.retention | ghflow.contract | ghflow.profiling | ghflow.quality | ghflow.reconcile",
     "ghflow.bronze",
     "ghflow.events | ghflow.fields | ghflow.exitcodes",
     "ghflow.hours",
