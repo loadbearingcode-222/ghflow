@@ -1,0 +1,97 @@
+{
+  "story": "M2-S1",
+  "recorded_at": "2026-10-10",
+  "topics": {
+    "spec": "config/redpanda/topics.conf",
+    "first_apply": "apply-topics: created gharchive.events with 6 partitions",
+    "second_apply": "apply-topics: gharchive.events matches the spec (6 partitions, retention.ms=604800000 cleanup.policy=delete message.timestamp.type=LogAppendTime compression.type=producer)",
+    "planted_shrink_to_4": {
+      "exit_code": 1,
+      "message": "apply-topics: REFUSED gharchive.events has 6 partitions, spec says 4 (never shrink)",
+      "partitions_after": 6
+    }
+  },
+  "one_hour": {
+    "replay": {
+      "hour": "2026-08-03-0",
+      "rows": 165375,
+      "markers": 6,
+      "delivered": 165381,
+      "seconds": 4.9
+    },
+    "read_back": {
+      "bronze_rows": 165375,
+      "events_in_topic": 165375,
+      "distinct_ids": 165375,
+      "duplicates": 0,
+      "missing_ids": 0,
+      "markers_by_partition": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1
+      }
+    },
+    "checkpoint": "replay_checkpoint (2026-08-03-0, 165375, 6, 165381, replays 1), written after the flush"
+  },
+  "kill_drill": {
+    "hour": "2026-08-03-1",
+    "killed_after_s": 3.5,
+    "after_kill": {
+      "hour": "2026-08-03-1",
+      "bronze_rows": 169274,
+      "events_in_topic": 67950,
+      "distinct_ids": 67950,
+      "duplicates": 0,
+      "missing_ids": 101324,
+      "extra_ids": 0,
+      "markers_by_partition": {},
+      "nothing_lost": false
+    },
+    "checkpoint_after_kill": "none",
+    "after_restart": {
+      "hour": "2026-08-03-1",
+      "bronze_rows": 169274,
+      "events_in_topic": 237224,
+      "distinct_ids": 169274,
+      "duplicates": 67950,
+      "missing_ids": 0,
+      "extra_ids": 0,
+      "markers_by_partition": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1
+      },
+      "nothing_lost": true
+    }
+  },
+  "schema_red_team": {
+    "incompatible_schema": {
+      "registry": {
+        "accepted": false,
+        "status": 409,
+        "message": "{\"error_code\":409,\"message\":\"Schema being registered is incompatible with an earlier schema for subject \\\"gharchive.events-value\\\", details: [{errorType:'TYPE_MISMATCH', description:'The type (path '/"
+      },
+      "offline_check": [
+        "repo_id: cannot read the old type"
+      ]
+    },
+    "record_missing_id": {
+      "refused": true,
+      "rule": "EVENT_ID_REQUIRED"
+    },
+    "caught": true
+  },
+  "registry": {
+    "subject": "gharchive.events-value",
+    "compatibility": "BACKWARD",
+    "versions": [
+      1
+    ]
+  }
+}

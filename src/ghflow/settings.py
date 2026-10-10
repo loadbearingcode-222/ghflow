@@ -86,3 +86,12 @@ QUALITY_MIX_HIGH = 1.67
 #: The type whose collapse makes an hour broken rather than shifted (owner's decision 2026-10-10,
 #: M1-S5, #22): PushEvent is 74-95% of every regime in the window; minor types swing by regime.
 QUALITY_DOMINANT_TYPE = "PushEvent"
+
+# ---- The replayed stream (M2-S1, ADR-0005).
+#: gharchive.events: partitions (keyed by repo id) and retention (from append time, not event time).
+STREAM_PARTITIONS = 6
+STREAM_RETENTION_DAYS = 7
+#: How long the replayer waits for every delivery report of an hour before calling it failed.
+STREAM_FLUSH_TIMEOUT_S = 300
+#: The replayer looks for the next bronze hour this often once it has caught up.
+STREAM_IDLE_SLEEP_S = 60

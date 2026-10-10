@@ -63,7 +63,7 @@ jobs:
         with:
           fetch-depth: 0  # tests/unit/test_quality_order.py reads the commit order
       - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0 (node24), verified 2026-10-05
-      - run: uv sync --locked --group dev --group integration --group dbt
+      - run: uv sync --locked --group dev --group integration --group dbt --group stream
       - run: uv run ruff check --output-format=github .
       - run: uv run ruff format --check .
       - run: uv run mypy
@@ -153,3 +153,24 @@ jobs:
       - name: The dbt project parses (no warehouse needed)
         working-directory: dbt/ghflow
         run: uv run dbt parse --profiles-dir .
+
+  avro-compat:
+    name: avro compat
+    if: github.event.action != 'edited'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1 (node24), verified 2026-10-05
+        with:
+          fetch-depth: 0  # the previous schema comes from origin/main
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0 (node24), verified 2026-10-05
+      - run: uv sync --locked --group stream
+      - name: The committed .avsc is exactly the schema generated from bronze
+        run: uv run python -m ghflow.commands.stream schema --check
+      - name: BACKWARD-compatible with the schema on main
+        run: |
+          if git cat-file -e origin/main:config/schemas/gh_event.avsc 2>/dev/null; then
+            git show origin/main:config/schemas/gh_event.avsc > "$RUNNER_TEMP/previous.avsc"
+            uv run python -m ghflow.commands.stream compat --old "$RUNNER_TEMP/previous.avsc"
+          else
+            echo "no schema on main yet: this is its first version"
+          fi

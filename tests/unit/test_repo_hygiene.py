@@ -112,3 +112,21 @@ EVIDENCE = sorted((REPO_ROOT / "automation" / "runs").rglob("*.json"))
 def test_every_evidence_record_is_valid_json(path: Path) -> None:
     """A hand-edited record with a bad escape is evidence nobody can read (M0-S5 nearly shipped one)."""
     json.loads(path.read_text(encoding="utf-8"))
+
+
+def test_the_topic_spec_matches_settings() -> None:
+    """Partitions and retention have one home (ghflow.settings); topics.conf mirrors it."""
+    from ghflow import settings
+
+    lines = [
+        line.split()
+        for line in (REPO_ROOT / "config" / "redpanda" / "topics.conf")
+        .read_text(encoding="utf-8")
+        .splitlines()
+        if line.strip() and not line.startswith("#")
+    ]
+    spec = {line[0]: (int(line[1]), dict(kv.split("=", 1) for kv in line[2:])) for line in lines}
+    partitions, configs = spec["gharchive.events"]
+    assert partitions == settings.STREAM_PARTITIONS
+    assert int(configs["retention.ms"]) == settings.STREAM_RETENTION_DAYS * 24 * 3600 * 1000
+    assert configs["message.timestamp.type"] == "LogAppendTime", "retention from replay time"

@@ -24,6 +24,12 @@ dev = [
 integration = []
 # dbt on DuckDB (M1-S3). Installed into the Airflow image's project venv and by CI's dbt-parse
 # job; versions re-verified on PyPI 2026-10-05 (CLAUDE.md pins).
+# The replayed stream (M2): Kafka client and Avro, versions re-verified on PyPI 2026-10-10
+# (planning observed confluent-kafka 2.15.1 / fastavro 1.12.2; both have moved on).
+stream = [
+    "confluent-kafka>=2.16.0,<2.17",
+    "fastavro>=1.13.1,<1.14",
+]
 dbt = [
     "dbt-core>=1.12.5,<1.13",
     "dbt-duckdb>=1.11.0,<1.12",
@@ -86,6 +92,7 @@ name = "The shell sits on the core, never the reverse"
 type = "layers"
 layers = [
     "ghflow.commands",
+    "ghflow.stream",
     "ghflow.archive | ghflow.audit | ghflow.storage | ghflow.retention | ghflow.contract | ghflow.profiling | ghflow.quality",
     "ghflow.bronze",
     "ghflow.events | ghflow.fields | ghflow.exitcodes",
