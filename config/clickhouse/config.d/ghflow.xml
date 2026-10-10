@@ -1,0 +1,19 @@
+<!-- ghflow's ClickHouse (M4-S1, ADR-0010): memory caps under the container's 2 GiB mem_limit,
+     and Kafka consumers that read only committed transactions (the
+     repo-state changelog is written transactionally, ADR-0009). -->
+<clickhouse>
+    <logger>
+        <level>warning</level>
+        <console>1</console>
+    </logger>
+    <!-- 1.5 GiB of the container's 2 GiB: queries fail cleanly before the kernel kills the server. -->
+    <max_server_memory_usage>1610612736</max_server_memory_usage>
+    <mark_cache_size>134217728</mark_cache_size>
+    <uncompressed_cache_size>0</uncompressed_cache_size>
+    <background_schedule_pool_size>16</background_schedule_pool_size>
+    <background_message_broker_schedule_pool_size>4</background_message_broker_schedule_pool_size>
+    <kafka>
+        <isolation_level>read_committed</isolation_level>
+        <auto_offset_reset>earliest</auto_offset_reset>
+    </kafka>
+</clickhouse>

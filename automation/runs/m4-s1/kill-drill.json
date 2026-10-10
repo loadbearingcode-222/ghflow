@@ -1,0 +1,8 @@
+{
+  "story": "M4-S1",
+  "accept_when": "killing ClickHouse mid-consumption loses nothing",
+  "how": "docker kill -s KILL ghflow-clickhouse-1 at 2026-10-10T12:51:06Z while it consumed the window, then docker compose start clickhouse by hand (gotcha #50)",
+  "events_rows_before_kill": 11835995,
+  "events_rows_60s_after_restart": 12998387,
+  "proof_of_no_loss": "three-witnesses.json: every hour of the window, killed one included, holds exactly bronze's ids in ClickHouse (0 missing, 0 extra)"
+}

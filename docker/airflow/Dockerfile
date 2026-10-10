@@ -15,14 +15,14 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/ghflow-venv \
     UV_PYTHON_DOWNLOADS=never
 WORKDIR /opt/ghflow
 COPY pyproject.toml uv.lock README.md ./
-RUN uv sync --locked --no-dev --group dbt --group stream --no-install-project
+RUN uv sync --locked --no-dev --group dbt --group stream --group clickhouse --no-install-project
 # DuckDB's httpfs extension, baked in so dbt builds never download at run time (M1-S3).
 RUN /opt/ghflow-venv/bin/python -c "import duckdb; c = duckdb.connect(); c.execute(\"set extension_directory='/opt/ghflow/duckdb-extensions'\"); c.install_extension('httpfs')"
 COPY src ./src
 COPY tests/dags ./tests/dags
 COPY dbt ./dbt
 # /opt/ghflow/warehouse becomes the `warehouse` volume; created here so the volume is airflow's.
-RUN uv sync --locked --no-dev --group dbt --group stream \
+RUN uv sync --locked --no-dev --group dbt --group stream --group clickhouse \
     && mkdir -p /opt/ghflow/warehouse \
     && chown -R airflow:0 /opt/ghflow /opt/ghflow-venv
 

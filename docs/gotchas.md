@@ -219,3 +219,25 @@ olist-lakehouse). Provenance is in brackets. Entries below it are earned by THIS
     key", take `max(offset)` per key and join back; list ids only for the red verdicts, capped
     (`RECONCILE_NAMED_IDS`). Grep new SQL for `arg_max(`/`list(` over a string before running it
     on the full window. (M3-S2)
+54. **Mounting a directory over ClickHouse's `config.d` removes the image's own settings.** The
+    official image ships `config.d/docker_related_config.xml` (`listen_host ::`). A bind mount of
+    the whole directory hid it: the server listened only inside the container, and every host
+    request was dropped without a response. *Check:* mount single files into `config.d`, never
+    the directory. (M4-S1)
+55. **ClickHouse's Kafka engine inserts blocks of `max_insert_block_size` (~1M rows) by
+    default.** A block of about 1M 35-column rows, pushed through three materialized views, hit a
+    1.5 GiB server cap again and again: every insert failed and was retried. *Check:* set
+    `kafka_max_block_size` (65,536 here) when the container is small, and read the server log
+    for MEMORY_LIMIT_EXCEEDED during the first catch-up. (M4-S1)
+56. **A check sized to the whole window fails silently once the window is loaded, and a wait
+    loop built on it never ends.** M4-S1 polled `clickhouse status`, which ran `uniqExact(id)`
+    over all of `events`. It worked below ~20M rows; with 147M rows it exceeded the 1.5 GiB cap.
+    The loop read every failure as "not done yet" and waited about 3.5 hours after ClickHouse
+    had finished. The same class of mistake was in the design itself: `events_hourly` kept
+    `uniqExact` states, i.e. hash sets of every id (~1.2 GB), and their merges starved the
+    server. `groupBitmap` (Roaring bitmaps) keeps the count exact at 275 MiB. *Check:*
+    - exact-distinct checks run per day (or per hour) and are summed;
+    - a wait loop fails loudly on an error and has a deadline set from the measured rate;
+    - a transactional topic is "consumed" when nothing readable is left after the committed
+      offset, not when committed equals the high watermark (the trailing commit marker is
+      never committed past). (M4-S1)

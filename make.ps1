@@ -61,6 +61,7 @@ function Invoke-Env {
         'AIRFLOW_ADMIN_PASSWORD' = (New-Secret 16)
         'AIRFLOW_FERNET_KEY'     = (New-FernetKey)
         'AIRFLOW_JWT_SECRET'     = (New-Secret 48)
+        'CLICKHOUSE_PASSWORD'    = (New-Secret)
     }
     $keys = @(Get-Content -LiteralPath '.env.example' | Where-Object { $_ -match '^([A-Z0-9_]+)=$' } | ForEach-Object { $_.TrimEnd('=') })
     $missing = @($keys | Where-Object { -not $values.ContainsKey($_) })
@@ -121,7 +122,7 @@ switch ($Target) {
         Write-Host ''
     }
     'hooks'     { Invoke-Checked 'git' @('config', 'core.hooksPath', '.githooks'); Write-Host 'git hooks installed from .githooks/' }
-    'sync'      { Invoke-Uv @('sync', '--locked', '--group', 'dev', '--group', 'integration', '--group', 'dbt', '--group', 'stream') }
+    'sync'      { Invoke-Uv @('sync', '--locked', '--group', 'dev', '--group', 'integration', '--group', 'dbt', '--group', 'stream', '--group', 'clickhouse') }
     'lint'      { Invoke-Uv @('run', 'ruff', 'check', '.'); Invoke-Uv @('run', 'ruff', 'format', '--check', '.') }
     'format'    { Invoke-Uv @('run', 'ruff', 'check', '--fix', '.'); Invoke-Uv @('run', 'ruff', 'format', '.') }
     'typecheck' { Invoke-Uv @('run', 'mypy') }

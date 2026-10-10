@@ -2,7 +2,7 @@
 #   M0 core:      seaweedfs (S3) · s3-init · platform-db (Postgres) · platform-db-init ·
 #                 airflow-init · airflow-apiserver/scheduler/dag-processor/triggerer
 #   M2 stream:    redpanda · redpanda-init · console · replayer · lander   M3: repo-state
-#   M4 real-time: clickhouse · grafana                       M5: dashboard
+#   M4 real-time: clickhouse (M4-S1) · grafana               M5: dashboard
 #
 # Conventions
 # - Third-party images are pinned by tag AND digest (ADR-0001); CI refuses one without a digest.
@@ -39,6 +39,9 @@ x-airflow-common: &airflow-common
     GHFLOW_PYTHON: /opt/ghflow-venv/bin/python
     S3_ENDPOINT: http://seaweedfs:8333
     GHFLOW_OPS_DSN: postgresql://ghflow:${GHFLOW_OPS_PASSWORD:?run .\make.ps1 env}@platform-db:5432/ghflow_ops
+    # The third reconcile witness (M4-S1).
+    CLICKHOUSE_URL: http://clickhouse:8123
+    CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?run .\make.ps1 env}
   volumes:
     - ./airflow/dags:/opt/airflow/dags:ro
     - airflow-logs:/opt/airflow/logs
@@ -335,8 +338,37 @@ services:
     mem_limit: 768m
     restart: unless-stopped
 
+  clickhouse:
+    # The third witness (M4-S1, ADR-0010): Kafka engines read gharchive.events and
+    # gharchive.repo_state (AvroConfluent, own consumer groups); materialized views fill events,
+    # hour_markers, events_hourly and repo_current. DDL: config/clickhouse/initdb (generated).
+    image: clickhouse/clickhouse-server:26.3.46.2@sha256:b07c95e8a024faf4f75ee68337796a478f95a375c58ef36f914f8b137cfdfa8f
+    environment:
+      CLICKHOUSE_USER: ghflow
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?run .\make.ps1 env}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "0"
+    ports:
+      - "127.0.0.1:38123:8123"   # HTTP interface
+    volumes:
+      - ./config/clickhouse/config.d/ghflow.xml:/etc/clickhouse-server/config.d/ghflow.xml:ro   # one file: the image keeps its own listen_host config
+      - ./config/clickhouse/initdb:/docker-entrypoint-initdb.d:ro
+      - clickhouse-data:/var/lib/clickhouse
+    ulimits:
+      nofile: {soft: 262144, hard: 262144}
+    depends_on:
+      redpanda-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8123/ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+    mem_limit: 2g
+    restart: unless-stopped
+
 volumes:
   redpanda:
+  clickhouse-data:
   repo-state:
   seaweedfs-data:
   warehouse:

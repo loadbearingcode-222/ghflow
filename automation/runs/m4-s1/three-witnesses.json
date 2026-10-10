@@ -1,0 +1,26 @@
+{
+  "story": "M4-S1",
+  "accept_when": "per hour, distinct event ids agree across batch, stream and ClickHouse",
+  "command": "python -m ghflow.commands.reconcile run --to 2026-10-10-14 --clickhouse",
+  "seconds": 255,
+  "run_id": "reconcile-94afa294",
+  "window": [
+    "2026-08-03-0",
+    "2026-10-10-14"
+  ],
+  "hours": {
+    "green": 1647,
+    "red": 0,
+    "pending": 0
+  },
+  "events": {
+    "batch": 147650105,
+    "stream": 147650105,
+    "clickhouse": 147650105
+  },
+  "missing": 0,
+  "extra": 0,
+  "clickhouse_missing": 0,
+  "clickhouse_extra": 0,
+  "red": []
+}

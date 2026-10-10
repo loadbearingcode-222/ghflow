@@ -1,0 +1,30 @@
+{
+  "story": "M4-S1",
+  "accept_when": "repo_current equals dim_repo's current rows",
+  "command": "python -m ghflow.commands.clickhouse repo-diff (one-off airflow-image container, warehouse read-only)",
+  "verdict": "green",
+  "records_read": 13638991,
+  "warehouse_until": "2026-10-10 09:00:00+00:00",
+  "progress": {
+    "partitions": {
+      "0": "2026-10-10-16",
+      "1": "2026-10-10-16",
+      "2": "2026-10-10-16",
+      "3": "2026-10-10-16",
+      "4": "2026-10-10-16",
+      "5": "2026-10-10-16"
+    },
+    "closed_through": "2026-10-10-16"
+  },
+  "counts": {
+    "equal": {
+      "repos": 13586485,
+      "named": []
+    },
+    "ahead": {
+      "repos": 52506,
+      "named": []
+    }
+  },
+  "planted": null
+}

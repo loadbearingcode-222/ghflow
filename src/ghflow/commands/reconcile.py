@@ -24,7 +24,7 @@ from ghflow import audit, bronze, settings
 from ghflow.commands.local import ops_dsn, s3_config
 from ghflow.exitcodes import ExitCode, guarded
 from ghflow.hours import Hour, hours_between
-from ghflow.reconcile import HourCheck, compare
+from ghflow.reconcile import NOT_USED, HourCheck, compare
 from ghflow.storage import Store
 from ghflow.stream import lander
 
@@ -43,6 +43,12 @@ create table if not exists reconcile_results (
     missing        bigint[]    not null,
     extra          bigint[]    not null
 );
+-- the third witness (M4-S1)
+alter table reconcile_results add column if not exists clickhouse_ids bigint;
+alter table reconcile_results add column if not exists ch_missing_count bigint not null default 0;
+alter table reconcile_results add column if not exists ch_extra_count bigint not null default 0;
+alter table reconcile_results add column if not exists ch_missing bigint[] not null default '{}';
+alter table reconcile_results add column if not exists ch_extra bigint[] not null default '{}';
 """
 
 
@@ -52,12 +58,31 @@ def ids(store: Store, path: str) -> list[int] | None:
     return list(pq.read_table(io.BytesIO(store.get(path)), columns=["id"]).column("id").to_pylist())
 
 
-def check_hour(store: Store, hour: Hour, duplicates: dict[str, int], stream_path: str) -> HourCheck:
+class ClickHouseWitness:
+    """ClickHouse's distinct ids for an hour, or None while its markers are not all in."""
+
+    def __init__(self) -> None:
+        from ghflow.commands import clickhouse
+        from ghflow.commands.local import clickhouse as client
+
+        self.ch, self.module = client(), clickhouse
+        self.closed = clickhouse.closed_hours(self.ch)
+
+    def __call__(self, hour: str) -> list[int] | None:
+        return self.module.hour_ids(self.ch, hour) if hour in self.closed else None
+
+
+def check_hour(store: Store, hour: Hour, duplicates: dict[str, int], stream_path: str,
+               witness: ClickHouseWitness | None) -> HourCheck:  # fmt: skip
     batch = ids(store, bronze.bronze_path(hour)) or []
-    return compare(hour.key, batch, ids(store, stream_path), duplicates.get(hour.key))
+    ch = witness(hour.key) if witness else NOT_USED
+    return compare(hour.key, batch, ids(store, stream_path), duplicates.get(hour.key), ch)
 
 
-def reconcile(conn: Any, hours: list[Hour], overrides: dict[str, str]) -> dict[str, Any]:
+def reconcile(
+    conn: Any, hours: list[Hour], overrides: dict[str, str], clickhouse: bool = False
+) -> dict[str, Any]:
+    witness = ClickHouseWitness() if clickhouse else None
     store, run_id = Store(s3_config()), f"reconcile-{uuid.uuid4().hex[:8]}"
     duplicates = {
         r[0]: int(r[1])
@@ -67,7 +92,7 @@ def reconcile(conn: Any, hours: list[Hour], overrides: dict[str, str]) -> dict[s
         checks = list(
             pool.map(
                 lambda h: check_hour(
-                    store, h, duplicates, overrides.get(h.key, lander.compact_path(h.key))
+                    store, h, duplicates, overrides.get(h.key, lander.compact_path(h.key)), witness
                 ),
                 hours,
             )
@@ -75,7 +100,8 @@ def reconcile(conn: Any, hours: list[Hour], overrides: dict[str, str]) -> dict[s
     with conn.cursor() as cur:
         cur.executemany(
             b"insert into reconcile_results (run_id, hour, status, batch_ids, stream_ids, missing_count, "
-            b"extra_count, duplicates, missing, extra) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            b"extra_count, duplicates, missing, extra, clickhouse_ids, ch_missing_count, ch_extra_count, ch_missing, ch_extra) "
+            b"values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             [
                 (
                     run_id,
@@ -88,6 +114,11 @@ def reconcile(conn: Any, hours: list[Hour], overrides: dict[str, str]) -> dict[s
                     c.duplicates,
                     c.missing,
                     c.extra,
+                    c.clickhouse_ids,
+                    c.ch_missing_count,
+                    c.ch_extra_count,
+                    c.ch_missing,
+                    c.ch_extra,
                 )
                 for c in checks
             ],
@@ -100,9 +131,12 @@ def reconcile(conn: Any, hours: list[Hour], overrides: dict[str, str]) -> dict[s
         "events": {
             "batch": sum(c.batch_ids for c in checks),
             "stream": sum(c.stream_ids for c in checks),
+            "clickhouse": sum(c.clickhouse_ids or 0 for c in checks) if clickhouse else None,
         },
         "missing": sum(c.missing_count for c in checks),
         "extra": sum(c.extra_count for c in checks),
+        "clickhouse_missing": sum(c.ch_missing_count for c in checks),
+        "clickhouse_extra": sum(c.ch_extra_count for c in checks),
         "duplicates_removed_by_compaction": {c.hour: c.duplicates for c in checks if c.duplicates},
         "red": red,
     }
@@ -140,13 +174,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("command", choices=["run", "redteam"])
     parser.add_argument("--from", dest="first", default=f"{settings.WINDOW_FIRST.isoformat()}-0")
     parser.add_argument("--to", required=True)
+    parser.add_argument("--clickhouse", action="store_true", help="ClickHouse as the third witness")
     args = parser.parse_args(argv)
     hours = hours_between(Hour.parse(args.first), Hour.parse(args.to))
 
     def go() -> int:
         with audit.connect(ops_dsn()) as conn:
             conn.execute(RESULTS_SQL)
-            record = reconcile(conn, hours, {}) if args.command == "run" else redteam(conn, hours)
+            record = (
+                reconcile(conn, hours, {}, args.clickhouse)
+                if args.command == "run"
+                else redteam(conn, hours)
+            )
         print(json.dumps(record, default=str))
         if args.command == "redteam":
             return ExitCode.PASSED if record["caught"] else ExitCode.REFUSED

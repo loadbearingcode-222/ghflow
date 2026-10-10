@@ -1,4 +1,4 @@
-"""reconcile: every hour, batch against stream by event id over the whole window (M2-S3, ADR-0007).
+"""reconcile: every hour, batch against stream against ClickHouse by event id (M2-S3, M4-S1).
 
 Green when the stream's ids for an hour equal bronze's; red (named ids) when one is missing or
 extra; pending while the stream has not closed the hour. Results: ghflow_ops.reconcile_results.
@@ -32,7 +32,15 @@ def reconcile() -> None:
     @task(execution_timeout=timedelta(hours=1), retries=0)
     def batch_vs_stream(last_hour: str) -> None:
         done = subprocess.run(
-            [GHFLOW_PYTHON, "-m", "ghflow.commands.reconcile", "run", "--to", last_hour],
+            [
+                GHFLOW_PYTHON,
+                "-m",
+                "ghflow.commands.reconcile",
+                "run",
+                "--to",
+                last_hour,
+                "--clickhouse",
+            ],
             capture_output=True,
             text=True,
         )

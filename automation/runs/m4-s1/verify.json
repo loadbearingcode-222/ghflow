@@ -1,0 +1,24 @@
+{
+  "story": "M4-S1",
+  "accept_when": "duplicates collapse under FINAL; the views' aggregates equal a recomputation from events",
+  "command": "python -m ghflow.commands.clickhouse verify (day by day; gotcha #56)",
+  "whole_window": {
+    "days": 69,
+    "rows": 147733476,
+    "distinct_ids": 147733476,
+    "rows_under_final": 147733476,
+    "hourly_groups": 24463,
+    "hourly_groups_differing_from_events": 0
+  },
+  "note_on_duplicates": "the topic's replay duplicates (e.g. 2026-08-03-1, 2026-08-07-22) had already been merged away, so the whole window showed 0 duplicate rows",
+  "planted_duplicates": {
+    "planted": "every row of 2026-08-15-12 inserted again (an at-least-once re-read)",
+    "rows": 4193794,
+    "distinct_ids": 4023208,
+    "rows_under_final": 4023208,
+    "hourly_groups": 312,
+    "differing": 0,
+    "final_off": 0
+  },
+  "note_on_events_hourly": "the first events_hourly (uniqExact states) held every id of the window and its merges starved the server (gotcha #56); it was replaced by groupBitmap states and its history backfilled from events, so for hours before 2026-10-10 ~17:20 UTC the view-vs-events equality checks the backfill; later hours come through the materialized view"
+}

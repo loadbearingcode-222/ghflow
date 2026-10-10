@@ -21,6 +21,7 @@ import os
 import signal
 import sys
 import threading
+from collections.abc import Callable
 from datetime import UTC
 from pathlib import Path
 from typing import Any
@@ -173,7 +174,9 @@ qualify row_number() over (partition by verdict order by repo_id) <= $named orde
 """
 
 
-def diff(plant: bool) -> dict[str, Any]:
+def diff(plant: bool, load: Callable[[Any], int] | None = None) -> dict[str, Any]:
+    """`load` fills table `topic` with the state to compare: by default the changelog itself;
+    `ghflow.commands.clickhouse` passes ClickHouse's repo_current (M4-S1)."""
     import duckdb  # the dbt group's dependency; present wherever the warehouse is
 
     where = progress()
@@ -193,7 +196,7 @@ def diff(plant: bool) -> dict[str, Any]:
         )
         if behind:
             return {"verdict": "pending", "progress": where, "warehouse_through": str(staged)}
-        read = load_topic(con)
+        read = (load or load_topic)(con)
         planted = plant_stale(con, cutoff) if plant else None
         con.execute(DIFF_SQL, {"cutoff": cutoff})
         counts: dict[str, Any] = {

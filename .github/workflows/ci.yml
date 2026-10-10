@@ -63,7 +63,7 @@ jobs:
         with:
           fetch-depth: 0  # tests/unit/test_quality_order.py reads the commit order
       - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0 (node24), verified 2026-10-05
-      - run: uv sync --locked --group dev --group integration --group dbt --group stream
+      - run: uv sync --locked --group dev --group integration --group dbt --group stream --group clickhouse
       - run: uv run ruff check --output-format=github .
       - run: uv run ruff format --check .
       - run: uv run mypy
