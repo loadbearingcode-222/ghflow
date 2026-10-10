@@ -1,0 +1,31 @@
+{
+  "story": "M1-S5",
+  "issue": 20,
+  "phase": "prediction, committed before the compaction change",
+  "measured_now": {
+    "file_gib": 25.1,
+    "total_blocks": 102961,
+    "used_blocks": 51464,
+    "free_blocks": 51497,
+    "block_bytes": 262144,
+    "staging_rows": 147212970,
+    "history": "7.45 GB first plain build (143.3M rows); 13.1 GB after one full refresh into an empty file; 26.2 GB after four; 25.1 GiB now"
+  },
+  "change": "after dbt build, copy the warehouse into a fresh file (COPY FROM DATABASE) inside the duckdb pool and atomically swap it in",
+  "predictions": [
+    {
+      "id": "W1",
+      "claim": "the compacted file is <= 8.5 GB",
+      "argument": "a fresh plain build was 7.45 GB for 143.3M rows; 147.2M rows scale to ~7.65 GB; +10% margin"
+    },
+    {
+      "id": "W2",
+      "claim": "a full refresh followed by compaction also ends <= 8.5 GB (no growth cycle)"
+    },
+    {
+      "id": "W3",
+      "claim": "after the swap, staging row count is unchanged (147,212,970) and dbt test passes 79/79 as before"
+    }
+  ],
+  "keep_rule": "kept only if W1-W3 all hold; otherwise reverted"
+}
