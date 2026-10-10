@@ -13,7 +13,9 @@ param(
     # Only for `reset`: confirms that every named volume (all platform data) may be deleted.
     [switch]$Force,
     # Only for the backfill targets: the window's last hour, inclusive (e.g. 2026-10-05-11).
-    [string]$To = ''
+    [string]$To = '',
+    # Only for replay / replay-verify: one GH Archive hour (e.g. 2026-08-03-0).
+    [string]$Hour = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -103,6 +105,8 @@ $Targets = [ordered]@{
     'resume'           = 'Unpause the backfill'
     'watch'            = 'Backfill progress from the audit table, one line a minute (-To <last hour>)'
     'backfill-verify'  = 'Every window hour has exactly one final verdict (-To <last hour>)'
+    'replay'           = 'Publish one bronze hour to gharchive.events, checkpointed after the flush (-Hour)'
+    'replay-verify'    = 'Read one hour back from the topic: events, duplicates, missing ids, markers (-Hour)'
     'dags'             = "Build the Airflow image's dag-test stage; run the DAG-integrity tests in it, network off"
     'test-integration' = 'Tests against the running stack (needs up)'
 }
@@ -117,7 +121,7 @@ switch ($Target) {
         Write-Host ''
     }
     'hooks'     { Invoke-Checked 'git' @('config', 'core.hooksPath', '.githooks'); Write-Host 'git hooks installed from .githooks/' }
-    'sync'      { Invoke-Uv @('sync', '--locked', '--group', 'dev', '--group', 'integration', '--group', 'dbt') }
+    'sync'      { Invoke-Uv @('sync', '--locked', '--group', 'dev', '--group', 'integration', '--group', 'dbt', '--group', 'stream') }
     'lint'      { Invoke-Uv @('run', 'ruff', 'check', '.'); Invoke-Uv @('run', 'ruff', 'format', '--check', '.') }
     'format'    { Invoke-Uv @('run', 'ruff', 'check', '--fix', '.'); Invoke-Uv @('run', 'ruff', 'format', '.') }
     'typecheck' { Invoke-Uv @('run', 'mypy') }
@@ -135,6 +139,8 @@ switch ($Target) {
     'resume'    { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.backfill', 'resume') }
     'watch'     { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.backfill', 'watch', '--to', $To) }
     'backfill-verify' { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.backfill', 'verify', '--to', $To, '--out', 'automation/runs/m1-s2/verdicts.json') }
+    'replay'    { Invoke-Compose @('run', '--rm', 'replayer', 'python', '-m', 'ghflow.commands.stream', 'replay', $Hour) }
+    'replay-verify' { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.stream', 'verify', $Hour) }
     'env'       { Invoke-Env }
     'doctor'    { Invoke-Checked 'powershell' @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'scripts\doctor.ps1')) }
     'up'        {

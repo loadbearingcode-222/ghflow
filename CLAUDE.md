@@ -172,6 +172,12 @@ of ETags → `reingest_requests` → re-ingest → dbt_build full_refresh. Offli
 `flagged` = volume or PushEvent broke (M5 shades exactly these), `shifted` = only minor types'
 shares moved (recorded, never shaded). DAGs stay thin by law (`tests/unit/test_thin_dags.py`).
 
+Stream (M2-S1, ADR-0005): Redpanda (Kafka 127.0.0.1:39092, registry :38081, Console :38080),
+topics from `config/redpanda/topics.conf` (never shrink), record = `config/schemas/gh_event.avsc`
+generated from bronze (`uv run python -m ghflow.commands.stream schema|compat|verify|redteam`).
+`.\make.ps1 replay -Hour <h>` publishes one hour (app image `ghflow/app:dev`, compose profile
+`replay` until the lander exists); `replay_checkpoint` in ghflow_ops moves only after the flush.
+
 Code layers (M0-S5, `docs/ITERATION.md`): pure core `settings`, `hours`, `events`, `fields`,
 `contract`, `profiling` (no I/O); shell `archive`, `commands/` (every CLI through `guarded()`).
 One cast (`contract.py`), one JSON-line reader (`events.py`), one home per knob (`settings.py`);

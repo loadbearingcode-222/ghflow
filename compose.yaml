@@ -1,7 +1,7 @@
 # ghflow: the local platform. Grows story by story (docs/MILESTONES.md):
 #   M0 core:      seaweedfs (S3) · s3-init · platform-db (Postgres) · platform-db-init ·
 #                 airflow-init · airflow-apiserver/scheduler/dag-processor/triggerer
-#   M2 stream:    redpanda · console · replayer · lander      M3: repo-state
+#   M2 stream:    redpanda · redpanda-init · console · replayer (profile replay) · lander   M3: repo-state
 #   M4 real-time: clickhouse · grafana                       M5: dashboard
 #
 # Conventions
@@ -212,7 +212,87 @@ services:
     mem_limit: 384m
     restart: unless-stopped
 
+  # ------------------------------------------------------------------ the replayed stream (M2, ADR-0005)
+  redpanda:
+    image: redpandadata/redpanda:v26.2.3@sha256:9e83cfa99278f30d0133271c26bf670cd69c94ffa6ba0b42830dd0c3bd9dcfd9
+    command:
+      - redpanda
+      - start
+      - --mode=dev-container
+      - --smp=1
+      - --memory=1G
+      - --reserve-memory=0M
+      - --overprovisioned
+      - --kafka-addr=internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr=internal://redpanda:9092,external://127.0.0.1:39092
+      - --schema-registry-addr=internal://0.0.0.0:8081,external://0.0.0.0:18081
+    ports:
+      - "127.0.0.1:39092:19092"   # Kafka API, host side
+      - "127.0.0.1:38081:18081"   # Schema Registry, host side
+    volumes:
+      - redpanda:/var/lib/redpanda/data
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster health | grep -E 'Healthy:.+true' || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
+    mem_limit: 1536m
+    restart: unless-stopped
+
+  redpanda-init:
+    # Applies config/redpanda/topics.conf: creates, grows, sets configs; never shrinks.
+    image: redpandadata/redpanda:v26.2.3@sha256:9e83cfa99278f30d0133271c26bf670cd69c94ffa6ba0b42830dd0c3bd9dcfd9
+    entrypoint: ["/bin/bash", "/opt/ghflow/apply-topics.sh"]
+    volumes:
+      - ./config/redpanda/apply-topics.sh:/opt/ghflow/apply-topics.sh:ro
+      - ./config/redpanda/topics.conf:/opt/ghflow/topics.conf:ro
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    restart: "no"
+
+  console:
+    image: redpandadata/console:v3.12.0@sha256:9dc0cd55db172c6be9c2ff8a51f33a14395f7675fa7fbc002c277f3b96115c27
+    environment:
+      KAFKA_BROKERS: redpanda:9092
+      SCHEMAREGISTRY_ENABLED: "true"
+      SCHEMAREGISTRY_URLS: http://redpanda:8081
+    ports:
+      - "127.0.0.1:38080:8080"
+    depends_on:
+      redpanda-init:
+        condition: service_completed_successfully
+    mem_limit: 256m
+    restart: unless-stopped
+
+  replayer:
+    # Bronze hours -> gharchive.events, in order, checkpointed after each flush. Behind a profile
+    # until the lander exists (M2-S2): `up` must not fill the topic with nothing consuming it.
+    profiles: ["replay"]
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    image: ghflow/app:dev
+    environment:
+      <<: *s3-credentials
+      S3_ENDPOINT: http://seaweedfs:8333
+      GHFLOW_OPS_DSN: postgresql://ghflow:${GHFLOW_OPS_PASSWORD:?run .\make.ps1 env}@platform-db:5432/ghflow_ops
+      KAFKA_BOOTSTRAP: redpanda:9092
+      SCHEMA_REGISTRY_URL: http://redpanda:8081
+      REPLAY_FROM: 2026-08-03-0
+    depends_on:
+      redpanda-init:
+        condition: service_completed_successfully
+      s3-init:
+        condition: service_completed_successfully
+      platform-db-init:
+        condition: service_completed_successfully
+    mem_limit: 512m
+    restart: unless-stopped
+
 volumes:
+  redpanda:
   seaweedfs-data:
   warehouse:
   platform-db:
