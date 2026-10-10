@@ -1,0 +1,2462 @@
+{
+  "checks": [
+    "volume"
+  ],
+  "bars": {
+    "QUALITY_LOOKBACK_DAYS": 28,
+    "QUALITY_MIN_REFERENCE": 3,
+    "QUALITY_MIX_HIGH": 1.67,
+    "QUALITY_MIX_LOW": 0.6,
+    "QUALITY_MIX_MIN_SHARE": 0.05,
+    "QUALITY_REFERENCE_SIZE": 7,
+    "QUALITY_VOLUME_HIGH": 2.0,
+    "QUALITY_VOLUME_LOW": 0.35
+  },
+  "summary": {
+    "clean": 1364,
+    "flagged": 271,
+    "no_verdict": 0
+  },
+  "flagged": {
+    "2026-08-07-9": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2809,
+        "value": 45278,
+        "reference": 161183.0
+      }
+    ],
+    "2026-08-07-10": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2715,
+        "value": 44279,
+        "reference": 163065.0
+      }
+    ],
+    "2026-08-07-11": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2871,
+        "value": 46943,
+        "reference": 163495.0
+      }
+    ],
+    "2026-08-07-12": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2977,
+        "value": 47991,
+        "reference": 161212.0
+      }
+    ],
+    "2026-08-07-13": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2921,
+        "value": 47311,
+        "reference": 161942.0
+      }
+    ],
+    "2026-08-07-14": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2978,
+        "value": 47602,
+        "reference": 159870.0
+      }
+    ],
+    "2026-08-07-15": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2426,
+        "value": 37882,
+        "reference": 156135.0
+      }
+    ],
+    "2026-08-17-14": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2365,
+        "value": 38119,
+        "reference": 161148.0
+      }
+    ],
+    "2026-08-18-13": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2929,
+        "value": 47659,
+        "reference": 162696.0
+      }
+    ],
+    "2026-08-18-14": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.26,
+        "value": 41906,
+        "reference": 161148.0
+      }
+    ],
+    "2026-08-18-15": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.263,
+        "value": 41127,
+        "reference": 156367.0
+      }
+    ],
+    "2026-08-18-16": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2227,
+        "value": 35913,
+        "reference": 161270.0
+      }
+    ],
+    "2026-08-18-17": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2216,
+        "value": 35116,
+        "reference": 158458.0
+      }
+    ],
+    "2026-08-18-18": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2401,
+        "value": 38721,
+        "reference": 161260.0
+      }
+    ],
+    "2026-08-18-19": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2288,
+        "value": 36881,
+        "reference": 161216.0
+      }
+    ],
+    "2026-08-18-20": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2186,
+        "value": 35818,
+        "reference": 163888.0
+      }
+    ],
+    "2026-08-18-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2207,
+        "value": 35512,
+        "reference": 160880.0
+      }
+    ],
+    "2026-08-18-22": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2106,
+        "value": 34509,
+        "reference": 163869.0
+      }
+    ],
+    "2026-08-18-23": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1953,
+        "value": 32582,
+        "reference": 166857.0
+      }
+    ],
+    "2026-08-19-0": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.186,
+        "value": 30579,
+        "reference": 164364.0
+      }
+    ],
+    "2026-08-19-1": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.3364,
+        "value": 55930,
+        "reference": 166241.0
+      }
+    ],
+    "2026-08-19-10": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2612,
+        "value": 42597,
+        "reference": 163065.0
+      }
+    ],
+    "2026-08-19-11": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2184,
+        "value": 35779,
+        "reference": 163786.0
+      }
+    ],
+    "2026-08-19-12": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1595,
+        "value": 26242,
+        "reference": 164570.0
+      }
+    ],
+    "2026-08-19-13": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0538,
+        "value": 8754,
+        "reference": 162696.0
+      }
+    ],
+    "2026-08-19-14": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0218,
+        "value": 3511,
+        "reference": 161148.0
+      }
+    ],
+    "2026-08-19-15": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0057,
+        "value": 898,
+        "reference": 156367.0
+      }
+    ],
+    "2026-08-19-16": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0089,
+        "value": 1441,
+        "reference": 161270.0
+      }
+    ],
+    "2026-08-19-17": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0114,
+        "value": 1805,
+        "reference": 158458.0
+      }
+    ],
+    "2026-08-19-18": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0095,
+        "value": 1534,
+        "reference": 161260.0
+      }
+    ],
+    "2026-08-19-19": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0077,
+        "value": 1237,
+        "reference": 161216.0
+      }
+    ],
+    "2026-08-19-20": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0066,
+        "value": 1080,
+        "reference": 163888.0
+      }
+    ],
+    "2026-08-19-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0062,
+        "value": 1004,
+        "reference": 160880.0
+      }
+    ],
+    "2026-08-19-22": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0058,
+        "value": 950,
+        "reference": 163869.0
+      }
+    ],
+    "2026-08-19-23": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.006,
+        "value": 1000,
+        "reference": 166857.0
+      }
+    ],
+    "2026-08-20-0": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0188,
+        "value": 3087,
+        "reference": 164364.0
+      }
+    ],
+    "2026-08-20-1": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.101,
+        "value": 16796,
+        "reference": 166241.0
+      }
+    ],
+    "2026-08-20-2": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1939,
+        "value": 32220,
+        "reference": 166174.0
+      }
+    ],
+    "2026-08-20-3": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.3242,
+        "value": 54338,
+        "reference": 167617.0
+      }
+    ],
+    "2026-08-20-7": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2858,
+        "value": 46266,
+        "reference": 161886.0
+      }
+    ],
+    "2026-08-20-8": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1904,
+        "value": 30333,
+        "reference": 159347.0
+      }
+    ],
+    "2026-08-20-9": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1852,
+        "value": 29634,
+        "reference": 159983.0
+      }
+    ],
+    "2026-08-20-10": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1684,
+        "value": 27457,
+        "reference": 163065.0
+      }
+    ],
+    "2026-08-20-11": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1564,
+        "value": 25624,
+        "reference": 163786.0
+      }
+    ],
+    "2026-08-20-12": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1158,
+        "value": 19058,
+        "reference": 164570.0
+      }
+    ],
+    "2026-08-20-13": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0843,
+        "value": 13708,
+        "reference": 162696.0
+      }
+    ],
+    "2026-08-20-14": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.041,
+        "value": 6600,
+        "reference": 161148.0
+      }
+    ],
+    "2026-08-20-15": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0275,
+        "value": 4298,
+        "reference": 156367.0
+      }
+    ],
+    "2026-08-20-16": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0129,
+        "value": 2077,
+        "reference": 161270.0
+      }
+    ],
+    "2026-08-20-17": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0098,
+        "value": 1548,
+        "reference": 158458.0
+      }
+    ],
+    "2026-08-20-18": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.01,
+        "value": 1610,
+        "reference": 161260.0
+      }
+    ],
+    "2026-08-20-19": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0077,
+        "value": 1249,
+        "reference": 161216.0
+      }
+    ],
+    "2026-08-20-20": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0058,
+        "value": 955,
+        "reference": 163888.0
+      }
+    ],
+    "2026-08-20-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.005,
+        "value": 803,
+        "reference": 160880.0
+      }
+    ],
+    "2026-08-20-22": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0043,
+        "value": 697,
+        "reference": 163869.0
+      }
+    ],
+    "2026-08-20-23": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0045,
+        "value": 757,
+        "reference": 166857.0
+      }
+    ],
+    "2026-08-21-0": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0127,
+        "value": 2090,
+        "reference": 164364.0
+      }
+    ],
+    "2026-08-21-1": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0564,
+        "value": 9373,
+        "reference": 166241.0
+      }
+    ],
+    "2026-08-21-2": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0691,
+        "value": 11477,
+        "reference": 166174.0
+      }
+    ],
+    "2026-08-21-3": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1736,
+        "value": 29103,
+        "reference": 167617.0
+      }
+    ],
+    "2026-08-21-4": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2134,
+        "value": 35951,
+        "reference": 168497.0
+      }
+    ],
+    "2026-08-21-5": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2408,
+        "value": 40372,
+        "reference": 167676.0
+      }
+    ],
+    "2026-08-21-6": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2542,
+        "value": 41799,
+        "reference": 164446.0
+      }
+    ],
+    "2026-08-21-7": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2566,
+        "value": 41539,
+        "reference": 161886.0
+      }
+    ],
+    "2026-08-21-8": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2733,
+        "value": 43553,
+        "reference": 159347.0
+      }
+    ],
+    "2026-08-21-9": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2789,
+        "value": 44614,
+        "reference": 159983.0
+      }
+    ],
+    "2026-08-21-10": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2897,
+        "value": 47246,
+        "reference": 163065.0
+      }
+    ],
+    "2026-08-21-11": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2845,
+        "value": 46603,
+        "reference": 163786.0
+      }
+    ],
+    "2026-08-21-12": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2841,
+        "value": 46753,
+        "reference": 164570.0
+      }
+    ],
+    "2026-08-21-13": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2869,
+        "value": 46684,
+        "reference": 162696.0
+      }
+    ],
+    "2026-08-21-14": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2345,
+        "value": 37784,
+        "reference": 161148.0
+      }
+    ],
+    "2026-08-21-15": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2608,
+        "value": 40785,
+        "reference": 156367.0
+      }
+    ],
+    "2026-08-21-16": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2744,
+        "value": 44249,
+        "reference": 161270.0
+      }
+    ],
+    "2026-08-21-17": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.272,
+        "value": 43099,
+        "reference": 158458.0
+      }
+    ],
+    "2026-08-21-18": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2803,
+        "value": 45196,
+        "reference": 161260.0
+      }
+    ],
+    "2026-08-21-19": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2568,
+        "value": 41403,
+        "reference": 161216.0
+      }
+    ],
+    "2026-08-21-20": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2418,
+        "value": 39620,
+        "reference": 163888.0
+      }
+    ],
+    "2026-08-21-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2366,
+        "value": 38068,
+        "reference": 160880.0
+      }
+    ],
+    "2026-08-21-22": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2287,
+        "value": 37483,
+        "reference": 163869.0
+      }
+    ],
+    "2026-08-21-23": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1762,
+        "value": 29406,
+        "reference": 166857.0
+      }
+    ],
+    "2026-08-22-0": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2288,
+        "value": 37605,
+        "reference": 164364.0
+      }
+    ],
+    "2026-08-22-1": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2991,
+        "value": 49720,
+        "reference": 166241.0
+      }
+    ],
+    "2026-08-27-17": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2819,
+        "value": 34905,
+        "reference": 123805.0
+      }
+    ],
+    "2026-08-27-18": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2033,
+        "value": 25232,
+        "reference": 124136.0
+      }
+    ],
+    "2026-08-27-19": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1874,
+        "value": 24967,
+        "reference": 133260.0
+      }
+    ],
+    "2026-08-27-20": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2487,
+        "value": 30587,
+        "reference": 122978.0
+      }
+    ],
+    "2026-08-27-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2006,
+        "value": 26134,
+        "reference": 130277.0
+      }
+    ],
+    "2026-08-27-22": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1413,
+        "value": 20123,
+        "reference": 142399.0
+      }
+    ],
+    "2026-08-27-23": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1221,
+        "value": 18605,
+        "reference": 152389.0
+      }
+    ],
+    "2026-08-28-0": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1635,
+        "value": 25784,
+        "reference": 157724.0
+      }
+    ],
+    "2026-08-28-1": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.242,
+        "value": 40226,
+        "reference": 166241.0
+      }
+    ],
+    "2026-08-28-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.3434,
+        "value": 44732,
+        "reference": 130277.0
+      }
+    ],
+    "2026-08-28-22": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.3057,
+        "value": 43528,
+        "reference": 142399.0
+      }
+    ],
+    "2026-08-28-23": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2649,
+        "value": 40375,
+        "reference": 152389.0
+      }
+    ],
+    "2026-08-29-0": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2377,
+        "value": 37493,
+        "reference": 157724.0
+      }
+    ],
+    "2026-08-29-1": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2149,
+        "value": 35727,
+        "reference": 166241.0
+      }
+    ],
+    "2026-08-29-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2377,
+        "value": 30969,
+        "reference": 130277.0
+      }
+    ],
+    "2026-08-29-22": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2098,
+        "value": 29881,
+        "reference": 142399.0
+      }
+    ],
+    "2026-08-29-23": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1955,
+        "value": 29793,
+        "reference": 152389.0
+      }
+    ],
+    "2026-08-30-0": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.179,
+        "value": 28234,
+        "reference": 157724.0
+      }
+    ],
+    "2026-08-30-1": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1918,
+        "value": 31878,
+        "reference": 166241.0
+      }
+    ],
+    "2026-08-30-7": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.3479,
+        "value": 37111,
+        "reference": 106657.0
+      }
+    ],
+    "2026-08-30-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2818,
+        "value": 36713,
+        "reference": 130277.0
+      }
+    ],
+    "2026-08-30-22": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2369,
+        "value": 33732,
+        "reference": 142399.0
+      }
+    ],
+    "2026-08-30-23": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.201,
+        "value": 30636,
+        "reference": 152389.0
+      }
+    ],
+    "2026-08-31-0": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1962,
+        "value": 30941,
+        "reference": 157724.0
+      }
+    ],
+    "2026-08-31-1": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2185,
+        "value": 36327,
+        "reference": 166241.0
+      }
+    ],
+    "2026-08-31-18": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.3012,
+        "value": 19049,
+        "reference": 63252.0
+      }
+    ],
+    "2026-08-31-19": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2328,
+        "value": 16724,
+        "reference": 71824.0
+      }
+    ],
+    "2026-08-31-20": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1613,
+        "value": 12925,
+        "reference": 80143.0
+      }
+    ],
+    "2026-08-31-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1061,
+        "value": 13817,
+        "reference": 130277.0
+      }
+    ],
+    "2026-08-31-22": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2125,
+        "value": 30257,
+        "reference": 142399.0
+      }
+    ],
+    "2026-08-31-23": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2281,
+        "value": 34755,
+        "reference": 152389.0
+      }
+    ],
+    "2026-09-01-0": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.327,
+        "value": 51582,
+        "reference": 157724.0
+      }
+    ],
+    "2026-09-01-1": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.3426,
+        "value": 56955,
+        "reference": 166241.0
+      }
+    ],
+    "2026-09-01-9": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2173,
+        "value": 17313,
+        "reference": 79668.0
+      }
+    ],
+    "2026-09-01-10": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0826,
+        "value": 6372,
+        "reference": 77156.0
+      }
+    ],
+    "2026-09-01-11": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0395,
+        "value": 3071,
+        "reference": 77807.0
+      }
+    ],
+    "2026-09-01-12": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0185,
+        "value": 1387,
+        "reference": 74819.0
+      }
+    ],
+    "2026-09-01-13": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0282,
+        "value": 1842,
+        "reference": 65276.0
+      }
+    ],
+    "2026-09-01-14": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0402,
+        "value": 2248,
+        "reference": 55857.0
+      }
+    ],
+    "2026-09-01-15": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0384,
+        "value": 1844,
+        "reference": 48008.0
+      }
+    ],
+    "2026-09-01-16": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0307,
+        "value": 1442,
+        "reference": 46968.0
+      }
+    ],
+    "2026-09-01-17": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0263,
+        "value": 1269,
+        "reference": 48262.0
+      }
+    ],
+    "2026-09-01-18": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0273,
+        "value": 1727,
+        "reference": 63252.0
+      }
+    ],
+    "2026-09-01-19": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0256,
+        "value": 1838,
+        "reference": 71824.0
+      }
+    ],
+    "2026-09-01-20": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0247,
+        "value": 1977,
+        "reference": 80143.0
+      }
+    ],
+    "2026-09-01-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0129,
+        "value": 1687,
+        "reference": 130277.0
+      }
+    ],
+    "2026-09-01-22": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0115,
+        "value": 1632,
+        "reference": 142399.0
+      }
+    ],
+    "2026-09-01-23": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0121,
+        "value": 1850,
+        "reference": 152389.0
+      }
+    ],
+    "2026-09-02-0": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0098,
+        "value": 1551,
+        "reference": 157724.0
+      }
+    ],
+    "2026-09-02-1": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0087,
+        "value": 1449,
+        "reference": 166241.0
+      }
+    ],
+    "2026-09-02-2": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0277,
+        "value": 1528,
+        "reference": 55217.0
+      }
+    ],
+    "2026-09-02-3": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0172,
+        "value": 1398,
+        "reference": 81113.0
+      }
+    ],
+    "2026-09-02-4": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0201,
+        "value": 1517,
+        "reference": 75472.0
+      }
+    ],
+    "2026-09-02-5": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0188,
+        "value": 1479,
+        "reference": 78486.0
+      }
+    ],
+    "2026-09-02-6": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0167,
+        "value": 1328,
+        "reference": 79562.0
+      }
+    ],
+    "2026-09-02-7": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0174,
+        "value": 1463,
+        "reference": 84105.0
+      }
+    ],
+    "2026-09-02-8": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0301,
+        "value": 1711,
+        "reference": 56898.0
+      }
+    ],
+    "2026-09-02-9": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0195,
+        "value": 1550,
+        "reference": 79668.0
+      }
+    ],
+    "2026-09-02-10": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0222,
+        "value": 1712,
+        "reference": 77156.0
+      }
+    ],
+    "2026-09-02-11": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0208,
+        "value": 1619,
+        "reference": 77807.0
+      }
+    ],
+    "2026-09-02-12": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0286,
+        "value": 2138,
+        "reference": 74819.0
+      }
+    ],
+    "2026-09-02-13": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.035,
+        "value": 2287,
+        "reference": 65276.0
+      }
+    ],
+    "2026-09-02-14": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0347,
+        "value": 1941,
+        "reference": 55857.0
+      }
+    ],
+    "2026-09-02-15": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0374,
+        "value": 1797,
+        "reference": 48008.0
+      }
+    ],
+    "2026-09-02-16": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0482,
+        "value": 2266,
+        "reference": 46968.0
+      }
+    ],
+    "2026-09-02-17": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0451,
+        "value": 2176,
+        "reference": 48262.0
+      }
+    ],
+    "2026-09-02-18": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0308,
+        "value": 1947,
+        "reference": 63252.0
+      }
+    ],
+    "2026-09-02-19": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0276,
+        "value": 1981,
+        "reference": 71824.0
+      }
+    ],
+    "2026-09-02-20": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0348,
+        "value": 2788,
+        "reference": 80143.0
+      }
+    ],
+    "2026-09-02-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0226,
+        "value": 2944,
+        "reference": 130277.0
+      }
+    ],
+    "2026-09-02-22": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0178,
+        "value": 2530,
+        "reference": 142399.0
+      }
+    ],
+    "2026-09-02-23": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0188,
+        "value": 2867,
+        "reference": 152389.0
+      }
+    ],
+    "2026-09-03-0": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0156,
+        "value": 2464,
+        "reference": 157724.0
+      }
+    ],
+    "2026-09-03-1": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0164,
+        "value": 2720,
+        "reference": 166241.0
+      }
+    ],
+    "2026-09-03-2": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0472,
+        "value": 2607,
+        "reference": 55217.0
+      }
+    ],
+    "2026-09-03-3": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0312,
+        "value": 2528,
+        "reference": 81113.0
+      }
+    ],
+    "2026-09-03-4": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0324,
+        "value": 2448,
+        "reference": 75472.0
+      }
+    ],
+    "2026-09-03-5": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0284,
+        "value": 2228,
+        "reference": 78486.0
+      }
+    ],
+    "2026-09-03-6": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0271,
+        "value": 2158,
+        "reference": 79562.0
+      }
+    ],
+    "2026-09-03-7": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0262,
+        "value": 2205,
+        "reference": 84105.0
+      }
+    ],
+    "2026-09-03-8": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0432,
+        "value": 2459,
+        "reference": 56898.0
+      }
+    ],
+    "2026-09-03-9": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0314,
+        "value": 2503,
+        "reference": 79668.0
+      }
+    ],
+    "2026-09-03-10": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0292,
+        "value": 2254,
+        "reference": 77156.0
+      }
+    ],
+    "2026-09-03-11": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0346,
+        "value": 2693,
+        "reference": 77807.0
+      }
+    ],
+    "2026-09-03-12": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.03,
+        "value": 2246,
+        "reference": 74819.0
+      }
+    ],
+    "2026-09-03-13": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0359,
+        "value": 2343,
+        "reference": 65276.0
+      }
+    ],
+    "2026-09-03-14": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0459,
+        "value": 2563,
+        "reference": 55857.0
+      }
+    ],
+    "2026-09-03-15": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0448,
+        "value": 2149,
+        "reference": 48008.0
+      }
+    ],
+    "2026-09-03-16": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0471,
+        "value": 2210,
+        "reference": 46968.0
+      }
+    ],
+    "2026-09-03-17": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0457,
+        "value": 2205,
+        "reference": 48262.0
+      }
+    ],
+    "2026-09-03-18": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0332,
+        "value": 2101,
+        "reference": 63252.0
+      }
+    ],
+    "2026-09-03-19": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0285,
+        "value": 2047,
+        "reference": 71824.0
+      }
+    ],
+    "2026-09-03-20": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0298,
+        "value": 2392,
+        "reference": 80143.0
+      }
+    ],
+    "2026-09-03-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2111,
+        "value": 27503,
+        "reference": 130277.0
+      }
+    ],
+    "2026-09-03-22": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2614,
+        "value": 37221,
+        "reference": 142399.0
+      }
+    ],
+    "2026-09-03-23": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2953,
+        "value": 45008,
+        "reference": 152389.0
+      }
+    ],
+    "2026-09-04-0": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2895,
+        "value": 45659,
+        "reference": 157724.0
+      }
+    ],
+    "2026-09-04-1": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2977,
+        "value": 49495,
+        "reference": 166241.0
+      }
+    ],
+    "2026-09-06-12": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 2.0944,
+        "value": 114005,
+        "reference": 54433.0
+      }
+    ],
+    "2026-09-06-14": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 2.1516,
+        "value": 116688,
+        "reference": 54232.0
+      }
+    ],
+    "2026-09-06-15": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 2.3837,
+        "value": 114438,
+        "reference": 48008.0
+      }
+    ],
+    "2026-09-06-16": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 2.4664,
+        "value": 115844,
+        "reference": 46968.0
+      }
+    ],
+    "2026-09-06-17": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 2.3188,
+        "value": 111909,
+        "reference": 48262.0
+      }
+    ],
+    "2026-09-07-17": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 2.0469,
+        "value": 98786,
+        "reference": 48262.0
+      }
+    ],
+    "2026-09-08-12": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 2.0703,
+        "value": 112694,
+        "reference": 54433.0
+      }
+    ],
+    "2026-09-08-19": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1658,
+        "value": 13226,
+        "reference": 79772.0
+      }
+    ],
+    "2026-09-08-20": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.063,
+        "value": 5010,
+        "reference": 79467.0
+      }
+    ],
+    "2026-09-08-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0649,
+        "value": 5617,
+        "reference": 86574.0
+      }
+    ],
+    "2026-09-08-22": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.104,
+        "value": 8978,
+        "reference": 86310.0
+      }
+    ],
+    "2026-09-08-23": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1675,
+        "value": 14002,
+        "reference": 83578.0
+      }
+    ],
+    "2026-09-09-14": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2036,
+        "value": 11370,
+        "reference": 55857.0
+      }
+    ],
+    "2026-09-09-15": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1244,
+        "value": 7414,
+        "reference": 59617.0
+      }
+    ],
+    "2026-09-09-16": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1699,
+        "value": 8408,
+        "reference": 49488.0
+      }
+    ],
+    "2026-09-09-17": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2392,
+        "value": 9993,
+        "reference": 41784.0
+      }
+    ],
+    "2026-09-09-18": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1419,
+        "value": 11336,
+        "reference": 79877.0
+      }
+    ],
+    "2026-09-09-19": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1456,
+        "value": 11618,
+        "reference": 79772.0
+      }
+    ],
+    "2026-09-09-20": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1558,
+        "value": 12381,
+        "reference": 79467.0
+      }
+    ],
+    "2026-09-09-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1142,
+        "value": 9888,
+        "reference": 86574.0
+      }
+    ],
+    "2026-09-09-22": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1092,
+        "value": 9428,
+        "reference": 86310.0
+      }
+    ],
+    "2026-09-09-23": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1378,
+        "value": 11516,
+        "reference": 83578.0
+      }
+    ],
+    "2026-09-10-0": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1474,
+        "value": 12266,
+        "reference": 83197.0
+      }
+    ],
+    "2026-09-10-1": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1195,
+        "value": 9977,
+        "reference": 83455.0
+      }
+    ],
+    "2026-09-10-2": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1437,
+        "value": 11727,
+        "reference": 81592.0
+      }
+    ],
+    "2026-09-10-3": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2263,
+        "value": 18513,
+        "reference": 81825.0
+      }
+    ],
+    "2026-09-10-4": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.3079,
+        "value": 27290,
+        "reference": 88639.0
+      }
+    ],
+    "2026-09-10-5": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.3384,
+        "value": 28758,
+        "reference": 84985.0
+      }
+    ],
+    "2026-09-11-17": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 2.1098,
+        "value": 88154,
+        "reference": 41784.0
+      }
+    ],
+    "2026-09-13-17": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 2.9211,
+        "value": 134708,
+        "reference": 46116.0
+      }
+    ],
+    "2026-09-19-17": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 2.0744,
+        "value": 117538,
+        "reference": 56661.0
+      }
+    ],
+    "2026-09-19-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 2.0013,
+        "value": 124164,
+        "reference": 62041.0
+      }
+    ],
+    "2026-09-20-17": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 2.337,
+        "value": 132414,
+        "reference": 56661.0
+      }
+    ],
+    "2026-09-20-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 2.0664,
+        "value": 128204,
+        "reference": 62041.0
+      }
+    ],
+    "2026-09-21-13": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2845,
+        "value": 25664,
+        "reference": 90216.0
+      }
+    ],
+    "2026-09-21-14": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0981,
+        "value": 7891,
+        "reference": 80418.0
+      }
+    ],
+    "2026-09-21-15": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0289,
+        "value": 2348,
+        "reference": 81136.0
+      }
+    ],
+    "2026-09-21-16": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0347,
+        "value": 2619,
+        "reference": 75450.0
+      }
+    ],
+    "2026-09-21-17": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0597,
+        "value": 3381,
+        "reference": 56661.0
+      }
+    ],
+    "2026-09-21-18": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.2668,
+        "value": 20527,
+        "reference": 76950.0
+      }
+    ],
+    "2026-09-26-17": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 2.1626,
+        "value": 121376,
+        "reference": 56124.0
+      }
+    ],
+    "2026-09-26-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 2.0806,
+        "value": 114678,
+        "reference": 55119.0
+      }
+    ],
+    "2026-09-27-17": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 2.2424,
+        "value": 125852,
+        "reference": 56124.0
+      }
+    ],
+    "2026-09-27-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 2.2408,
+        "value": 123511,
+        "reference": 55119.0
+      }
+    ],
+    "2026-09-27-22": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 2.0547,
+        "value": 120024,
+        "reference": 58413.0
+      }
+    ],
+    "2026-10-06-18": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.3184,
+        "value": 27666,
+        "reference": 86889.0
+      }
+    ],
+    "2026-10-06-19": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0853,
+        "value": 6814,
+        "reference": 79844.0
+      }
+    ],
+    "2026-10-06-20": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1032,
+        "value": 7714,
+        "reference": 74780.0
+      }
+    ],
+    "2026-10-06-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0949,
+        "value": 6605,
+        "reference": 69613.0
+      }
+    ],
+    "2026-10-06-22": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1097,
+        "value": 7734,
+        "reference": 70526.0
+      }
+    ],
+    "2026-10-06-23": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1127,
+        "value": 7889,
+        "reference": 70012.0
+      }
+    ],
+    "2026-10-07-0": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.112,
+        "value": 7715,
+        "reference": 68888.0
+      }
+    ],
+    "2026-10-07-1": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1024,
+        "value": 7737,
+        "reference": 75587.0
+      }
+    ],
+    "2026-10-07-2": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1104,
+        "value": 8859,
+        "reference": 80241.0
+      }
+    ],
+    "2026-10-07-3": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1088,
+        "value": 9170,
+        "reference": 84267.0
+      }
+    ],
+    "2026-10-07-4": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.088,
+        "value": 7216,
+        "reference": 82035.0
+      }
+    ],
+    "2026-10-07-5": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0762,
+        "value": 6096,
+        "reference": 79991.0
+      }
+    ],
+    "2026-10-07-6": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1032,
+        "value": 8622,
+        "reference": 83551.0
+      }
+    ],
+    "2026-10-07-7": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0768,
+        "value": 6463,
+        "reference": 84198.0
+      }
+    ],
+    "2026-10-07-8": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1081,
+        "value": 9181,
+        "reference": 84947.0
+      }
+    ],
+    "2026-10-07-9": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0921,
+        "value": 7715,
+        "reference": 83764.0
+      }
+    ],
+    "2026-10-07-10": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0723,
+        "value": 6012,
+        "reference": 83163.0
+      }
+    ],
+    "2026-10-07-11": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0697,
+        "value": 5877,
+        "reference": 84333.0
+      }
+    ],
+    "2026-10-07-12": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0733,
+        "value": 6508,
+        "reference": 88737.0
+      }
+    ],
+    "2026-10-07-13": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0761,
+        "value": 6743,
+        "reference": 88583.0
+      }
+    ],
+    "2026-10-07-14": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0834,
+        "value": 7152,
+        "reference": 85774.0
+      }
+    ],
+    "2026-10-07-15": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0733,
+        "value": 6219,
+        "reference": 84803.0
+      }
+    ],
+    "2026-10-07-16": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0714,
+        "value": 5820,
+        "reference": 81551.0
+      }
+    ],
+    "2026-10-07-17": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0797,
+        "value": 6324,
+        "reference": 79304.0
+      }
+    ],
+    "2026-10-07-18": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0595,
+        "value": 5170,
+        "reference": 86889.0
+      }
+    ],
+    "2026-10-07-19": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0796,
+        "value": 6356,
+        "reference": 79844.0
+      }
+    ],
+    "2026-10-07-20": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0844,
+        "value": 6314,
+        "reference": 74780.0
+      }
+    ],
+    "2026-10-07-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0804,
+        "value": 5594,
+        "reference": 69613.0
+      }
+    ],
+    "2026-10-07-22": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0723,
+        "value": 5102,
+        "reference": 70526.0
+      }
+    ],
+    "2026-10-07-23": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.065,
+        "value": 4552,
+        "reference": 70012.0
+      }
+    ],
+    "2026-10-08-0": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0695,
+        "value": 4787,
+        "reference": 68888.0
+      }
+    ],
+    "2026-10-08-1": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0679,
+        "value": 5131,
+        "reference": 75587.0
+      }
+    ],
+    "2026-10-08-2": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0713,
+        "value": 5720,
+        "reference": 80241.0
+      }
+    ],
+    "2026-10-08-3": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.216,
+        "value": 18204,
+        "reference": 84267.0
+      }
+    ],
+    "2026-10-09-15": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1503,
+        "value": 12743,
+        "reference": 84803.0
+      }
+    ],
+    "2026-10-09-16": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0538,
+        "value": 4389,
+        "reference": 81551.0
+      }
+    ],
+    "2026-10-09-17": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.069,
+        "value": 5469,
+        "reference": 79304.0
+      }
+    ],
+    "2026-10-09-18": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0752,
+        "value": 5862,
+        "reference": 77961.0
+      }
+    ],
+    "2026-10-09-19": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0898,
+        "value": 6602,
+        "reference": 73524.0
+      }
+    ],
+    "2026-10-09-20": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0698,
+        "value": 5217,
+        "reference": 74780.0
+      }
+    ],
+    "2026-10-09-21": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0661,
+        "value": 4604,
+        "reference": 69613.0
+      }
+    ],
+    "2026-10-09-22": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0694,
+        "value": 4898,
+        "reference": 70526.0
+      }
+    ],
+    "2026-10-09-23": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0639,
+        "value": 4474,
+        "reference": 70012.0
+      }
+    ],
+    "2026-10-10-0": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.0783,
+        "value": 5394,
+        "reference": 68888.0
+      }
+    ],
+    "2026-10-10-1": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.1897,
+        "value": 14340,
+        "reference": 75587.0
+      }
+    ],
+    "2026-10-10-2": [
+      {
+        "check": "volume",
+        "subject": "rows",
+        "ratio": 0.3008,
+        "value": 24133,
+        "reference": 80241.0
+      }
+    ]
+  },
+  "no_verdict": []
+}

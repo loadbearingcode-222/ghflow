@@ -41,14 +41,16 @@ def verdict_report(
     expected: list[Hour],
     verdicts: dict[datetime, str],
     attempts: dict[datetime, int],
-    finals: dict[datetime, int],
+    finals: dict[datetime, tuple[int, int]],
 ) -> dict[str, Any]:
     """Every expected hour must have exactly one final verdict; anything else is named.
 
-    A *duplicate* is an hour with more than one final (accepted/refused) attempt. A *retry* is
-    a non-final attempt (failed, crashed) before the one that counted: expected on a flaky
-    network, reported, but not a duplicate.
+    - *conflicting*: final (accepted/refused) attempts that disagree (outcome or bronze sha256).
+      The only failure among these: the hour does not have ONE answer.
+    - *rerun*: several final attempts with one identical result: an idempotent re-run.
+    - *retried*: non-final attempts (failed, crashed) before the one that counted.
     """
+    n_final = {h: n for h, (n, _) in finals.items()}
     final = {h.key: verdicts[h.start] for h in expected if verdicts.get(h.start) in FINAL}
     return {
         "expected_hours": len(expected),
@@ -60,14 +62,21 @@ def verdict_report(
             for h in expected
             if verdicts.get(h.start) not in FINAL | {None}
         },
-        "duplicated": {h.key: n for h in expected if (n := finals.get(h.start, 0)) > 1},
-        "retried": {
-            h.key: n - finals.get(h.start, 0)
+        "conflicting": {
+            h.key: finals[h.start][1] for h in expected if finals.get(h.start, (0, 0))[1] > 1
+        },
+        "rerun": {
+            h.key: n
             for h in expected
-            if (n := attempts.get(h.start, 0)) > finals.get(h.start, 0)
+            if (n := n_final.get(h.start, 0)) > 1 and finals[h.start][1] == 1
+        },
+        "retried": {
+            h.key: n - n_final.get(h.start, 0)
+            for h in expected
+            if (n := attempts.get(h.start, 0)) > n_final.get(h.start, 0)
         },
         "complete": len(final) == len(expected)
-        and not any(finals.get(h.start, 0) > 1 for h in expected),
+        and not any(finals.get(h.start, (0, 0))[1] > 1 for h in expected),
     }
 
 

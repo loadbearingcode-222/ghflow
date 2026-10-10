@@ -86,7 +86,7 @@ name = "The shell sits on the core, never the reverse"
 type = "layers"
 layers = [
     "ghflow.commands",
-    "ghflow.archive | ghflow.audit | ghflow.storage | ghflow.retention | ghflow.contract | ghflow.profiling",
+    "ghflow.archive | ghflow.audit | ghflow.storage | ghflow.retention | ghflow.contract | ghflow.profiling | ghflow.quality",
     "ghflow.bronze",
     "ghflow.events | ghflow.fields | ghflow.exitcodes",
     "ghflow.hours",

@@ -45,7 +45,9 @@ def ghflow(*args: str) -> int:
     # which would render the hour still in progress (gotcha #43). This gives [H, H+1) at H+1.
     schedule=CronDataIntervalTimetable("0 * * * *", timezone="UTC"),
     start_date=pendulum.datetime(2026, 8, 3, tz="UTC"),
-    catchup=False,  # M1-S2 backfills the window explicitly, with park / resume / watch
+    # True: hours missed while the stack was down are run when it comes back (gotcha #48). The
+    # window before the first scheduled run was backfilled explicitly in M1-S2 (park/resume/watch).
+    catchup=True,
     max_active_runs=4,  # = settings.CONCURRENCY: hours in flight against the archive
     default_args={"retries": 2, "retry_delay": timedelta(minutes=5)},
     tags=["ghflow", "batch", "M1"],

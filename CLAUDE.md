@@ -58,6 +58,13 @@ later insight that changes an earlier design becomes a Realign story (`docs/ITER
 - olist: "Yes, stop it (keep data)" → `docker compose stop` in olist-lakehouse when a story needs
   `up` (volumes kept; restart with `docker compose start` there). Never `down`.
 
+## User decisions (verbatim, 2026-10-10) — M1-S4 baseline
+
+- Asked because the plan's "clean baseline (Aug 3–16)" proved to be among the least normal
+  stretches (PullRequestEvents 189/h against 9,853/h in a 2024 reference hour): "Rolling clean
+  baseline (Recommended)" — each hour judged against the same hour of day on its previous clean
+  days, hours already flagged excluded, seeded by Aug 3–16.
+
 ## Environment facts (observed 2026-10-04)
 
 - Windows 11, Docker Desktop (WSL2 backend), WSL2 capped at **28 GB** (~27.4 GiB visible to
@@ -151,6 +158,13 @@ Silver (M1-S3, ADR-0003): DAG `dbt_build` (daily 02:30, pool `duckdb` = the one 
 (`uv run python -m ghflow.commands.silver generate|check`; never hand-edit models/silver/).
 Warehouse: `/opt/ghflow/warehouse/ghflow.duckdb` (volume `warehouse`); attach it read-only AS
 `ghflow` (gotcha #47). Full rebuild: trigger dbt_build with conf {"full_refresh": true}.
+
+Quality (M1-S4, ADR-0004): DAG `gharchive_quality` (daily 03:30) judges every hour against a
+rolling clean baseline → `ghflow_ops.quality_verdicts` (status, findings, bars), re-checks 14 days
+of ETags → `reingest_requests` → re-ingest → dbt_build full_refresh. Offline:
+`uv run python -m ghflow.commands.quality argue|run|redteam --counts automation/runs/m1-s4/hour_counts.json`;
+`python -m ghflow.commands.etag check|process|redteam`. Known: the baseline over-flags
+Sep 18 - Oct 9 (issue #22, M1-S5); M5 must not shade those hours until it is fixed.
 
 Code layers (M0-S5, `docs/ITERATION.md`): pure core `settings`, `hours`, `events`, `fields`,
 `contract`, `profiling` (no I/O); shell `archive`, `commands/` (every CLI through `guarded()`).

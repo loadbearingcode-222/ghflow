@@ -162,7 +162,8 @@ def io_in(module: ast.Module) -> list[str]:
 
 
 def test_the_pure_core_does_no_io() -> None:
-    offenders = {name: f for name in CORE if (f := io_in(tree(SRC / f"{name}.py")))}
+    paths = [SRC / f"{name}.py" for name in CORE] + sorted((SRC / "quality").glob("*.py"))
+    offenders = {rel(p): f for p in paths if (f := io_in(tree(p)))}
     assert offenders == {}, f"I/O belongs in the shell (archive, commands): {offenders}"
 
 

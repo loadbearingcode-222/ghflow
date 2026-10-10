@@ -1,0 +1,246 @@
+{
+  "story": "M1-S4",
+  "phase": "prediction, committed after bars.json and before any run",
+  "written": "2026-10-10",
+  "basis": "Informed by the daily summaries explored on 2026-10-05 (row counts, push share, hours under 30k rows per day) and by M0-S2's near-empty hours. It tests whether the checker, with the committed bars, flags what the bars were argued to flag and leaves alone what they were argued to leave; it is not a blind forecast.",
+  "claims": [
+    {
+      "id": "F1",
+      "expect": "flagged",
+      "check": "volume",
+      "hours": [
+        {
+          "day": "2026-08-07",
+          "hours": [
+            9,
+            15
+          ]
+        }
+      ],
+      "why": "the Aug 7 09-15 volume collapse (0.24-0.30 of the seed reference), argued in bars.json"
+    },
+    {
+      "id": "F2",
+      "expect": "flagged",
+      "check": "mix",
+      "subject": "PushEvent",
+      "hours": [
+        {
+          "day": "2026-08-07",
+          "hours": [
+            16,
+            19
+          ]
+        }
+      ],
+      "why": "the Aug 7 16-19 push collapse (share ratio 0.15-0.55)"
+    },
+    {
+      "id": "F3",
+      "expect": "flagged",
+      "check": "volume",
+      "rule": "every hour with fewer than 10,000 rows",
+      "why": "near-empty hours served as HTTP 200 (M0-S2): ratio ~0.01-0.1 against any clean reference"
+    },
+    {
+      "id": "F4",
+      "expect": "flagged",
+      "check": "mix",
+      "subject": "PushEvent",
+      "hours": [
+        {
+          "day": "2026-09-04",
+          "hours": [
+            0,
+            23
+          ]
+        },
+        {
+          "day": "2026-09-05",
+          "hours": [
+            0,
+            23
+          ]
+        }
+      ],
+      "why": "the broken mix at near-normal counts: push share ~0-7% where the reference has ~90%+"
+    },
+    {
+      "id": "F5",
+      "expect": "flagged",
+      "check": "mix",
+      "subject": "PushEvent",
+      "only": "mix",
+      "hours": [
+        {
+          "day": "2026-09-05",
+          "hours": [
+            15,
+            15
+          ]
+        }
+      ],
+      "why": "the reference broken hour: flagged by mix, and NOT by volume (see C1)"
+    },
+    {
+      "id": "F6",
+      "expect": "flagged",
+      "check": "mix",
+      "subject": "PushEvent",
+      "at_least": 0.8,
+      "hours": [
+        {
+          "day": "2026-09-11",
+          "hours": [
+            0,
+            23
+          ]
+        },
+        {
+          "day": "2026-09-12",
+          "hours": [
+            0,
+            23
+          ]
+        }
+      ],
+      "why": "push share 25-39% daily, far below a ~0.9 reference"
+    },
+    {
+      "id": "C1",
+      "expect": "clean",
+      "only_check": "volume",
+      "hours": [
+        {
+          "day": "2026-09-05",
+          "hours": [
+            15,
+            15
+          ]
+        }
+      ],
+      "why": "the row-count-only control: 84,492 rows is a normal count; counts alone miss this hour"
+    },
+    {
+      "id": "U1",
+      "expect": "clean",
+      "hours": [
+        {
+          "day": "2026-08-15",
+          "hours": [
+            0,
+            23
+          ]
+        },
+        {
+          "day": "2026-08-16",
+          "hours": [
+            0,
+            23
+          ]
+        }
+      ],
+      "why": "the seed's last weekend: normal volume (>= 160k rows/h) and push share 0.95+"
+    },
+    {
+      "id": "U2",
+      "expect": "clean",
+      "hours": [
+        {
+          "day": "2026-08-23",
+          "hours": [
+            0,
+            23
+          ]
+        }
+      ],
+      "why": "a normal day after the Aug 19-21 outage (min 164,700 rows/h, push 0.955+)"
+    },
+    {
+      "id": "U3",
+      "expect": "clean",
+      "at_least": 0.95,
+      "hours": [
+        {
+          "day": "2026-10-01",
+          "hours": [
+            0,
+            23
+          ]
+        },
+        {
+          "day": "2026-10-02",
+          "hours": [
+            0,
+            23
+          ]
+        },
+        {
+          "day": "2026-10-03",
+          "hours": [
+            0,
+            23
+          ]
+        },
+        {
+          "day": "2026-10-04",
+          "hours": [
+            0,
+            23
+          ]
+        },
+        {
+          "day": "2026-10-05",
+          "hours": [
+            0,
+            23
+          ]
+        },
+        {
+          "day": "2026-10-06",
+          "hours": [
+            0,
+            23
+          ]
+        },
+        {
+          "day": "2026-10-07",
+          "hours": [
+            0,
+            23
+          ]
+        },
+        {
+          "day": "2026-10-08",
+          "hours": [
+            0,
+            23
+          ]
+        },
+        {
+          "day": "2026-10-09",
+          "hours": [
+            0,
+            23
+          ]
+        }
+      ],
+      "why": "the October regime (push ~73-78%, PRs ~3k/h): the rolling baseline should have followed it from late September; at most 5% of Oct 1-9 hours flagged"
+    },
+    {
+      "id": "N1",
+      "expect": "no_verdict_count",
+      "value": 0,
+      "why": "a 28-day lookback reaches past the longest broken stretch (Sep 2-10), so every hour finds >= 3 clean references"
+    },
+    {
+      "id": "T1",
+      "expect": "flagged_total_between",
+      "value": [
+        250,
+        500
+      ],
+      "why": "~140 hours under 30k rows, plus the Aug 7 incident, plus the Sep 4-7 and Sep 10-17 push collapses (partial)"
+    }
+  ]
+}

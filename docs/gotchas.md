@@ -183,3 +183,10 @@ olist-lakehouse). Provenance is in brackets. Entries below it are earned by THIS
     their catalog after the database file (`ghflow`); `attach '…/ghflow.duckdb' as prod` gives
     `Catalog "ghflow" does not exist`. *Check:* attach the warehouse as `ghflow` (read-only) in
     any side tool. (M1-S3)
+48. **Hours vanish while the machine is off, and nothing says so.** A live DAG with
+    `catchup=False` runs only the newest interval when the scheduler comes back: the stack was
+    down Oct 5 23:00 - Oct 10 01:00 and those 98 hours were never scheduled. Turning catchup on
+    afterwards does not recover them (the scheduler's next-run pointer is already past the gap).
+    *Check:* hourly ingest runs with `catchup=True`; fill an existing gap with a backfill
+    (`reprocess_behavior=none` creates only the missing runs), then `dbt_build` with
+    `full_refresh`, because the incremental model only re-reads its newest 2 days. (M1-S4)
