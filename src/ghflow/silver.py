@@ -169,7 +169,9 @@ def rows_test_sql() -> str:
         f"    select event_date, event_hour, count(*) as n from {{{{ ref('{m}') }}}} group by all"
         for m in models
     ]
-    return _ROWS_TEST.format(header=HEADER, staging=STAGING, union="\n    union all\n".join(selects))
+    return _ROWS_TEST.format(
+        header=HEADER, staging=STAGING, union="\n    union all\n".join(selects)
+    )
 
 
 def files() -> dict[str, str]:

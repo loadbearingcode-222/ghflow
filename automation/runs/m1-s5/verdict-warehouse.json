@@ -1,0 +1,30 @@
+{
+  "story": "M1-S5",
+  "issue": 20,
+  "phase": "verdict on the compaction change",
+  "result": {
+    "bytes_before": 26990620672,
+    "bytes_after": 13335539712,
+    "staging_rows_before_and_after": 147212970,
+    "seconds": 69.8,
+    "free_blocks_after": 0,
+    "dbt_test_after_swap": "79 / 79 pass (with the M1-S5 race fix applied)"
+  },
+  "predictions": {
+    "W1": {
+      "claim": "compacted file <= 8.5 GB",
+      "verdict": "MISSED",
+      "actual_gb": 13.3,
+      "why": "the baseline was misread: '7.45 GB first plain build' was an ls taken WHILE that build was still writing (16:58, the run finished 16:59:33). The real one-copy size is ~13 GB (a fresh full refresh measured 13.1 GB; the compacted file now has 0 free blocks)."
+    },
+    "W2": {
+      "claim": "full refresh + compaction <= 8.5 GB",
+      "verdict": "NOT RUN (follows W1: the bar is below the data's real size)"
+    },
+    "W3": {
+      "claim": "rows and dbt test results unchanged after the swap",
+      "verdict": "HELD"
+    }
+  },
+  "decision": "REVERTED per the keep rule (W1 missed). The live warehouse stays the compacted file (same data, verified). A retry with a correctly measured prediction (~13 GB +/- 10% after full refresh + compaction) is a new refine issue for the next Refine story."
+}
