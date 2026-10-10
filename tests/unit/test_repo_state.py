@@ -45,8 +45,9 @@ class FakeProducer:
         self.calls.append("begin")
         self.open = []
 
-    def produce(self, topic: str, key: bytes, value: bytes) -> None:
+    def produce(self, topic: str, key: bytes, value: bytes, partition: int) -> None:
         assert topic == repo_state.STATE_TOPIC
+        assert partition == 0, "a repo's state goes to its events' partition"
         self.calls.append("produce")
         self.open.append((key, repo_state.decode(value)))
 
@@ -63,13 +64,22 @@ class FakeProducer:
 
 
 class FakeConsumer:
+    """The changelog's end is the count of committed records plus one marker per commit."""
+
+    def __init__(self, producer: FakeProducer) -> None:
+        self.producer = producer
+
     def consumer_group_metadata(self) -> object:
         return object()
+
+    def get_watermark_offsets(self, _tp: Any, timeout: float, cached: bool) -> tuple[int, int]:
+        return 0, len(self.producer.committed) + len(self.producer.offsets)
 
 
 def processor(tmp_path: Path, producer: FakeProducer, name: str = "s.sqlite") -> Processor:
     serialize = repo_state.Serializer(7)
-    return Processor(FakeConsumer(), producer, StateStore(tmp_path / name), serialize)  # type: ignore[arg-type]
+    store = StateStore(tmp_path / name, fresh=True)
+    return Processor(FakeConsumer(producer), producer, store, serialize)  # type: ignore[arg-type]
 
 
 def feed(proc: Processor, records: list[dict[str, Any]], first_offset: int = 0) -> list[Any]:
@@ -162,7 +172,7 @@ def test_hours_never_mix_on_a_partition(tmp_path: Path) -> None:
 
 
 def test_the_store_round_trips(tmp_path: Path) -> None:
-    store = StateStore(tmp_path / "s.sqlite")
+    store = StateStore(tmp_path / "s.sqlite", fresh=True)
     store.put([{"repo_id": 5, "repo_name": "o/q", "as_of": at(4), "event_id": 3, "hour": "x"}])
     assert store.lookup([5, 6]) == {5: Stored("o/q", repo_state.micros(at(4)), 3)}
     assert store.count() == 1
@@ -181,3 +191,31 @@ def test_the_planted_stale_record_is_caught_only_when_it_alone_is_red() -> None:
     }
     wrong = {"counts": {"equal": {}, "stale": {"named": [41]}}, "planted": planted}
     assert cli._caught(alone) and not cli._caught(noisy) and not cli._caught(wrong)
+
+
+def test_the_store_and_its_position_survive_a_reopen(tmp_path: Path) -> None:
+    """R1 (M3-S3): what a restarted processor finds on its volume."""
+    producer = FakeProducer()
+    proc = processor(tmp_path, producer)
+    feed(proc, HOUR_1)
+    proc.store.db.close()  # as a killed process leaves it
+    reopened = StateStore(tmp_path / "s.sqlite")
+    assert reopened.count() == 2
+    assert reopened.positions() == {0: 3}  # 2 records + 1 commit marker: the next offset
+    assert reopened.lookup([10])[10].name == "o/b"
+
+
+def test_a_fresh_store_forgets_everything(tmp_path: Path) -> None:
+    store = StateStore(tmp_path / "s.sqlite", fresh=True)
+    store.put([{"repo_id": 5, "repo_name": "o/q", "as_of": at(4), "event_id": 3}], {0: 9})
+    store.db.close()
+    again = StateStore(tmp_path / "s.sqlite", fresh=True)
+    assert again.count() == 0 and again.positions() == {}
+
+
+def test_an_unreadable_store_raises_the_error_that_triggers_a_full_rebuild(tmp_path: Path) -> None:
+    import sqlite3
+
+    (tmp_path / "s.sqlite").write_bytes(b"not a database, " * 100)
+    with pytest.raises(sqlite3.DatabaseError):
+        StateStore(tmp_path / "s.sqlite")

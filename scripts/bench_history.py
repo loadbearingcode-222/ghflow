@@ -97,8 +97,50 @@ def scd2() -> dict[str, Any]:
             "after_vs_full_unequal_rows": unequal}  # fmt: skip
 
 
+BEFORE_RESTORE = """
+import time
+from pathlib import Path
+from ghflow.stream import clients, repo_state
+t = time.monotonic()
+store = repo_state.StateStore(Path("/tmp/before.sqlite"))  # M3-S2: always a fresh store
+read = repo_state.restore(clients.changelog_reader(), store)
+print(time.monotonic() - t, read)
+"""
+AFTER_RESTORE = """
+import time
+from pathlib import Path
+from ghflow.stream import repo_state
+t = time.monotonic()
+store, opened = repo_state.open_store(Path("/tmp/after.sqlite"))
+print(time.monotonic() - t, opened["restored_records"], opened["mode"].replace(" ", "_"))
+"""
+
+
+def timed(code: str, src: str) -> list[str]:
+    """One side in its own interpreter, with its own code first on the path, on its own clock."""
+    env = {**os.environ, "PYTHONPATH": src}
+    done = subprocess.run(["python", "-c", code], capture_output=True, text=True, env=env)
+    if done.returncode != 0:
+        raise RuntimeError(done.stderr[-3000:])
+    return done.stdout.split()
+
+
 def restore() -> dict[str, Any]:
-    raise NotImplementedError("filled in with R1")
+    """before = M3-S2's start, a full rebuild (/before: a worktree of main); after = this
+    branch's start on a store it already holds, as a processor restarted while caught up finds
+    it. The after store is prepared once, untimed."""
+    setup = timed(AFTER_RESTORE, "/repo/src")
+    times: dict[str, list[float]] = {"before": [], "after": []}
+    records: dict[str, list[Any]] = {"before": [], "after": []}
+    sides = (("before", BEFORE_RESTORE, "/before/src"), ("after", AFTER_RESTORE, "/repo/src"))
+    for _ in range(RUNS):
+        for side, code, src in sides:
+            out = timed(code, src)
+            times[side].append(float(out[0]))
+            records[side].append(out[1:])
+    return {"benchmark": "restore", "metric": "s from process start to a usable store",
+            "setup_of_the_after_store": setup, "before": spread(times["before"]),
+            "after": spread(times["after"]), "records_read_and_mode": records}  # fmt: skip
 
 
 def main() -> None:
