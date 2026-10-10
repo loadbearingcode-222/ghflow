@@ -11,7 +11,6 @@ Daily at 03:30 UTC, after dbt_build (02:30):
 
 from __future__ import annotations
 
-import json
 import os
 import subprocess
 
@@ -21,17 +20,18 @@ from airflow.sdk import dag, task
 from airflow.timetables.interval import CronDataIntervalTimetable
 
 GHFLOW_PYTHON = os.environ.get("GHFLOW_PYTHON", "/opt/ghflow-venv/bin/python")
+# Exit codes, as ghflow.exitcodes defines them (this interpreter cannot import ghflow).
+PASSED, NO_VERDICT = 0, 3
 
 
-def ghflow(*args: str) -> str:
-    """Run one ghflow command in the project venv; return its last stdout line (JSON)."""
+def ghflow(*args: str, also_ok: tuple[int, ...] = ()) -> int:
+    """Run one ghflow command in the project venv; its output goes to the task log."""
     done = subprocess.run([GHFLOW_PYTHON, "-m", *args], capture_output=True, text=True)
     print(done.stdout, end="")
     print(done.stderr, end="")
-    if done.returncode != 0:
+    if done.returncode not in (PASSED, *also_ok):
         raise RuntimeError(f"{' '.join(args)} exited {done.returncode}")
-    lines = done.stdout.strip().splitlines()
-    return lines[-1] if lines else "{}"
+    return done.returncode
 
 
 @dag(
@@ -52,12 +52,13 @@ def gharchive_quality() -> None:
         ghflow("ghflow.commands.etag", "check", "--days", "14")
 
     @task
-    def reingest() -> int:
-        return len(json.loads(ghflow("ghflow.commands.etag", "process"))["reingested"])
+    def reingest() -> bool:
+        """True if any hour was re-ingested (exit 0); exit 3 means there was nothing to do."""
+        return ghflow("ghflow.commands.etag", "process", also_ok=(NO_VERDICT,)) == PASSED
 
     @task.short_circuit
-    def anything_reingested(count: int) -> bool:
-        return count > 0
+    def anything_reingested(reingested: bool) -> bool:
+        return reingested
 
     rebuild = TriggerDagRunOperator(
         task_id="rebuild_silver",
