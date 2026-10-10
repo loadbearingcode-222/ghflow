@@ -103,7 +103,7 @@ $Targets = [ordered]@{
     'backfill'         = 'Start the Airflow backfill of gharchive_ingest from 2026-08-03 (-To <last hour>)'
     'park'             = 'Pause the backfill; wait for in-flight hours; say whether it is safe to walk away'
     'resume'           = 'Unpause the backfill'
-    'watch'            = 'Backfill progress from the audit table, one line a minute (-To <last hour>)'
+    'watch'            = 'Lander lag per partition; with -To <last hour>, backfill progress from the audit table'
     'backfill-verify'  = 'Every window hour has exactly one final verdict (-To <last hour>)'
     'replay'           = 'Publish one bronze hour to gharchive.events, checkpointed after the flush (-Hour)'
     'replay-verify'    = 'Read one hour back from the topic: events, duplicates, missing ids, markers (-Hour)'
@@ -137,7 +137,10 @@ switch ($Target) {
     'backfill'  { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.backfill', 'start', '--to', $To) }
     'park'      { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.backfill', 'park', '--wait') }
     'resume'    { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.backfill', 'resume') }
-    'watch'     { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.backfill', 'watch', '--to', $To) }
+    'watch'     {
+        if ($To) { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.backfill', 'watch', '--to', $To) }
+        else { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.lander', 'lag') }
+    }
     'backfill-verify' { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.backfill', 'verify', '--to', $To, '--out', 'automation/runs/m1-s2/verdicts.json') }
     'replay'    { Invoke-Compose @('run', '--rm', 'replayer', 'python', '-m', 'ghflow.commands.stream', 'replay', $Hour) }
     'replay-verify' { Invoke-Uv @('run', 'python', '-m', 'ghflow.commands.stream', 'verify', $Hour) }

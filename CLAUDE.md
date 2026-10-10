@@ -175,8 +175,10 @@ shares moved (recorded, never shaded). DAGs stay thin by law (`tests/unit/test_t
 Stream (M2-S1, ADR-0005): Redpanda (Kafka 127.0.0.1:39092, registry :38081, Console :38080),
 topics from `config/redpanda/topics.conf` (never shrink), record = `config/schemas/gh_event.avsc`
 generated from bronze (`uv run python -m ghflow.commands.stream schema|compat|verify|redteam`).
-`.\make.ps1 replay -Hour <h>` publishes one hour (app image `ghflow/app:dev`, compose profile
-`replay` until the lander exists); `replay_checkpoint` in ghflow_ops moves only after the flush.
+`.\make.ps1 replay -Hour <h>` publishes one hour (app image `ghflow/app:dev`); the replayer service
+runs continuously since M2-S2. `replay_checkpoint` in ghflow_ops moves only after the flush. Lander (M2-S2, ADR-0006): one file per
+(partition, hour) bounded by markers, commit after write (`ghflow.commands.lander run|compact|coverage|lag`);
+DAG `stream_compact` (15 min) compacts closed hours into stream/compact; `.\make.ps1 watch` = lander lag.
 
 Code layers (M0-S5, `docs/ITERATION.md`): pure core `settings`, `hours`, `events`, `fields`,
 `contract`, `profiling` (no I/O); shell `archive`, `commands/` (every CLI through `guarded()`).

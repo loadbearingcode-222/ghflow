@@ -1,7 +1,7 @@
 # ghflow: the local platform. Grows story by story (docs/MILESTONES.md):
 #   M0 core:      seaweedfs (S3) · s3-init · platform-db (Postgres) · platform-db-init ·
 #                 airflow-init · airflow-apiserver/scheduler/dag-processor/triggerer
-#   M2 stream:    redpanda · redpanda-init · console · replayer (profile replay) · lander   M3: repo-state
+#   M2 stream:    redpanda · redpanda-init · console · replayer · lander   M3: repo-state
 #   M4 real-time: clickhouse · grafana                       M5: dashboard
 #
 # Conventions
@@ -267,9 +267,8 @@ services:
     restart: unless-stopped
 
   replayer:
-    # Bronze hours -> gharchive.events, in order, checkpointed after each flush. Behind a profile
-    # until the lander exists (M2-S2): `up` must not fill the topic with nothing consuming it.
-    profiles: ["replay"]
+    # Bronze hours -> gharchive.events, in order, checkpointed after each flush (ADR-0005). Runs
+    # continuously since M2-S2, when the lander started consuming what it publishes.
     build:
       context: .
       dockerfile: docker/app/Dockerfile
@@ -289,6 +288,29 @@ services:
       platform-db-init:
         condition: service_completed_successfully
     mem_limit: 512m
+    restart: unless-stopped
+
+  lander:
+    # gharchive.events -> S3 stream/landed, one file per (partition, hour), committed after the
+    # write (ADR-0006). Consumer group `lander`: its lag shows in Console and `.\make.ps1 watch`.
+    image: ghflow/app:dev
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    command: ["python", "-m", "ghflow.commands.lander", "run"]
+    environment:
+      <<: *s3-credentials
+      S3_ENDPOINT: http://seaweedfs:8333
+      GHFLOW_OPS_DSN: postgresql://ghflow:${GHFLOW_OPS_PASSWORD:?run .\make.ps1 env}@platform-db:5432/ghflow_ops
+      KAFKA_BOOTSTRAP: redpanda:9092
+    depends_on:
+      redpanda-init:
+        condition: service_completed_successfully
+      s3-init:
+        condition: service_completed_successfully
+      platform-db-init:
+        condition: service_completed_successfully
+    mem_limit: 768m
     restart: unless-stopped
 
 volumes:
