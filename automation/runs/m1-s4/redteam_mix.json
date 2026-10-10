@@ -1,0 +1,21 @@
+{
+  "target": "2026-08-23-12",
+  "donor_mix": "2026-09-05-15",
+  "rows": [
+    169788,
+    169788
+  ],
+  "before": "clean",
+  "after": "flagged",
+  "findings": [
+    {
+      "check": "mix",
+      "subject": "PushEvent",
+      "ratio": 0.1469,
+      "value": 0.14082856267816335,
+      "reference": 0.958571782404088
+    }
+  ],
+  "other_hours_changed": [],
+  "caught": true
+}

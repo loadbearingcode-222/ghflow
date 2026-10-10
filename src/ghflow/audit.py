@@ -11,6 +11,9 @@ from datetime import datetime
 from typing import Any
 
 import psycopg
+from psycopg import sql
+
+from ghflow.hours import Hour
 
 SCHEMA_SQL = """
 create table if not exists ingest_audit (
@@ -36,6 +39,34 @@ create table if not exists ingest_audit (
     duration_ms     bigint
 );
 create index if not exists ingest_audit_hour on ingest_audit (hour_start, attempted_at);
+
+-- M1-S4: hours the archive re-published (ETag changed). `audit_table` says which audit table the
+-- comparison read: only requests from the real one are processed; a red team uses a copy.
+create table if not exists reingest_requests (
+    id             bigserial primary key,
+    hour           text        not null,
+    hour_start     timestamptz not null,
+    requested_at   timestamptz not null default now(),
+    reason         text        not null,
+    recorded_etag  text,
+    live_etag      text,
+    audit_table    text        not null default 'ingest_audit',
+    status         text        not null default 'pending' check (status in ('pending', 'done')),
+    done_at        timestamptz
+);
+
+-- M1-S4: one row per hour per quality run; each verdict records the bars it was taken under.
+create table if not exists quality_verdicts (
+    id          bigserial primary key,
+    run_id      text        not null,
+    judged_at   timestamptz not null default now(),
+    hour        text        not null,
+    hour_start  timestamptz not null,
+    status      text        not null check (status in ('clean', 'flagged', 'no_verdict')),
+    findings    jsonb       not null default '[]',
+    bars        jsonb       not null
+);
+create index if not exists quality_verdicts_hour on quality_verdicts (hour_start, judged_at);
 """
 
 
@@ -149,3 +180,59 @@ def final_attempt_counts(
         (first, end),
     )
     return {row[0]: (int(row[1]), int(row[2])) for row in cur.fetchall()}
+
+
+def recorded_etags(
+    conn: psycopg.Connection[Any], first: datetime, end: datetime, table: str = "ingest_audit"
+) -> dict[datetime, str | None]:
+    """The ETag of each archive hour's latest accepted attempt in [first, end), from `table`."""
+    query = sql.SQL(
+        "select distinct on (hour_start) hour_start, etag from {} where source = 'archive' "
+        "and outcome = 'accepted' and hour_start >= %s and hour_start < %s "
+        "order by hour_start, attempted_at desc, id desc"
+    ).format(sql.Identifier(table))
+    return {row[0]: row[1] for row in conn.execute(query, (first, end)).fetchall()}
+
+
+def request_reingest(
+    conn: psycopg.Connection[Any], hour: Hour, recorded: str | None, live: str | None, table: str
+) -> int:
+    """Queue one hour for re-ingest because its ETag changed; returns the request id."""
+    row = conn.execute(
+        b"insert into reingest_requests (hour, hour_start, reason, recorded_etag, live_etag, audit_table) "
+        b"values (%s, %s, 'etag_changed', %s, %s, %s) returning id",
+        (hour.key, hour.start, recorded, live, table),
+    ).fetchone()
+    assert row is not None
+    return int(row[0])
+
+
+def pending_reingests(conn: psycopg.Connection[Any]) -> list[tuple[int, str]]:
+    """Requests from the REAL audit table still to do, oldest hour first."""
+    cur = conn.execute(
+        b"select id, hour from reingest_requests where status = 'pending' "
+        b"and audit_table = 'ingest_audit' order by hour_start, id"
+    )
+    return [(int(r[0]), r[1]) for r in cur.fetchall()]
+
+
+def mark_reingested(conn: psycopg.Connection[Any], request_id: int) -> None:
+    conn.execute(
+        b"update reingest_requests set status = 'done', done_at = now() where id = %s",
+        (request_id,),
+    )
+
+
+def record_verdicts(
+    conn: psycopg.Connection[Any],
+    run_id: str,
+    rows: list[tuple[str, datetime, str, str]],
+    bars: str,
+) -> None:
+    """(hour, hour_start, status, findings json) per hour, all under one run id and one set of bars."""
+    with conn.cursor() as cur:
+        cur.executemany(
+            b"insert into quality_verdicts (run_id, hour, hour_start, status, findings, bars) "
+            b"values (%s, %s, %s, %s, %s, %s)",
+            [(run_id, h, start, status, findings, bars) for h, start, status, findings in rows],
+        )

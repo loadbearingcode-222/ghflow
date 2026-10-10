@@ -80,3 +80,15 @@ def test_dbt_build_is_the_one_duckdb_writer() -> None:
     dag = DagBag(dag_folder=str(DAGS)).dags["dbt_build"]
     assert [t.pool for t in dag.tasks] == ["duckdb"], "DuckDB has exactly one writer (ADR-0003)"
     assert dag.max_active_runs == 1
+
+
+def test_gharchive_quality_judges_then_rechecks_then_reingests() -> None:
+    from itertools import pairwise
+
+    dag = DagBag(dag_folder=str(DAGS)).dags["gharchive_quality"]
+    order = ["judge", "etag_check", "reingest", "anything_reingested", "rebuild_silver"]
+    assert sorted(t.task_id for t in dag.tasks) == sorted(order)
+    for upstream, downstream in pairwise(order):
+        assert downstream in dag.get_task(upstream).downstream_task_ids, (upstream, downstream)
+    assert dag.get_task("judge").pool == "duckdb", "the warehouse has one writer; read outside it"
+    assert dag.get_task("rebuild_silver").conf == {"full_refresh": True}

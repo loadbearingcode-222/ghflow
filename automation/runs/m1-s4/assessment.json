@@ -1,0 +1,288 @@
+{
+  "story": "M1-S4",
+  "phase": "assessment of the run against the committed prediction",
+  "order": "bars.json (551d115) -> prediction.json (237bd89) -> verdicts.json (this commit); checked from git by tests/unit/test_quality_order.py",
+  "summary": {
+    "claims": 12,
+    "held": 10,
+    "missed": [
+      "U3",
+      "T1"
+    ]
+  },
+  "results": [
+    {
+      "id": "F1",
+      "held": true,
+      "hours": 7,
+      "as_predicted": 7,
+      "disagreeing": {},
+      "explanation": "held as predicted",
+      "disagreeing_count": 0
+    },
+    {
+      "id": "F2",
+      "held": true,
+      "hours": 4,
+      "as_predicted": 4,
+      "disagreeing": {},
+      "explanation": "held as predicted",
+      "disagreeing_count": 0
+    },
+    {
+      "id": "F3",
+      "held": true,
+      "hours": 137,
+      "as_predicted": 137,
+      "disagreeing": {},
+      "explanation": "held as predicted",
+      "disagreeing_count": 0
+    },
+    {
+      "id": "F4",
+      "held": true,
+      "hours": 48,
+      "as_predicted": 48,
+      "disagreeing": {},
+      "explanation": "held as predicted",
+      "disagreeing_count": 0
+    },
+    {
+      "id": "F5",
+      "held": true,
+      "hours": 1,
+      "as_predicted": 1,
+      "disagreeing": {},
+      "explanation": "held as predicted",
+      "disagreeing_count": 0
+    },
+    {
+      "id": "F6",
+      "held": true,
+      "hours": 48,
+      "as_predicted": 45,
+      "disagreeing": {
+        "2026-09-12-14": "clean",
+        "2026-09-12-15": "clean",
+        "2026-09-12-16": "clean"
+      },
+      "explanation": "Held (45/48 >= the claimed 80%). The 3 unflagged hours, 2026-09-12 14:00-16:00, have push share ratios just above 0.6 against a reference that had already drifted down to the September recovery mix: the same mechanism as U3, in its early stage.",
+      "disagreeing_count": 3
+    },
+    {
+      "id": "C1",
+      "held": true,
+      "hours": 1,
+      "as_predicted": 1,
+      "disagreeing": {},
+      "explanation": "held as predicted",
+      "disagreeing_count": 0
+    },
+    {
+      "id": "U1",
+      "held": true,
+      "hours": 48,
+      "as_predicted": 48,
+      "disagreeing": {},
+      "explanation": "held as predicted",
+      "disagreeing_count": 0
+    },
+    {
+      "id": "U2",
+      "held": true,
+      "hours": 24,
+      "as_predicted": 24,
+      "disagreeing": {},
+      "explanation": "held as predicted",
+      "disagreeing_count": 0
+    },
+    {
+      "id": "U3",
+      "held": false,
+      "hours": 216,
+      "as_predicted": 59,
+      "disagreeing": {
+        "2026-10-01-2": [
+          {
+            "check": "mix",
+            "subject": "PullRequestEvent",
+            "ratio": 0.4856,
+            "value": 0.04225203585447302,
+            "reference": 0.0870130156143326
+          }
+        ],
+        "2026-10-01-3": [
+          {
+            "check": "mix",
+            "subject": "CreateEvent",
+            "ratio": 2.3256,
+            "value": 0.1232482641496355,
+            "reference": 0.05299611242682872
+          },
+          {
+            "check": "mix",
+            "subject": "PullRequestEvent",
+            "ratio": 0.4832,
+            "value": 0.03543329828898876,
+            "reference": 0.07332957746478873
+          }
+        ],
+        "2026-10-01-4": [
+          {
+            "check": "mix",
+            "subject": "CreateEvent",
+            "ratio": 1.9199,
+            "value": 0.1335825604514662,
+            "reference": 0.0695762054738132
+          },
+          {
+            "check": "mix",
+            "subject": "PullRequestEvent",
+            "ratio": 0.5651,
+            "value": 0.036133963544581094,
+            "reference": 0.06393854306730998
+          }
+        ],
+        "2026-10-01-6": [
+          {
+            "check": "mix",
+            "subject": "CreateEvent",
+            "ratio": 2.9502,
+            "value": 0.1532370251471375,
+            "reference": 0.051941124351301014
+          },
+          {
+            "check": "mix",
+            "subject": "PullRequestEvent",
+            "ratio": 0.4327,
+            "value": 0.03276856310564176,
+            "reference": 0.07572878779653656
+          }
+        ],
+        "2026-10-01-7": [
+          {
+            "check": "mix",
+            "subject": "PullRequestEvent",
+            "ratio": 0.5639,
+            "value": 0.03228744201860262,
+            "reference": 0.05725443005120219
+          }
+        ],
+        "2026-10-01-8": [
+          {
+            "check": "mix",
+            "subject": "PullRequestEvent",
+            "ratio": 0.4905,
+            "value": 0.03537456456209902,
+            "reference": 0.07211348141631845
+          }
+        ],
+        "2026-10-01-9": [
+          {
+            "check": "mix",
+            "subject": "PullRequestEvent",
+            "ratio": 0.5015,
+            "value": 0.030447609828055132,
+            "reference": 0.06071645415907711
+          }
+        ],
+        "2026-10-01-10": [
+          {
+            "check": "mix",
+            "subject": "PullRequestEvent",
+            "ratio": 0.5407,
+            "value": 0.03562882531895194,
+            "reference": 0.06589230504981106
+          }
+        ],
+        "2026-10-01-11": [
+          {
+            "check": "mix",
+            "subject": "PullRequestEvent",
+            "ratio": 0.5338,
+            "value": 0.03385388875054842,
+            "reference": 0.06341974016378302
+          }
+        ],
+        "2026-10-01-12": [
+          {
+            "check": "mix",
+            "subject": "CreateEvent",
+            "ratio": 2.0244,
+            "value": 0.1285920084919251,
+            "reference": 0.06352002486917777
+          },
+          {
+            "check": "mix",
+            "subject": "PullRequestEvent",
+            "ratio": 0.4135,
+            "value": 0.028248648765746346,
+            "reference": 0.06831742823268741
+          }
+        ],
+        "2026-10-01-13": [
+          {
+            "check": "mix",
+            "subject": "PullRequestEvent",
+            "ratio": 0.4016,
+            "value": 0.02737294171423712,
+            "reference": 0.0681577834179357
+          }
+        ],
+        "2026-10-01-14": [
+          {
+            "check": "mix",
+            "subject": "CreateEvent",
+            "ratio": 2.2462,
+            "value": 0.12283581928348472,
+            "reference": 0.054685970157047556
+          },
+          {
+            "check": "mix",
+            "subject": "PullRequestEvent",
+            "ratio": 0.424,
+            "value": 0.03168911402248696,
+            "reference": 0.07473006754959842
+          }
+        ]
+      },
+      "explanation": "MISSED: 157 of 216 hours of Oct 1-9 flagged (predicted <= 5%). Mechanism (traced for 2026-10-03-15): its reference is Sep 10, 12, 14, 17, 22, 30 at 15:00 - recovery hours with push share 0.54-0.72 and PullRequestEvent share 5-16%. Each was within 0.6x of a reference the previous ones had already pulled down, so the rolling clean baseline was walked into a half-broken September mix one hour at a time ('boiling frog'); flagged hours never update it, so it stayed there. Against that, October (push ~0.74, PRs ~3%) reads as a PullRequestEvent drop (122 hours) and a CreateEvent rise (116). The bars were not loosened after seeing this; the design fix is refine issue (see refine_issue) with a new prediction.",
+      "disagreeing_count": 157
+    },
+    {
+      "id": "N1",
+      "held": true,
+      "actual": 0,
+      "explanation": "held as predicted",
+      "disagreeing": {},
+      "disagreeing_count": 0
+    },
+    {
+      "id": "T1",
+      "held": false,
+      "actual": 742,
+      "explanation": "MISSED: 742 flagged against a predicted 250-500. The excess is the U3 mechanism: Sep 18 - Oct 9 contribute ~14-24 flagged hours a day on PullRequestEvent / CreateEvent findings.",
+      "disagreeing": {},
+      "disagreeing_count": 0
+    }
+  ],
+  "row_count_only_control": {
+    "hour": "2026-09-05-15",
+    "rows": 84485,
+    "volume_only_verdict": "clean",
+    "full_verdict": "flagged: mix PushEvent 0.148 (share 0.141 against 0.952)"
+  },
+  "live_run": {
+    "dag_run": "gharchive_quality m1s4_acceptance",
+    "quality_verdicts": {
+      "clean": 893,
+      "flagged": 742
+    },
+    "etag_check": {
+      "hours_checked": 336,
+      "probes_failed": 0,
+      "republished": []
+    },
+    "rebuild_silver": "skipped (nothing re-ingested)"
+  }
+}

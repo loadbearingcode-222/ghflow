@@ -3,6 +3,8 @@
     python -m ghflow.commands.quality counts --out automation/runs/m1-s4/hour_counts.json   # in the stack
     python -m ghflow.commands.quality argue  --counts ... --out automation/runs/m1-s4/seed_spread.json
     python -m ghflow.commands.quality run    --counts ... --out automation/runs/m1-s4/verdicts.json [--only volume]
+    python -m ghflow.commands.quality redteam --counts ... --out automation/runs/m1-s4/redteam_mix.json
+    python -m ghflow.commands.quality judge  --run-id <id>   # in the stack: warehouse -> quality_verdicts
 
 `counts` reads the warehouse read-only; `argue` and `run` need only the committed counts file,
 so anyone can re-derive the verdicts without the stack.
@@ -24,6 +26,9 @@ from ghflow.exitcodes import ExitCode, guarded
 from ghflow.hours import Hour, hours_of_days
 from ghflow.quality.baseline import HourCounts, median_rows, median_share, reference
 from ghflow.quality.checks import CHECKS, judge_all
+
+#: Red team: a clean, normal hour is given the reference broken hour's event mix.
+REDTEAM_TARGET, REDTEAM_DONOR = "2026-08-23-12", "2026-09-05-15"
 
 WAREHOUSE = "/opt/ghflow/warehouse/ghflow.duckdb"
 
@@ -105,6 +110,47 @@ def run(counts: list[HourCounts], only: str | None) -> dict[str, Any]:
     }
 
 
+def redteam(counts: list[HourCounts]) -> dict[str, Any]:
+    """Plant a broken hour's mix (scaled to the target's own row count) into a clean hour."""
+    by = {c.hour: c for c in counts}
+    target, donor = Hour.parse(REDTEAM_TARGET), Hour.parse(REDTEAM_DONOR)
+    rows = by[target].rows
+    planted = {t: round(n / by[donor].rows * rows) for t, n in by[donor].types.items()}
+    before = {v.hour: v for v in judge_all(counts, seed())}
+    after = {
+        v.hour: v
+        for v in judge_all(
+            [HourCounts(c.hour, planted) if c.hour == target else c for c in counts], seed()
+        )
+    }
+    changed = [h.key for h in before if h != target and before[h].status != after[h].status]
+    caught = after[target].status == "flagged" and not changed
+    return {
+        "target": REDTEAM_TARGET, "donor_mix": REDTEAM_DONOR, "rows": [rows, sum(planted.values())],
+        "before": before[target].status, "after": after[target].status,
+        "findings": [asdict(f) for f in after[target].findings],
+        "other_hours_changed": changed, "caught": caught,
+    }  # fmt: skip
+
+
+def judge(run_id: str) -> dict[str, Any]:
+    """Judge every hour in the warehouse and record each verdict, with its bars, in ghflow_ops."""
+    from ghflow import audit
+    from ghflow.commands.local import ops_dsn
+
+    hours = extract_counts(os.environ.get("GHFLOW_WAREHOUSE", WAREHOUSE))
+    counts = [HourCounts(Hour.parse(k), v) for k, v in hours.items()]
+    result = run(counts, None)
+    verdicts = judge_all(counts, seed())
+    rows = [
+        (v.hour.key, v.hour.start, v.status, json.dumps([asdict(f) for f in v.findings]))
+        for v in verdicts
+    ]
+    with audit.connect(ops_dsn()) as conn:
+        audit.record_verdicts(conn, run_id, rows, json.dumps(result["bars"]))
+    return {"run_id": run_id, "summary": result["summary"]}
+
+
 def write(path: Path | None, record: dict[str, Any]) -> None:
     text = json.dumps(record, indent=2, default=str) + "\n"
     if path:
@@ -116,12 +162,13 @@ def write(path: Path | None, record: dict[str, Any]) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
-    parser.add_argument("command", choices=["counts", "argue", "run"])
+    parser.add_argument("command", choices=["counts", "argue", "run", "redteam", "judge"])
     parser.add_argument("--counts", type=Path, help="argue/run: the hour_counts.json to judge")
     parser.add_argument(
         "--only", choices=CHECKS, help="run: one check alone (e.g. the volume control)"
     )
     parser.add_argument("--out", type=Path)
+    parser.add_argument("--run-id", help="judge: the Airflow run id the verdicts are filed under")
     args = parser.parse_args(argv)
 
     def go() -> int:
@@ -129,7 +176,14 @@ def main(argv: list[str] | None = None) -> int:
             hours = extract_counts(os.environ.get("GHFLOW_WAREHOUSE", WAREHOUSE))
             write(args.out, {"source": "main_staging.stg_gharchive__events", "hours": hours})
             return ExitCode.PASSED
+        if args.command == "judge":
+            write(None, judge(args.run_id or "manual"))
+            return ExitCode.PASSED
         counts = load(args.counts)
+        if args.command == "redteam":
+            record = redteam(counts)
+            write(args.out, record)
+            return ExitCode.PASSED if record["caught"] else ExitCode.REFUSED
         write(args.out, argue(counts) if args.command == "argue" else run(counts, args.only))
         return ExitCode.PASSED
 
