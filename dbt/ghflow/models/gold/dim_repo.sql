@@ -1,5 +1,12 @@
 -- Repository names over time (SCD2), from the event log (M3-S1, ADR-0008).
-{{ config(materialized='table') }}
+-- Incremental (M3-S3): only the ids with events in staging's reload window are recomputed,
+-- each over its whole history; `--full-refresh` recomputes every id.
+{{ config(
+    materialized='incremental',
+    incremental_strategy='delete+insert',
+    unique_key='repo_id',
+    on_schema_change='fail',
+) }}
 
 select
     key_id as repo_id,
