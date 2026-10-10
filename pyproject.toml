@@ -30,6 +30,11 @@ stream = [
     "confluent-kafka>=2.16.0,<2.17",
     "fastavro>=1.13.1,<1.14",
 ]
+# ClickHouse (M4-S1): the HTTP client for apply, verify and the third reconcile witness;
+# re-verified on PyPI 2026-10-10 (planning observed 1.9.0; 1.10.0 shipped 2026-10-07).
+clickhouse = [
+    "clickhouse-connect>=1.10.0,<1.11",
+]
 dbt = [
     "dbt-core>=1.12.5,<1.13",
     "dbt-duckdb>=1.11.0,<1.12",
@@ -93,7 +98,7 @@ type = "layers"
 layers = [
     "ghflow.commands",
     "ghflow.stream",
-    "ghflow.archive | ghflow.audit | ghflow.storage | ghflow.retention | ghflow.contract | ghflow.profiling | ghflow.quality | ghflow.reconcile",
+    "ghflow.archive | ghflow.audit | ghflow.storage | ghflow.retention | ghflow.contract | ghflow.profiling | ghflow.quality | ghflow.reconcile | ghflow.clickhouse",
     "ghflow.bronze",
     "ghflow.events | ghflow.fields | ghflow.exitcodes",
     "ghflow.hours",

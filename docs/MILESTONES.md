@@ -74,7 +74,8 @@ ghflow/
 │  │  ├─ lander.py · compact.py                       M2-S2  topic → S3 files named by offset range; small-file compaction
 │  │  ├─ repo_state.py                                M3-S2  stateful processor: SQLite store + compacted changelog, transactional
 │  │  └─ state_store.py                               M3-S3  the processor's SQLite store and the changelog position it reflects (split from repo_state.py)
-│  └─ reconcile.py                                    M2-S3  per-hour event-id sets: batch ↔ stream (↔ ClickHouse from M4-S1)
+│  ├─ reconcile.py                                    M2-S3  per-hour event-id sets: batch ↔ stream (↔ ClickHouse from M4-S1)
+│  └─ clickhouse.py                                   M4-S1  pure core: ClickHouse's ordered DDL, generated from bronze's schema
 ├─ airflow/dags/                                      M1-S1  gharchive_ingest (M1-S1) · raw_retention (M1-S2) · dbt_build (M1-S3) · gharchive_quality (M1-S4) · stream_compact (M2-S2) · reconcile (M2-S3) · dashboard_render (M5-S2)
 ├─ dbt/ghflow/
 │  ├─ dbt_project.yml · profiles.yml · packages.yml · package-lock.yml   M1-S3  dbt-duckdb over bronze Parquet in S3 (SeaweedFS)

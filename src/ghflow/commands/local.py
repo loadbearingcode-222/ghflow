@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import Any
 
 from ghflow.storage import S3Config
 
@@ -44,3 +45,19 @@ def ops_dsn() -> str:
 def s3_config() -> S3Config:
     endpoint = os.environ.get("S3_ENDPOINT", "http://127.0.0.1:39000")
     return S3Config(endpoint, secret("S3_ACCESS_KEY"), secret("S3_SECRET_KEY"))
+
+
+def clickhouse() -> Any:
+    """An HTTP client for ClickHouse as user `ghflow` (M4-S1); CLICKHOUSE_URL inside the stack."""
+    import urllib.parse
+
+    import clickhouse_connect  # the clickhouse group's dependency
+
+    url = urllib.parse.urlparse(os.environ.get("CLICKHOUSE_URL", "http://127.0.0.1:38123"))
+    return clickhouse_connect.get_client(
+        host=url.hostname,
+        port=url.port,
+        username="ghflow",
+        password=secret("CLICKHOUSE_PASSWORD"),
+        autogenerate_session_id=False,  # one client, many threads (reconcile)
+    )

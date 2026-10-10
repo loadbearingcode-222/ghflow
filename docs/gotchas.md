@@ -219,3 +219,13 @@ olist-lakehouse). Provenance is in brackets. Entries below it are earned by THIS
     key", take `max(offset)` per key and join back; list ids only for the red verdicts, capped
     (`RECONCILE_NAMED_IDS`). Grep new SQL for `arg_max(`/`list(` over a string before running it
     on the full window. (M3-S2)
+54. **Mounting a directory over ClickHouse's `config.d` removes the image's own settings.** The
+    official image ships `config.d/docker_related_config.xml` (`listen_host ::`). A bind mount of
+    the whole directory hid it: the server listened only inside the container, and every host
+    request was dropped without a response. *Check:* mount single files into `config.d`, never
+    the directory. (M4-S1)
+55. **ClickHouse's Kafka engine inserts blocks of `max_insert_block_size` (~1M rows) by
+    default.** A block of about 1M 35-column rows, pushed through three materialized views, hit a
+    1.5 GiB server cap again and again: every insert failed and was retried. *Check:* set
+    `kafka_max_block_size` (65,536 here) when the container is small, and read the server log
+    for MEMORY_LIMIT_EXCEEDED during the first catch-up. (M4-S1)
