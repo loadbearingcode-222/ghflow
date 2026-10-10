@@ -1,0 +1,20 @@
+{
+  "story": "M5-S2",
+  "accept_when": "served at http://localhost:33001 and built as a self-contained HTML bundle that opens without the stack",
+  "served": {
+    "/": 200,
+    "/trends.html": 200,
+    "/when.html": 200,
+    "/rising.html": 200,
+    "/bots.html": 200,
+    "/trust.html": 200,
+    "/ghflow-dashboard.zip": 200
+  },
+  "bundle": {
+    "files": 23,
+    "pages": 6,
+    "tags_loading_http": 0,
+    "note": "each page embeds its CSS, plotly.min.js and figure JSON (Quarto embed-resources); the only external URLs are attribution strings inside plotly's code"
+  },
+  "chain": "dbt_build export emits the marts asset; dashboard_render ran asset_triggered at 19:20:22 and succeeded in ~30 s"
+}

@@ -13,17 +13,23 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/ghflow-venv \
     UV_LINK_MODE=copy \
     UV_COMPILE_BYTECODE=1 \
     UV_PYTHON_DOWNLOADS=never
+# Quarto (M5-S2) renders the stakeholder dashboard inside this image; pinned by version and the
+# release asset's sha256 (ADR-0001 style), verified before unpacking.
+ARG QUARTO_VERSION=1.10.19
+ARG QUARTO_SHA256=8e38c2b2df6a6dbd369ea16e15acded6894545258d13a02f777f81ad18fd7973
+RUN curl -fsSL -o /tmp/quarto.tgz "https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/quarto-${QUARTO_VERSION}-linux-amd64.tar.gz"     && echo "${QUARTO_SHA256}  /tmp/quarto.tgz" | sha256sum -c -     && mkdir -p /opt/quarto && tar -xzf /tmp/quarto.tgz -C /opt/quarto --strip-components=1     && ln -s /opt/quarto/bin/quarto /usr/local/bin/quarto && rm /tmp/quarto.tgz
 WORKDIR /opt/ghflow
 COPY pyproject.toml uv.lock README.md ./
-RUN uv sync --locked --no-dev --group dbt --group stream --group clickhouse --no-install-project
+RUN uv sync --locked --no-dev --group dbt --group stream --group clickhouse --group dashboard --no-install-project
 # DuckDB's httpfs and postgres (M5-S1) extensions, baked in so dbt builds never download at run time (M1-S3).
 RUN /opt/ghflow-venv/bin/python -c "import duckdb; c = duckdb.connect(); c.execute(\"set extension_directory='/opt/ghflow/duckdb-extensions'\"); c.install_extension('httpfs'); c.install_extension('postgres')"
 COPY src ./src
 COPY tests/dags ./tests/dags
 COPY dbt ./dbt
+COPY dashboard ./dashboard
 # /opt/ghflow/warehouse becomes the `warehouse` volume; created here so the volume is airflow's.
-RUN uv sync --locked --no-dev --group dbt --group stream --group clickhouse \
-    && mkdir -p /opt/ghflow/warehouse \
+RUN uv sync --locked --no-dev --group dbt --group stream --group clickhouse --group dashboard \
+    && mkdir -p /opt/ghflow/warehouse /opt/ghflow/dashboard-site \
     && chown -R airflow:0 /opt/ghflow /opt/ghflow-venv
 
 USER airflow

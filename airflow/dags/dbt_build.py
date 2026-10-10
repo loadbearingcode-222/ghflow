@@ -18,13 +18,24 @@ from datetime import timedelta
 from pathlib import Path
 
 import pendulum
-from airflow.sdk import dag, task
+from airflow.sdk import Asset, dag, task
 from airflow.timetables.interval import CronDataIntervalTimetable
 
 GHFLOW_PYTHON = os.environ.get("GHFLOW_PYTHON", "/opt/ghflow-venv/bin/python")
 DBT = str(Path(GHFLOW_PYTHON).with_name("dbt"))
 PROJECT = "/opt/ghflow/dbt/ghflow"
+#: Updated by `export`; dashboard_render runs on it (M5-S2).
+MARTS = Asset("s3://marts/latest/manifest.json")
 FULL_REFRESH = "{{ 'true' if (dag_run.conf or {}).get('full_refresh') else 'false' }}"
+
+
+def run(args: list[str], what: str) -> None:
+    """Run one step in the project venv; its output goes to the task log; non-zero fails."""
+    done = subprocess.run(args, capture_output=True, text=True)
+    print(done.stdout, end="")
+    print(done.stderr, end="")
+    if done.returncode != 0:
+        raise RuntimeError(f"{what} exited {done.returncode}")
 
 
 @dag(
@@ -40,47 +51,27 @@ def dbt_build() -> None:
     @task(pool="duckdb", execution_timeout=timedelta(hours=3), retries=1)
     def build(full_refresh: str) -> None:
         args = [DBT, "build", "--project-dir", PROJECT, "--profiles-dir", PROJECT]
-        if full_refresh == "true":
-            args.append("--full-refresh")
-        done = subprocess.run(args, capture_output=True, text=True)
-        print(done.stdout, end="")
-        print(done.stderr, end="")
-        if done.returncode != 0:
-            raise RuntimeError(f"dbt build exited {done.returncode}")
+        run(args + (["--full-refresh"] if full_refresh == "true" else []), "dbt build")
 
     @task(pool="duckdb", execution_timeout=timedelta(hours=1), retries=0)
     def compact() -> None:
         """Copy the warehouse into a fresh file: DuckDB never shrinks its own (#26)."""
-        done = subprocess.run(
-            [GHFLOW_PYTHON, "-m", "ghflow.commands.warehouse", "compact"],
-            capture_output=True,
-            text=True,
-        )
-        print(done.stdout, end="")
-        print(done.stderr, end="")
-        if done.returncode != 0:
-            raise RuntimeError(f"warehouse compact exited {done.returncode}")
+        run([GHFLOW_PYTHON, "-m", "ghflow.commands.warehouse", "compact"], "warehouse compact")
 
     @task(pool="duckdb", execution_timeout=timedelta(hours=1), retries=0)
-    def marts(command: str) -> None:
-        """M5-S1: `twin` recomputes every KPI headline independently and must match; `export`
-        then snapshots the marts to s3://marts/latest (refused if any mart is empty)."""
-        done = subprocess.run(
-            [GHFLOW_PYTHON, "-m", "ghflow.commands.marts", command],
-            capture_output=True,
-            text=True,
-        )
-        print(done.stdout, end="")
-        print(done.stderr, end="")
-        if done.returncode != 0:
-            raise RuntimeError(f"marts {command} exited {done.returncode}")
+    def twin() -> None:
+        """M5-S1: every KPI headline recomputed independently; a mismatch stops the export."""
+        run([GHFLOW_PYTHON, "-m", "ghflow.commands.marts", "twin"], "marts twin")
 
-    (
-        build(full_refresh=FULL_REFRESH)
-        >> compact()
-        >> marts.override(task_id="twin")("twin")
-        >> marts.override(task_id="export")("export")
-    )
+    @task(pool="duckdb", execution_timeout=timedelta(hours=1), retries=0, outlets=[MARTS])
+    def export(**context: object) -> None:
+        """Snapshot the marts (refused if any is empty, M5-S1). The asset event carries this
+        build's start, so dashboard_render can refuse marts older than it (M5-S2)."""
+        run([GHFLOW_PYTHON, "-m", "ghflow.commands.marts", "export"], "marts export")
+        started = context["dag_run"].start_date.isoformat()  # type: ignore[attr-defined]
+        context["outlet_events"][MARTS].extra = {"build_started": started}  # type: ignore[index]
+
+    build(full_refresh=FULL_REFRESH) >> compact() >> twin() >> export()
 
 
 dbt_build()

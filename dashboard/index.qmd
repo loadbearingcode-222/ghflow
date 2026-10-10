@@ -1,0 +1,27 @@
+---
+title: "The gist"
+---
+
+::: {.finding}
+Every public action on GitHub, a push, a star, a pull request, a comment, lands in a public log.
+From {{n:window_start}} to {{n:window_end}} we read all of it: {{n:total_events}} events over
+{{n:complete_days}} complete days.
+:::
+
+::: {.finding}
+**A typical day brings about {{n:typical_day}} events,** from about {{n:typical_actors}}
+accounts working in about {{n:typical_repos}} repositories.
+:::
+
+{{fig:gist}}
+
+::: {.callout-flagged}
+Shaded days had at least one hour where the public log itself was broken: far too few events,
+or pushes missing. Those hours are left out of every average on these pages, and shown, never
+hidden. The last page explains how we know.
+:::
+
+::: {.finding}
+**Most of what happens is code being pushed:** pushes are {{n:push_share}} of all events.
+**Robots do real work too:** about {{n:bot_share}} of events come from automated accounts.
+:::

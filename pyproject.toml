@@ -35,6 +35,11 @@ stream = [
 clickhouse = [
     "clickhouse-connect>=1.10.0,<1.11",
 ]
+# The stakeholder dashboard (M5-S2): Plotly figures, rendered by Quarto; re-verified on PyPI
+# 2026-10-11 (7.1.0, 2026-09-15).
+dashboard = [
+    "plotly>=7.1.0,<7.2",
+]
 dbt = [
     "dbt-core>=1.12.5,<1.13",
     "dbt-duckdb>=1.11.0,<1.12",
@@ -98,7 +103,7 @@ type = "layers"
 layers = [
     "ghflow.commands",
     "ghflow.stream",
-    "ghflow.archive | ghflow.audit | ghflow.storage | ghflow.retention | ghflow.contract | ghflow.profiling | ghflow.quality | ghflow.reconcile | ghflow.clickhouse",
+    "ghflow.archive | ghflow.audit | ghflow.storage | ghflow.retention | ghflow.contract | ghflow.profiling | ghflow.quality | ghflow.reconcile | ghflow.clickhouse | ghflow.dashboard | ghflow.figures",
     "ghflow.bronze",
     "ghflow.events | ghflow.fields | ghflow.exitcodes",
     "ghflow.hours",

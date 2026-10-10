@@ -47,6 +47,8 @@ x-airflow-common: &airflow-common
     - airflow-logs:/opt/airflow/logs
     # DuckDB's one file. Only dbt_build writes it, through the one-slot `duckdb` pool (ADR-0003).
     - warehouse:/opt/ghflow/warehouse
+    # The published stakeholder dashboard (M5-S2): dashboard_render writes, nginx serves.
+    - dashboard-site:/opt/ghflow/dashboard-site
   user: "50000:0"
   depends_on: &airflow-depends-on
     platform-db-init:
@@ -418,7 +420,25 @@ services:
     mem_limit: 256m
     restart: unless-stopped
 
+  dashboard:
+    # The stakeholder dashboard (M5-S2, ADR-0013): static pages dashboard_render publishes into
+    # the dashboard-site volume; `current` points at the newest checked release.
+    image: nginx:1.29.3-alpine@sha256:b3c656d55d7ad751196f21b7fd2e8d4da9cb430e32f646adcf92441b72f82b14
+    ports:
+      - "127.0.0.1:33001:80"
+    volumes:
+      - ./dashboard/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - dashboard-site:/srv/site:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    mem_limit: 64m
+    restart: unless-stopped
+
 volumes:
+  dashboard-site:
   grafana-data:
   redpanda:
   clickhouse-data:

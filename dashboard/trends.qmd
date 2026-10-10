@@ -1,0 +1,13 @@
+---
+title: "Trends"
+---
+
+::: {.finding}
+**Pushes dominate:** over the whole window they are {{n:push_share}} of everything. The next most common
+kind of event is only {{n:second_type_share}}.
+:::
+
+{{fig:trends}}
+
+Click a name in the legend to hide or show it; drag across the chart to zoom in, double-click to
+zoom back out. Shaded days contain broken hours, which are left out of the counts.

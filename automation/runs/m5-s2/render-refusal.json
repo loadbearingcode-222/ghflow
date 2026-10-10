@@ -1,0 +1,6 @@
+{
+  "story": "M5-S2",
+  "accept_when": "dashboard_render refuses when the marts are older than that build",
+  "how": "render --not-before set after the snapshot's build time (the DAG passes the triggering dbt_build run's start from the asset event)",
+  "refused": "marts built 2026-10-10T19:20:22+00:00 are older than the build 2099-01-01T00:00:00+00:00"
+}
