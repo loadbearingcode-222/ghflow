@@ -36,13 +36,11 @@ def render(macro_file: str, call: str, **context: Any) -> str:
     return str(jinja2.Template(text + "{{ " + call + " }}").render(**context))
 
 
-def dimension(incremental: bool = False) -> str:
+def dimension() -> str:
     body = render(
         "scd2_from_events.sql",
         "scd2_from_events('repo_id', 'repo_name')",
         ref=lambda _: "stg",
-        is_incremental=lambda: incremental,
-        var=lambda name: {"lookback_days": 2}[name],
     )
     return (
         "select key_id as repo_id, name as repo_name, valid_from, valid_to, "
@@ -57,8 +55,6 @@ def load(events: list[tuple[int, str, int, str | None]]) -> duckdb.DuckDBPyConne
         "create table stg (id bigint, created_at timestamptz, repo_id bigint, repo_name varchar)"
     )
     con.executemany("insert into stg values (?, ?::timestamptz, ?, ?)", events)
-    con.execute("alter table stg add column event_date date")
-    con.execute("update stg set event_date = cast(created_at as date)")
     con.execute(f"create table dim as {dimension()}")
     return con
 
@@ -111,26 +107,3 @@ def test_the_invariants_name_two_current_rows() -> None:
     con = load(EVENTS)
     con.execute("update dim set valid_to = null, is_current = true where repo_name = 'o/b'")
     assert "one_current_row_per_id" in {row[0] for row in violations(con)}
-
-
-def test_an_incremental_run_equals_a_full_recompute() -> None:
-    """M3-S3: the dimension built on the old days, then the reload window's ids recomputed over
-    their whole history (delete + insert by id), equals the dimension built on everything."""
-    old_days = [(n, f"2026-08-0{d} 10:00:0{n % 10}", repo, name)
-                for n, (d, repo, name) in enumerate([(1, 20, "o/p"), (1, 21, "o/q"), (2, 20, "o/r"),
-                                                     (2, 22, "o/s")], start=100)]  # fmt: skip
-    new_days = [(200, "2026-08-05 09:00:00", 20, "o/p"), (201, "2026-08-06 11:00:00", 23, "o/t"),
-                (202, "2026-08-06 12:00:00", 21, "o/q2")]  # fmt: skip
-    everything = load(EVENTS + old_days + new_days)
-
-    con = load(EVENTS + old_days)
-    con.executemany("insert into stg values (?, ?::timestamptz, ?, ?, null)", new_days)
-    con.execute("update stg set event_date = cast(created_at as date)")
-    con.execute(f"create table recomputed as {dimension(incremental=True)}")
-    touched = {r[0] for r in con.execute("select distinct repo_id from recomputed").fetchall()}
-    con.execute("delete from dim where repo_id in (select repo_id from recomputed)")
-    con.execute("insert into dim select * from recomputed")
-
-    assert versions(con) == versions(everything)
-    assert 22 not in touched and {20, 21, 23} <= touched  # only the reload window's ids
-    assert violations(con) == []

@@ -12,26 +12,12 @@
   - A version is an island of consecutive seconds with the same name: A -> B -> A is three
     versions, never merged.
   - valid_to is the next version's valid_from (no gap, no overlap); the last version is current.
-  - Incremental runs (M3-S3) recompute only the ids with events in staging's reload window (the
-    days staging just deleted and re-read), each over its WHOLE history, so the rows written equal
-    a full recompute's rows for those ids; the model deletes and inserts by id.
 #}
 {% macro scd2_from_events(id_column, name_column) %}
-with source as (
-    select e.id, e.created_at, e.{{ id_column }} as key_id, e.{{ name_column }} as name
-    from {{ ref('stg_gharchive__events') }} e
-    {% if is_incremental() %}
-    semi join (
-        select distinct {{ id_column }} as key_id from {{ ref('stg_gharchive__events') }}
-        where event_date >= (select max(event_date) - {{ var('lookback_days') }} from {{ ref('stg_gharchive__events') }})
-    ) touched on e.{{ id_column }} = touched.key_id
-    {% endif %}
-    where e.{{ id_column }} is not null and e.{{ name_column }} is not null
-),
-
-pairs as (
-    select key_id, name, min(created_at) as first_seen
-    from source
+with pairs as (
+    select {{ id_column }} as key_id, {{ name_column }} as name, min(created_at) as first_seen
+    from {{ ref('stg_gharchive__events') }}
+    where {{ id_column }} is not null and {{ name_column }} is not null
     group by all
 ),
 
@@ -40,9 +26,10 @@ multi as (
 ),
 
 per_second as (
-    select s.key_id, s.created_at, arg_max(s.name, s.id) as name
-    from source s
-    semi join multi m on s.key_id = m.key_id
+    select e.{{ id_column }} as key_id, e.created_at, arg_max(e.{{ name_column }}, e.id) as name
+    from {{ ref('stg_gharchive__events') }} e
+    semi join multi m on e.{{ id_column }} = m.key_id
+    where e.{{ name_column }} is not null
     group by all
 ),
 
