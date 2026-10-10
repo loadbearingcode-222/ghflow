@@ -1,0 +1,47 @@
+{
+  "story": "M1-S5",
+  "issue": 17,
+  "phase": "verdict on the parser change",
+  "sequential": {
+    "before_median_s": 72.7413,
+    "orjson_median_s": 70.5823,
+    "records": [
+      "bench-before.json",
+      "bench-orjson-attempt.json"
+    ],
+    "note": "not interleaved; orjson runs spread 10%"
+  },
+  "interleaved_ab": {
+    "how": "one process, the parser swapped between runs, 4 runs each alternating, same cached day",
+    "stdlib_s": [
+      78.59,
+      75.45,
+      72.2,
+      76.12
+    ],
+    "orjson_s": [
+      68.4,
+      73.13,
+      68.3,
+      70.12
+    ],
+    "stdlib_median_s": 75.79,
+    "orjson_median_s": 69.26,
+    "gain_pct": 8.6,
+    "ranges_overlap": true
+  },
+  "bronze_identical": true,
+  "predictions": {
+    "P1": {
+      "claim": "<= 60.0 s",
+      "verdict": "MISSED",
+      "actual_s": 69.26,
+      "why": "the standalone parse saving (26.7 -> 10.6 s) did not carry into the pipeline: about 6.5 s did. Profiling one hour (6.7 s) shows the cost is the contract's per-row Python: _envelope 3.0 s cumulative, strptime alone 1.27 s, _project 1.42 s; orjson.loads is 0.35 s."
+    },
+    "P2": {
+      "claim": "24 bronze sha256s identical",
+      "verdict": "HELD"
+    }
+  },
+  "decision": "REVERTED (second time): P1 missed and the A/B ranges overlap. The measured cost centre is now named and goes to a new refine issue with a measured target (created_at parsing, the projection loop)."
+}
