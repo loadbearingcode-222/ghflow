@@ -248,3 +248,9 @@ olist-lakehouse). Provenance is in brackets. Entries below it are earned by THIS
     the numbers were plausible. *Check:* chain dependent daily jobs on data (Airflow assets:
     build → judge → marts → dashboard), not on clock times an hour apart; and make a consumer
     refuse incomplete inputs (a day is complete only when all 24 hours are judged). (M5-S3)
+58. **`CREATE TABLE IF NOT EXISTS` is not safe to run four times at once.** The first four
+    ingests on a fresh database each ran the audit schema's DDL concurrently, and Postgres
+    reported a deadlock. Production never saw it: its first ingests ran one at a time. The
+    one-command demo from a clean clone found it at once. *Check:* serialize schema setup
+    (`pg_advisory_xact_lock` around the DDL), and run a fresh deployment the way a stranger
+    would, with parallelism on from the first minute. (M5-S4)

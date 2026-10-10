@@ -100,9 +100,17 @@ class Attempt:
 COLUMNS = tuple(f.name for f in fields(Attempt))
 
 
+#: One advisory-lock key for ghflow_ops schema setup (any constant; it only has to be shared).
+SCHEMA_LOCK = 0x6768_666C_6F77  # "ghflow"
+
+
 def connect(dsn: str) -> psycopg.Connection[Any]:
     conn = psycopg.connect(dsn, connect_timeout=10, autocommit=True)
-    conn.execute(SCHEMA_SQL)
+    # Serialized: four first ingests on a fresh database ran this DDL at once and deadlocked
+    # (found by the M5-S4 demo from a clean clone, gotcha #58). The lock ends with the transaction.
+    with conn.transaction():
+        conn.execute("select pg_advisory_xact_lock(%s)", (SCHEMA_LOCK,))
+        conn.execute(SCHEMA_SQL)
     return conn
 
 

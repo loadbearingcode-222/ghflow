@@ -181,7 +181,7 @@ switch ($Target) {
     'demo'      {
         # Its own compose project and volumes, never a running ghflow's (M5-S4). DAGs stay paused;
         # the driver runs the daily chain's commands for the bounded window, then the acceptance.
-        $env:COMPOSE_PROJECT_NAME = 'ghflow-demo'
+        $env:COMPOSE_PROJECT_NAME = if ($env:GHFLOW_DEMO_PROJECT) { $env:GHFLOW_DEMO_PROJECT } else { 'ghflow-demo' }
         $env:REPLAY_UNTIL = '2026-08-07-23'
         Invoke-Env
         & $PSCommandPath doctor
