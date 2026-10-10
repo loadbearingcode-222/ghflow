@@ -1,0 +1,167 @@
+{
+  "story": "M2-S2",
+  "recorded_at": "2026-10-10",
+  "file_names_by_offset_range": {
+    "example": "stream/landed/topic=gharchive.events/partition=0/00000000000000155524-00000000000000184904.parquet",
+    "relanding": {
+      "how": "lander stopped, group offset of partition 0 rewound to 155524 (start of 2026-08-03-5), lander started",
+      "sha256_before": "198ac524e921fa7a7eb74c364f0d0937946e58a7da3a41a7b470cf789b62f6a9",
+      "sha256_after": "198ac524e921fa7a7eb74c364f0d0937946e58a7da3a41a7b470cf789b62f6a9",
+      "files_in_partition_before_after": [
+        6,
+        6
+      ],
+      "relanded_at": "05:24:57"
+    },
+    "first_try_did_not_take": "a rewind while the SIGTERM'd lander was still a group member did not take (gotcha #51); fixed: the lander now closes its consumer on SIGTERM"
+  },
+  "kill_drill": {
+    "how": "replayer published 2026-08-03-2..5 (681,423 events + 24 markers); the lander was SIGKILLed 9 s in, after landing all of hour 2 and while hour 3 was being published; restarted by hand (gotcha #50)",
+    "landed_before_kill": "hour 2 on all 6 partitions",
+    "landed_after_restart": "hours 3, 4, 5 on all 6 partitions, each starting at the previous commit",
+    "coverage": {
+      "partitions": {
+        "0": {
+          "files": 6,
+          "from": 0,
+          "to": 184904,
+          "committed": 184905,
+          "gaps_or_overlaps": [],
+          "exactly_once": true
+        },
+        "1": {
+          "files": 6,
+          "from": 0,
+          "to": 175949,
+          "committed": 175950,
+          "gaps_or_overlaps": [],
+          "exactly_once": true
+        },
+        "2": {
+          "files": 6,
+          "from": 0,
+          "to": 177634,
+          "committed": 177635,
+          "gaps_or_overlaps": [],
+          "exactly_once": true
+        },
+        "3": {
+          "files": 6,
+          "from": 0,
+          "to": 181669,
+          "committed": 181670,
+          "gaps_or_overlaps": [],
+          "exactly_once": true
+        },
+        "4": {
+          "files": 6,
+          "from": 0,
+          "to": 180420,
+          "committed": 180421,
+          "gaps_or_overlaps": [],
+          "exactly_once": true
+        },
+        "5": {
+          "files": 6,
+          "from": 0,
+          "to": 184264,
+          "committed": 184265,
+          "gaps_or_overlaps": [],
+          "exactly_once": true
+        }
+      },
+      "exactly_once": true
+    }
+  },
+  "compaction": {
+    "closed_hours_only": "a planted 2099-01-01-0 landed on 3 of 6 partitions was not offered; real hours 2026-08-03-0..5 were",
+    "lines": [
+      "closed hours offered for compaction with a 3/6-partition hour planted: []",
+      "2026-08-03-0 compacted ids == bronze ids: True 165375",
+      "2026-08-03-1 compacted ids == bronze ids: True 169274",
+      "2026-08-03-2 compacted ids == bronze ids: True 168791",
+      "2026-08-03-3 compacted ids == bronze ids: True 168789",
+      "2026-08-03-4 compacted ids == bronze ids: True 172892",
+      "2026-08-03-5 compacted ids == bronze ids: True 171739",
+      "small files left: 0"
+    ]
+  },
+  "compacted": [
+    {
+      "hour": "2026-08-03-0",
+      "input_events": 165375,
+      "duplicates": 0,
+      "output_rows": 165375
+    },
+    {
+      "hour": "2026-08-03-1",
+      "input_events": 237224,
+      "duplicates": 67950,
+      "output_rows": 169274
+    },
+    {
+      "hour": "2026-08-03-2",
+      "input_events": 168791,
+      "duplicates": 0,
+      "output_rows": 168791
+    },
+    {
+      "hour": "2026-08-03-3",
+      "input_events": 168789,
+      "duplicates": 0,
+      "output_rows": 168789
+    },
+    {
+      "hour": "2026-08-03-4",
+      "input_events": 172892,
+      "duplicates": 0,
+      "output_rows": 172892
+    },
+    {
+      "hour": "2026-08-03-5",
+      "input_events": 171739,
+      "duplicates": 0,
+      "output_rows": 171739
+    }
+  ],
+  "lag": {
+    "make_watch": {
+      "group": "lander",
+      "partitions": {
+        "0": {
+          "committed": 184905,
+          "end": 184905,
+          "lag": 0
+        },
+        "1": {
+          "committed": 175950,
+          "end": 175950,
+          "lag": 0
+        },
+        "2": {
+          "committed": 177635,
+          "end": 177635,
+          "lag": 0
+        },
+        "3": {
+          "committed": 181670,
+          "end": 181670,
+          "lag": 0
+        },
+        "4": {
+          "committed": 180421,
+          "end": 180421,
+          "lag": 0
+        },
+        "5": {
+          "committed": 184265,
+          "end": 184265,
+          "lag": 0
+        }
+      },
+      "total_lag": 0
+    },
+    "console": "GET http://127.0.0.1:38080/api/consumer-groups lists group lander, Stable, summedLag 0, per-partition groupOffset / highWaterMark / lag"
+  },
+  "continuous": "the replayer's `replay` profile was removed: the stream now replays the window and the lander lands it as it goes"
+}

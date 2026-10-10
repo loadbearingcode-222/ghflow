@@ -196,3 +196,13 @@ olist-lakehouse). Provenance is in brackets. Entries below it are earned by THIS
     *Check:* a test that compares a source with a load compares the same snapshot (here: bronze
     up to the newest hour staging loaded), and red-team both directions: the source moving on
     must pass, a hole inside the loaded window must fail. (M1-S5)
+50. **`docker kill` is a manual stop: `restart: unless-stopped` will not bring the container
+    back.** The M2-S2 kill drill expected Docker to restart the lander like a crash; it stayed
+    `exited`. *Check:* to drill a crash, kill the process inside the container (or restart it by
+    hand and say so); don't assume a restart policy fired - read `docker inspect .RestartCount`.
+    (M2-S2)
+51. **A consumer that never closes keeps its group membership until the session times out.**
+    The lander, stopped by SIGTERM without `consumer.close()`, stayed a group member for ~45 s;
+    an offset rewind in that window did not take (the next start read the old commit). *Check:*
+    close consumers on SIGTERM/SIGINT; before altering a group's offsets, confirm the group is
+    empty and read the per-partition result for errors. (M2-S2)
