@@ -1,0 +1,34 @@
+{
+  "type": "record",
+  "name": "RepoState",
+  "namespace": "ghflow",
+  "doc": "A repo's current name, written when it changes (ADR-0009). Key: the repo id.",
+  "fields": [
+    {
+      "name": "repo_id",
+      "type": "long"
+    },
+    {
+      "name": "repo_name",
+      "type": "string"
+    },
+    {
+      "name": "as_of",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-micros"
+      },
+      "doc": "created_at of the event that set this name"
+    },
+    {
+      "name": "event_id",
+      "type": "long",
+      "doc": "that event's id (breaks same-second ties)"
+    },
+    {
+      "name": "hour",
+      "type": "string",
+      "doc": "that event's GH Archive hour key"
+    }
+  ]
+}

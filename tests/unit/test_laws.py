@@ -219,6 +219,7 @@ KAFKA_KEYS = {
     "bootstrap.servers", "group.id", "acks", "enable.idempotence", "enable.auto.commit",
     "auto.offset.reset", "linger.ms", "batch.size", "compression.type", "partitioner",
     "isolation.level", "transactional.id", "max.poll.interval.ms", "queue.buffering.max.messages",
+    "enable.partition.eof", "transaction.timeout.ms",
 }  # fmt: skip
 CLIENTS = SRC / "stream" / "clients.py"
 

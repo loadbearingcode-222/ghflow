@@ -1,0 +1,33 @@
+{
+  "story": "M3-S2",
+  "accept_when": "killed and restarted, it rebuilds its store from the changelog and emits no spurious change records",
+  "how": "docker kill -s KILL ghflow-repo-state-1, then docker compose start repo-state by hand (a manual stop does not trigger the restart policy, gotcha #50)",
+  "kill_1_mid_backlog": {
+    "at_utc": "2026-10-10T09:25:49Z",
+    "changelog_high_watermarks_sum_before": 365471,
+    "restored_records": 365247,
+    "restored_repos": 365057,
+    "restore_seconds": 7.7,
+    "note": "the 224-offset gap is transaction control markers; 0 aborted records were visible to an uncommitted reader afterwards, so this kill fell between transactions. The kill-inside-a-transaction case is tests/unit/test_repo_state.py::test_a_restart_rebuilds_from_the_changelog_and_emits_nothing_spurious"
+  },
+  "kill_2_caught_up": {
+    "at_utc": "2026-10-10T10:40:04Z",
+    "restored_records": 13717015,
+    "restored_repos": 13593682,
+    "restore_seconds": 239.4,
+    "note": "the full-changelog restore time: M3-S3's 'before' for the restore prediction"
+  },
+  "audit_after_backlog": {
+    "committed_records": 13717015,
+    "spurious_changes": 0,
+    "as_of_not_increasing": 0,
+    "aborted_records_visible_uncommitted": 0
+  },
+  "audit_after_restart_and_hour_10": {
+    "committed_records": 13723435,
+    "spurious_changes": 0,
+    "as_of_not_increasing": 0,
+    "aborted_records_visible_uncommitted": 0,
+    "note": "after kill 2 the restored processor closed 2026-10-10-10 on all 6 partitions (6,420 changes); still 0 spurious, 0 aborted"
+  }
+}

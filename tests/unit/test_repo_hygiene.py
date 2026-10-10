@@ -130,3 +130,6 @@ def test_the_topic_spec_matches_settings() -> None:
     assert partitions == settings.STREAM_PARTITIONS
     assert int(configs["retention.ms"]) == settings.STREAM_RETENTION_DAYS * 24 * 3600 * 1000
     assert configs["message.timestamp.type"] == "LogAppendTime", "retention from replay time"
+    partitions, configs = spec["gharchive.repo_state"]
+    assert partitions == settings.STREAM_PARTITIONS, "same partition as the repo's events"
+    assert configs["cleanup.policy"] == "compact", "the latest record per repo is kept forever"

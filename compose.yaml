@@ -313,6 +313,24 @@ services:
     mem_limit: 768m
     restart: unless-stopped
 
+  repo-state:
+    # gharchive.events -> gharchive.repo_state (compacted): each repo's current name, written in
+    # Kafka transactions together with the consumed offsets; the SQLite store is a cache rebuilt
+    # from the changelog on every start (ADR-0009). Consumer group `repo-state`.
+    image: ghflow/app:dev
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    command: ["python", "-m", "ghflow.commands.repo_state", "run"]
+    environment:
+      KAFKA_BOOTSTRAP: redpanda:9092
+      SCHEMA_REGISTRY_URL: http://redpanda:8081
+    depends_on:
+      redpanda-init:
+        condition: service_completed_successfully
+    mem_limit: 768m
+    restart: unless-stopped
+
 volumes:
   redpanda:
   seaweedfs-data:

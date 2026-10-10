@@ -37,8 +37,11 @@ from ghflow.stream import clients, replayer, schema
 AVSC = REPO_ROOT / "config" / "schemas" / "gh_event.avsc"
 
 
-def register(registry: str) -> int:
-    """Register the schema under BACKWARD compatibility; returns its id (idempotent)."""
+def register(
+    registry: str, subject: str = schema.SUBJECT, avro: dict[str, Any] | None = None
+) -> int:
+    """Register a schema (gh_event by default) under BACKWARD compatibility; returns its id
+    (idempotent)."""
 
     def call(method: str, path: str, body: dict[str, Any]) -> Any:
         request = urllib.request.Request(
@@ -50,10 +53,9 @@ def register(registry: str) -> int:
         with urllib.request.urlopen(request, timeout=30) as response:
             return json.load(response)
 
-    call("PUT", f"/config/{schema.SUBJECT}", {"compatibility": "BACKWARD"})
-    registered = call(
-        "POST", f"/subjects/{schema.SUBJECT}/versions", {"schema": json.dumps(schema.schema())}
-    )
+    body = {"schema": json.dumps(avro or schema.schema())}
+    call("PUT", f"/config/{subject}", {"compatibility": "BACKWARD"})
+    registered = call("POST", f"/subjects/{subject}/versions", body)
     schema_id = registered.get("id") if isinstance(registered, dict) else None
     if not isinstance(schema_id, int):
         raise RuntimeError(f"the registry returned no schema id: {registered!r}")

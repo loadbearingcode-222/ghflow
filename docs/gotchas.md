@@ -213,3 +213,9 @@ olist-lakehouse). Provenance is in brackets. Entries below it are earned by THIS
     container's memory, and to an in-memory database, which cannot spill at all. *Check:* put
     strings in the group key, not in an aggregate; spill to a disk-backed file; try a heavy
     query in a one-off container with its own `--memory`, never in the scheduler. (M3-S1)
+53. **The same string-aggregate trap, one story later.** M3-S2's first `diff` used
+    `arg_max(repo_name, off)` per repo and `list(repo_id)` per verdict over 13.7M rows and ran out
+    of a 1 GB DuckDB limit, the day after gotcha #52 was written. *Check:* for "latest row per
+    key", take `max(offset)` per key and join back; list ids only for the red verdicts, capped
+    (`RECONCILE_NAMED_IDS`). Grep new SQL for `arg_max(`/`list(` over a string before running it
+    on the full window. (M3-S2)
