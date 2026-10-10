@@ -110,6 +110,13 @@ def statements() -> list[str]:
         "SELECT toStartOfHour(assumeNotNull(created_at)) AS hour_start, assumeNotNull(type) AS type,\n"
         f"    groupBitmapState(toUInt64(assumeNotNull(id))) AS ids\nFROM {db}.events_queue WHERE kind = 'EVENT'\n"
         "GROUP BY hour_start, type",
+        # M4-S3 (P1): the bitmaps folded into plain per-hour counts every 5 minutes, so the
+        # Events-per-hour panel reads ~170 rows instead of merging ~2,000 bitmap states.
+        f"CREATE TABLE IF NOT EXISTS {db}.events_hour_counts (\n    `hour_start` DateTime('UTC'),\n"
+        "    `events` UInt64\n)\nENGINE = MergeTree\nORDER BY hour_start",
+        f"CREATE MATERIALIZED VIEW IF NOT EXISTS {db}.events_hour_counts_mv\n"
+        f"REFRESH EVERY 5 MINUTE TO {db}.events_hour_counts AS\n"
+        f"SELECT hour_start, groupBitmapMerge(ids) AS events FROM {db}.events_hourly GROUP BY hour_start",
         f"CREATE MATERIALIZED VIEW IF NOT EXISTS {db}.repo_current_mv TO {db}.repo_current AS\n"
         f"SELECT * FROM {db}.repo_state_queue",
     ]

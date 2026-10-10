@@ -69,9 +69,9 @@ PANELS = [
           ") WHERE $__timeFilter(hour_start) GROUP BY time ORDER BY time", 6,
           "flagged: volume or PushEvent broke (shaded on the stakeholder dashboard); shifted: minor types moved."),
     Panel("Events per hour (ClickHouse)", "timeseries",
-          "SELECT hour_start AS time, groupBitmapMerge(ids) AS events FROM ghflow.events_hourly\n"
-          "WHERE $__timeFilter(hour_start) GROUP BY time ORDER BY time", 6,
-          "Distinct events per hour, as the third witness holds them."),
+          "SELECT hour_start AS time, events FROM ghflow.events_hour_counts\n"
+          "WHERE $__timeFilter(hour_start) ORDER BY time", 6,
+          "Distinct events per hour, as the third witness holds them (refreshed every 5 minutes, M4-S3)."),
     *[_lag(group, topic) for group, topic in GROUPS],
     Panel("Flagged hours (latest verdict)", "table",
           "SELECT hour, hour_start FROM (\n"

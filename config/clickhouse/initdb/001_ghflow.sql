@@ -134,6 +134,17 @@ SELECT toStartOfHour(assumeNotNull(created_at)) AS hour_start, assumeNotNull(typ
 FROM ghflow.events_queue WHERE kind = 'EVENT'
 GROUP BY hour_start, type;
 
+CREATE TABLE IF NOT EXISTS ghflow.events_hour_counts (
+    `hour_start` DateTime('UTC'),
+    `events` UInt64
+)
+ENGINE = MergeTree
+ORDER BY hour_start;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS ghflow.events_hour_counts_mv
+REFRESH EVERY 5 MINUTE TO ghflow.events_hour_counts AS
+SELECT hour_start, groupBitmapMerge(ids) AS events FROM ghflow.events_hourly GROUP BY hour_start;
+
 CREATE MATERIALIZED VIEW IF NOT EXISTS ghflow.repo_current_mv TO ghflow.repo_current AS
 SELECT * FROM ghflow.repo_state_queue;
 
