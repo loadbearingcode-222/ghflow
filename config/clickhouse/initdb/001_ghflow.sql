@@ -56,7 +56,7 @@ ORDER BY (hour, partition);
 CREATE TABLE IF NOT EXISTS ghflow.events_hourly (
     `hour_start` DateTime('UTC'),
     `type` LowCardinality(String),
-    `ids` AggregateFunction(uniqExact, Int64)
+    `ids` AggregateFunction(groupBitmap, UInt64)
 )
 ENGINE = AggregatingMergeTree
 ORDER BY (hour_start, type);
@@ -130,7 +130,7 @@ FROM ghflow.events_queue WHERE kind = 'END_OF_HOUR';
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS ghflow.events_hourly_mv TO ghflow.events_hourly AS
 SELECT toStartOfHour(assumeNotNull(created_at)) AS hour_start, assumeNotNull(type) AS type,
-    uniqExactState(assumeNotNull(id)) AS ids
+    groupBitmapState(toUInt64(assumeNotNull(id))) AS ids
 FROM ghflow.events_queue WHERE kind = 'EVENT'
 GROUP BY hour_start, type;
 

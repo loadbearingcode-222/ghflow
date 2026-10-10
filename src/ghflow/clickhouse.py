@@ -10,7 +10,8 @@ holds (written by `python -m ghflow.commands.clickhouse ddl`, checked for drift 
   re-read block lands twice until a merge; `FINAL` (or `uniqExact(id)`) sees each event once.
 - `hour_markers`: the END_OF_HOUR markers, filtered out of `events` as data and kept, so an hour
   is complete in ClickHouse when all partitions' markers are in.
-- `events_hourly`: distinct event ids per (hour, type) as `uniqExact` states, so a duplicate
+- `events_hourly`: distinct event ids per (hour, type) as Roaring-bitmap states (`groupBitmap`;
+  `uniqExact` hash sets of every id starved the server, gotcha #56), so a duplicate
   block cannot inflate it: it must equal a recomputation from `events`.
 - `repo_current`: the repo-state changelog, latest per repo by `as_of` (ReplacingMergeTree).
 """
@@ -88,7 +89,7 @@ def statements() -> list[str]:
         "    `partition` UInt16,\n    `rows_in_hour` UInt64,\n    `kafka_offset` UInt64\n)\n"
         "ENGINE = ReplacingMergeTree\nORDER BY (hour, partition)",
         f"CREATE TABLE IF NOT EXISTS {db}.events_hourly (\n    `hour_start` DateTime('UTC'),\n"
-        "    `type` LowCardinality(String),\n    `ids` AggregateFunction(uniqExact, Int64)\n)\n"
+        "    `type` LowCardinality(String),\n    `ids` AggregateFunction(groupBitmap, UInt64)\n)\n"
         "ENGINE = AggregatingMergeTree\nORDER BY (hour_start, type)",
         f"CREATE TABLE IF NOT EXISTS {db}.repo_current (\n    {_cols(state_cols)}\n)\n"
         "ENGINE = ReplacingMergeTree(as_of)\nORDER BY repo_id",
@@ -104,7 +105,7 @@ def statements() -> list[str]:
         f"    _offset AS kafka_offset\nFROM {db}.events_queue WHERE kind = 'END_OF_HOUR'",
         f"CREATE MATERIALIZED VIEW IF NOT EXISTS {db}.events_hourly_mv TO {db}.events_hourly AS\n"
         "SELECT toStartOfHour(assumeNotNull(created_at)) AS hour_start, assumeNotNull(type) AS type,\n"
-        f"    uniqExactState(assumeNotNull(id)) AS ids\nFROM {db}.events_queue WHERE kind = 'EVENT'\n"
+        f"    groupBitmapState(toUInt64(assumeNotNull(id))) AS ids\nFROM {db}.events_queue WHERE kind = 'EVENT'\n"
         "GROUP BY hour_start, type",
         f"CREATE MATERIALIZED VIEW IF NOT EXISTS {db}.repo_current_mv TO {db}.repo_current AS\n"
         f"SELECT * FROM {db}.repo_state_queue",

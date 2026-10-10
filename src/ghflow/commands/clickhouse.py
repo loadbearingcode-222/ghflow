@@ -60,39 +60,67 @@ def hour_ids(ch: Any, hour: str) -> list[int]:
     ]
 
 
+# Whole-table distinct counts do not fit: uniqExact over 147M ids needs more than the 1.5 GiB cap
+# (gotcha #56). Every check below runs one day at a time (~2.2M ids) and sums.
+DAY = "toDate(created_at) = {d:Date}"
+
+
+def days(ch: Any) -> list[Any]:
+    return [
+        r[0]
+        for r in ch.query(
+            f"SELECT DISTINCT toDate(created_at) AS d FROM {DB}.events ORDER BY d"
+        ).result_rows
+    ]
+
+
 def status() -> dict[str, Any]:
     ch = client()
-    rows, distinct = ch.query(f"SELECT count(), uniqExact(id) FROM {DB}.events").result_rows[0]
-    hours = closed_hours(ch)
-    return {"events_rows": rows, "distinct_ids": distinct, "closed_hours": len(hours),
+    rows = ch.query(f"SELECT count() FROM {DB}.events").result_rows[0][0]
+    return {"events_rows": rows, "days": len(days(ch)), "closed_hours": len(closed_hours(ch)),
             "repo_current_rows": ch.query(f"SELECT count() FROM {DB}.repo_current FINAL").result_rows[0][0]}  # fmt: skip
 
 
 VIEWS_VS_EVENTS = f"""
 SELECT count() FROM (
-    SELECT hour_start, type, uniqExactMerge(ids) AS n FROM {DB}.events_hourly GROUP BY hour_start, type
+    SELECT hour_start, type, groupBitmapMerge(ids) AS n FROM {DB}.events_hourly
+    WHERE toDate(hour_start) = {{d:Date}} GROUP BY hour_start, type
 ) AS v FULL OUTER JOIN (
     SELECT toStartOfHour(created_at) AS hour_start, type, uniqExact(id) AS n FROM {DB}.events
-    GROUP BY hour_start, type
+    WHERE {DAY} GROUP BY hour_start, type
 ) AS e USING (hour_start, type)
 WHERE v.n != e.n
 """
 
 
+def verify_day(ch: Any, day: Any) -> dict[str, int]:
+    p = {"d": day}
+    rows, distinct = ch.query(
+        f"SELECT count(), uniqExact(id) FROM {DB}.events WHERE {DAY}", parameters=p
+    ).result_rows[0]
+    final = ch.query(
+        f"SELECT count() FROM {DB}.events FINAL WHERE {DAY}", parameters=p
+    ).result_rows[0][0]
+    groups = ch.query(f"SELECT count() FROM (SELECT DISTINCT hour_start, type FROM {DB}.events_hourly "
+                      "WHERE toDate(hour_start) = {d:Date})", parameters=p).result_rows[0][0]  # fmt: skip
+    differing = ch.query(VIEWS_VS_EVENTS, parameters=p).result_rows[0][0]
+    return {"rows": rows, "distinct_ids": distinct, "rows_under_final": final, "hourly_groups": groups,
+            "differing": differing, "final_off": int(final != distinct)}  # fmt: skip
+
+
 def verify() -> dict[str, Any]:
     """Duplicates (rows beyond distinct ids) collapse under FINAL; the hourly view equals a
-    recomputation from `events`, group for group."""
+    recomputation from `events`, group for group. Day by day, summed."""
     ch = client()
-    rows, distinct = ch.query(f"SELECT count(), uniqExact(id) FROM {DB}.events").result_rows[0]
-    final = ch.query(f"SELECT count() FROM {DB}.events FINAL").result_rows[0][0]
-    groups = ch.query(
-        f"SELECT count() FROM (SELECT DISTINCT hour_start, type FROM {DB}.events_hourly)"
-    ).result_rows[0][0]
-    differing = ch.query(VIEWS_VS_EVENTS).result_rows[0][0]
-    return {"rows": rows, "distinct_ids": distinct, "duplicate_rows": rows - distinct,
-            "rows_under_final": final, "final_collapses_duplicates": final == distinct,
-            "hourly_groups": groups, "hourly_groups_differing_from_events": differing,
-            "views_equal_events": differing == 0}  # fmt: skip
+    per_day = {str(d): verify_day(ch, d) for d in days(ch)}
+    total = {k: sum(v[k] for v in per_day.values()) for k in ("rows", "distinct_ids", "rows_under_final",
+                                                              "hourly_groups", "differing", "final_off")}  # fmt: skip
+    return {"days": len(per_day), **{k: total[k] for k in ("rows", "distinct_ids", "rows_under_final", "hourly_groups")},
+            "duplicate_rows": total["rows"] - total["distinct_ids"],
+            "days_where_final_differs_from_distinct": total["final_off"],
+            "final_collapses_duplicates": total["final_off"] == 0,
+            "hourly_groups_differing_from_events": total["differing"],
+            "views_equal_events": total["differing"] == 0}  # fmt: skip
 
 
 def load_clickhouse(con: Any) -> int:
@@ -111,17 +139,23 @@ def load_clickhouse(con: Any) -> int:
 
 
 def caught_up(group: str, topic: str) -> bool:
-    """Has `group` committed past the end of every partition of `topic`?"""
+    """Is nothing readable left after `group`'s committed offsets? Asked of a read_committed
+    reader, not of the high watermark: a transactional topic ends in a commit marker no consumer
+    ever commits past, so a caught-up group sits one below the watermark."""
     from confluent_kafka import TopicPartition
 
-    from ghflow.stream import clients
+    from ghflow.stream import clients, repo_state
 
     consumer = clients.peek_consumer(group)
     meta = consumer.list_topics(topic, timeout=30).topics[topic].partitions
     committed = consumer.committed([TopicPartition(topic, p) for p in meta], timeout=30)
-    ends = [consumer.get_watermark_offsets(tp, timeout=30, cached=False)[1] for tp in committed]
     consumer.close()
-    return all(tp.offset >= end for tp, end in zip(committed, ends, strict=True))
+    start = {tp.partition: max(tp.offset, 0) for tp in committed}
+    reader = clients.changelog_reader()
+    try:
+        return next(iter(repo_state.read_to_end(reader, topic, start)), None) is None
+    finally:
+        reader.close()
 
 
 def main(argv: list[str] | None = None) -> int:

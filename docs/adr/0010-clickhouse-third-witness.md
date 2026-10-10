@@ -21,8 +21,11 @@ every path agrees to the event, has to hold for it too.
 3. **Delivery is at least once, so every table tolerates a re-read block:**
    - `events` is a ReplacingMergeTree ordered by (hour of `created_at`, event id). A duplicate
      sorts onto the same key and collapses at merge time or under `FINAL`.
-   - `events_hourly` keeps `uniqExact(id)` states per (hour, type), never `count()`. A re-read
-     block cannot inflate it, so it must equal a recomputation from `events`.
+   - `events_hourly` keeps `groupBitmap(id)` states (exact Roaring bitmaps) per (hour, type),
+     never `count()`. A re-read block cannot inflate it, so it must equal a recomputation from
+     `events`. The first version used `uniqExact` states: hash sets of every id, about 1.2 GB
+     for the window, whose merges starved the server. Bitmaps hold the same ids in 275 MiB
+     (gotcha #56).
    - `repo_current` is a ReplacingMergeTree(`as_of`): the latest name per repo.
 4. **Markers are data.** END_OF_HOUR records are filtered out of `events` into `hour_markers`.
    An hour is complete in ClickHouse when all 6 partitions' markers are in. Only then is it
@@ -38,5 +41,6 @@ every path agrees to the event, has to hold for it too.
 
 - A replay from scratch needs the events topic, which keeps 7 days; after that, ClickHouse is
   rebuilt by replaying bronze, as the stream is.
+- Checks of exact distinct counts run per day, never over the whole window (gotcha #56).
 - `FINAL` costs a merge at read time. M4-S3 measures panel latency, and may prefer
   `uniqExact(id)` or pre-aggregated views over `FINAL`.

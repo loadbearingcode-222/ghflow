@@ -37,7 +37,7 @@ def test_markers_are_filtered_out_of_events_and_kept_as_data() -> None:
     views = {name(s): s for s in clickhouse.statements() if "MATERIALIZED VIEW" in s}
     assert "WHERE kind = 'EVENT'" in views["ghflow.events_mv"]
     assert "WHERE kind = 'END_OF_HOUR'" in views["ghflow.hour_markers_mv"]
-    assert "uniqExactState" in views["ghflow.events_hourly_mv"], "duplicates must not inflate it"
+    assert "groupBitmapState" in views["ghflow.events_hourly_mv"], "duplicates must not inflate it"
 
 
 def test_each_kafka_engine_has_its_own_group_and_the_registry() -> None:
