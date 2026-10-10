@@ -1,0 +1,58 @@
+{
+  "story": "M4-S3",
+  "change": "P1",
+  "prediction": "automation/runs/m4-s3/prediction.json (2d7fbca)",
+  "metric": "ms per query from the host (clickhouse-connect, HTTP), the Events-per-hour panel over the last 7 days",
+  "before": {
+    "sql": "SELECT hour_start AS time, groupBitmapMerge(ids) AS events FROM ghflow.events_hourly WHERE hour_start >= now() - INTERVAL 7 DAY GROUP BY time ORDER BY time",
+    "all_ms": [
+      53.96,
+      51.77,
+      51.25,
+      51.63,
+      55.65,
+      59.63,
+      51.27,
+      58.48,
+      44.76,
+      53.56,
+      41.23
+    ],
+    "median_ms": 51.77,
+    "iqr_ms": [
+      51.25,
+      55.65
+    ]
+  },
+  "after": {
+    "sql": "SELECT hour_start AS time, events FROM ghflow.events_hour_counts WHERE hour_start >= now() - INTERVAL 7 DAY ORDER BY time",
+    "all_ms": [
+      3.95,
+      11.01,
+      3.57,
+      3.76,
+      3.81,
+      3.53,
+      5.5,
+      3.85,
+      3.71,
+      3.85,
+      4.01
+    ],
+    "median_ms": 3.85,
+    "iqr_ms": [
+      3.71,
+      4.01
+    ]
+  },
+  "equal_counts": {
+    "hours": 1650,
+    "differing_hours": 0
+  },
+  "verdict": {
+    "claim": "after median <= 10 ms",
+    "claim_met": true,
+    "iqrs_disjoint": true,
+    "kept": true
+  }
+}

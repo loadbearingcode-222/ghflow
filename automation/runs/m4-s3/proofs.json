@@ -1,0 +1,52 @@
+{
+  "story": "M4-S3",
+  "gate": {
+    "panels": 9,
+    "rows": {
+      "Ingest freshness (minutes since the newest ingested hour ended)": 1,
+      "Reconciliation: hours by status (latest run)": 1,
+      "Flagged hours per day (quality)": 8,
+      "Events per hour (ClickHouse)": 167,
+      "Consumer lag \u00b7 lander": 121,
+      "Consumer lag \u00b7 repo-state": 121,
+      "Consumer lag \u00b7 clickhouse": 121,
+      "Consumer lag \u00b7 clickhouse-repo-state": 121,
+      "Flagged hours (latest verdict)": 200
+    },
+    "empty": [],
+    "passed": true
+  },
+  "verify": {
+    "days": 69,
+    "rows": 147942615,
+    "distinct_ids": 147772029,
+    "rows_under_final": 147772029,
+    "hourly_groups": 24479,
+    "duplicate_rows": 170586,
+    "days_where_final_differs_from_distinct": 0,
+    "final_collapses_duplicates": true,
+    "hourly_groups_differing_from_events": 0,
+    "views_equal_events": true
+  },
+  "reconcile": {
+    "run_id": "reconcile-6bc6c2be",
+    "window": [
+      "2026-08-03-0",
+      "2026-10-10-16"
+    ],
+    "hours": {
+      "green": 1649,
+      "red": 0,
+      "pending": 0
+    },
+    "events": {
+      "batch": 147733476,
+      "stream": 147733476,
+      "clickhouse": 147733476
+    },
+    "missing": 0,
+    "extra": 0,
+    "clickhouse_missing": 0,
+    "clickhouse_extra": 0
+  }
+}

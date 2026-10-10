@@ -125,14 +125,16 @@ def timed(code: str, src: str) -> list[str]:
     return done.stdout.split()
 
 
-def restore() -> dict[str, Any]:
+def restore(tail: bool = False) -> dict[str, Any]:
     """before = M3-S2's start, a full rebuild (/before: a worktree of main); after = this
     branch's start on a store it already holds, as a processor restarted while caught up finds
-    it. The after store is prepared once, untimed."""
+    it. With `tail` (M4-S3, #36) both sides start on that held store: main's code against this
+    branch's. The store is prepared once, untimed."""
     setup = timed(AFTER_RESTORE, "/repo/src")
+    before_code = AFTER_RESTORE if tail else BEFORE_RESTORE
     times: dict[str, list[float]] = {"before": [], "after": []}
     records: dict[str, list[Any]] = {"before": [], "after": []}
-    sides = (("before", BEFORE_RESTORE, "/before/src"), ("after", AFTER_RESTORE, "/repo/src"))
+    sides = (("before", before_code, "/before/src"), ("after", AFTER_RESTORE, "/repo/src"))
     for _ in range(RUNS):
         for side, code, src in sides:
             out = timed(code, src)
@@ -146,8 +148,11 @@ def restore() -> dict[str, Any]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
     parser.add_argument("benchmark", choices=["scd2", "restore"])
+    parser.add_argument(
+        "--tail", action="store_true", help="restore: both sides start on a held store"
+    )
     args = parser.parse_args()
-    record = scd2() if args.benchmark == "scd2" else restore()
+    record = scd2() if args.benchmark == "scd2" else restore(args.tail)
     print(json.dumps(record, indent=2))
 
 

@@ -104,7 +104,7 @@
       "id": 4,
       "title": "Events per hour (ClickHouse)",
       "type": "timeseries",
-      "description": "Distinct events per hour, as the third witness holds them.",
+      "description": "Distinct events per hour, as the third witness holds them (refreshed every 5 minutes, M4-S3).",
       "datasource": {
         "type": "grafana-clickhouse-datasource",
         "uid": "ghflow-clickhouse"
@@ -123,7 +123,7 @@
             "uid": "ghflow-clickhouse"
           },
           "editorType": "sql",
-          "rawSql": "SELECT hour_start AS time, groupBitmapMerge(ids) AS events FROM ghflow.events_hourly\nWHERE $__timeFilter(hour_start) GROUP BY time ORDER BY time",
+          "rawSql": "SELECT hour_start AS time, events FROM ghflow.events_hour_counts\nWHERE $__timeFilter(hour_start) ORDER BY time",
           "queryType": "timeseries",
           "format": 0
         }
