@@ -62,11 +62,15 @@ create table if not exists quality_verdicts (
     judged_at   timestamptz not null default now(),
     hour        text        not null,
     hour_start  timestamptz not null,
-    status      text        not null check (status in ('clean', 'flagged', 'no_verdict')),
+    status      text        not null,
     findings    jsonb       not null default '[]',
     bars        jsonb       not null
 );
 create index if not exists quality_verdicts_hour on quality_verdicts (hour_start, judged_at);
+-- M1-S5 adds 'shifted' (#22); replaced idempotently, so tables created in M1-S4 migrate in place.
+alter table quality_verdicts drop constraint if exists quality_verdicts_status_check;
+alter table quality_verdicts add constraint quality_verdicts_status_check
+    check (status in ('clean', 'flagged', 'shifted', 'no_verdict'));
 """
 
 

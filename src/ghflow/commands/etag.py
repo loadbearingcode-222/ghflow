@@ -1,7 +1,7 @@
 """Re-check published ETags and queue re-published hours for re-ingest (M1-S4, ADR-0004).
 
     python -m ghflow.commands.etag check --days 14 [--audit-table T] [--dry-run]
-    python -m ghflow.commands.etag process      # re-ingest pending requests (real audit only)
+    python -m ghflow.commands.etag process      # re-ingest pending requests: exit 0 if any, 3 if none
     python -m ghflow.commands.etag redteam      # a planted ETag in a COPY of the audit table
 
 An hour is re-published when the archive now serves it with an ETag other than the one its
@@ -109,7 +109,11 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 record = redteam(conn, args.days)
         print(json.dumps(record))
-        return ExitCode.REFUSED if record.get("caught") is False else ExitCode.PASSED
+        if record.get("caught") is False:
+            return ExitCode.REFUSED
+        if args.command == "process" and not record["reingested"]:
+            return ExitCode.NO_VERDICT  # nothing was re-ingested: nothing for dbt to rebuild
+        return ExitCode.PASSED
 
     return guarded(go)
 

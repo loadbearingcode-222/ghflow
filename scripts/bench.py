@@ -122,8 +122,59 @@ def bench_contract(runs: int, hours: list[str]) -> list[dict[str, Any]]:
     return results
 
 
+#: The fixed day for the ingest benchmark (M1-S5): 24 cached hours, the contract reference day.
+INGEST_DAY = "2026-10-02"
+
+
+def ingest_once(hours: list[tuple[Hour, bytes]]) -> list[str]:
+    """One hour after another, exactly as ingest lands it minus the S3 PUT: the bronze sha256s."""
+    from ghflow import bronze
+    from ghflow.archive import Download
+    from ghflow.commands.ingest import contract_of
+
+    shas = []
+    for hour, data in hours:
+        result = contract_of(Download(hour, data, None, None))
+        events = bronze.events_parquet(result.rows, hour)
+        bronze.sidecar_parquet(result.rejected, hour)
+        shas.append(hashlib.sha256(events).hexdigest())
+    return shas
+
+
+def bench_ingest_day(runs: int, _hours: list[str]) -> list[dict[str, Any]]:
+    """Ingest compute throughput for a fixed day: decode + contract + Parquet, 24 cached hours.
+
+    The download and the S3 PUT are left out on purpose: they measure the network and the disk,
+    and would drown a code change in noise. The record says so.
+    """
+    hours = []
+    for h in range(24):
+        hour = Hour.parse(f"{INGEST_DAY}-{h}")
+        path = cache_dir() / f"{hour.key}.json.gz"
+        if not path.exists():
+            download_hour(hour, path)
+        hours.append((hour, path.read_bytes()))
+    shas = ingest_once(hours)
+    seconds = timed(partial(ingest_once, hours), runs)
+    rows = sum(len(gzip.decompress(d).splitlines()) for _, d in hours)
+    inputs = hashlib.sha256("".join(hashlib.sha256(d).hexdigest() for _, d in hours).encode())
+    return [
+        {
+            "day": INGEST_DAY,
+            "hours": len(hours),
+            "rows_in": rows,
+            "gz_mb": round(sum(len(d) for _, d in hours) / 1e6, 1),
+            "inputs_sha256": inputs.hexdigest(),
+            "excluded": "download and S3 PUT (network and disk, not code)",
+            "ingest_day": summary(seconds, rows),
+            "bronze_sha256_by_hour": dict(zip([h.key for h, _ in hours], shas, strict=True)),
+        }
+    ]
+
+
 BENCHMARKS: dict[str, Callable[[int, list[str]], list[dict[str, Any]]]] = {
-    "contract": bench_contract
+    "contract": bench_contract,
+    "ingest-day": bench_ingest_day,
 }
 
 

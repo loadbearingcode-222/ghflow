@@ -65,6 +65,11 @@ later insight that changes an earlier design becomes a Realign story (`docs/ITER
   baseline (Recommended)" — each hour judged against the same hour of day on its previous clean
   days, hours already flagged excluded, seeded by Aug 3–16.
 
+- 2026-10-10, M1-S5, after the rolling baseline proved walkable (#22): "Adopt 'shifted'
+  (Recommended)" — `flagged` means volume or the dominant type (PushEvent) collapsed and is what
+  the dashboard shades; `shifted` means only minor types' shares moved: recorded, not shaded, and
+  still joins the baseline.
+
 ## Environment facts (observed 2026-10-04)
 
 - Windows 11, Docker Desktop (WSL2 backend), WSL2 capped at **28 GB** (~27.4 GiB visible to
@@ -163,8 +168,9 @@ Quality (M1-S4, ADR-0004): DAG `gharchive_quality` (daily 03:30) judges every ho
 rolling clean baseline → `ghflow_ops.quality_verdicts` (status, findings, bars), re-checks 14 days
 of ETags → `reingest_requests` → re-ingest → dbt_build full_refresh. Offline:
 `uv run python -m ghflow.commands.quality argue|run|redteam --counts automation/runs/m1-s4/hour_counts.json`;
-`python -m ghflow.commands.etag check|process|redteam`. Known: the baseline over-flags
-Sep 18 - Oct 9 (issue #22, M1-S5); M5 must not shade those hours until it is fixed.
+`python -m ghflow.commands.etag check|process|redteam`. Verdicts (M1-S5, owner 2026-10-10):
+`flagged` = volume or PushEvent broke (M5 shades exactly these), `shifted` = only minor types'
+shares moved (recorded, never shaded). DAGs stay thin by law (`tests/unit/test_thin_dags.py`).
 
 Code layers (M0-S5, `docs/ITERATION.md`): pure core `settings`, `hours`, `events`, `fields`,
 `contract`, `profiling` (no I/O); shell `archive`, `commands/` (every CLI through `guarded()`).

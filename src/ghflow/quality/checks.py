@@ -6,6 +6,12 @@ Two checks, each a ratio to the reference median:
   QUALITY_MIX_MIN_SHARE of the reference (rarer types are too noisy to judge by share).
 The bars (settings.QUALITY_*) were argued from the seed fortnight before any hour was judged
 (automation/runs/m1-s4/bars.json).
+
+A verdict says HOW an hour differs (owner's decision 2026-10-10, M1-S5, #22):
+- flagged: volume collapsed or spiked, or the dominant type (QUALITY_DOMINANT_TYPE) broke. This
+  is "broken": the dashboard shades it, and it never joins the baseline.
+- shifted: only minor types' shares moved. Recorded, not shaded, and it joins the baseline, so a
+  slow regime change is followed instead of walked (the M1-S4 "boiling frog").
 """
 
 from __future__ import annotations
@@ -32,7 +38,7 @@ class Finding:
 @dataclass
 class Verdict:
     hour: Hour
-    status: str  # "clean" | "flagged" | "no_verdict"
+    status: str  # "clean" | "flagged" | "shifted" | "no_verdict"
     reference_hours: int
     findings: list[Finding] = field(default_factory=list)
 
@@ -64,25 +70,33 @@ def mix(counts: HourCounts, ref: list[HourCounts]) -> list[Finding]:
     return findings
 
 
+def breaks(finding: Finding) -> bool:
+    """Does this finding mean the hour is broken (rather than shifted)?"""
+    return finding.check == "volume" or finding.subject == settings.QUALITY_DOMINANT_TYPE
+
+
 def judge(counts: HourCounts, ref: list[HourCounts], checks: Collection[str] = CHECKS) -> Verdict:
     if len(ref) < settings.QUALITY_MIN_REFERENCE:
         return Verdict(counts.hour, "no_verdict", len(ref))
     findings = (volume(counts, ref) if "volume" in checks else []) + (
         mix(counts, ref) if "mix" in checks else []
     )
-    return Verdict(counts.hour, "flagged" if findings else "clean", len(ref), findings)
+    if not findings:
+        return Verdict(counts.hour, "clean", len(ref))
+    status = "flagged" if any(breaks(f) for f in findings) else "shifted"
+    return Verdict(counts.hour, status, len(ref), findings)
 
 
 def judge_all(
     counts: Iterable[HourCounts], seed: Collection[Hour], checks: Collection[str] = CHECKS
 ) -> list[Verdict]:
-    """Every hour in time order; an hour judged clean joins the baseline of the hours after it."""
+    """Every hour in time order; a clean or shifted hour joins the baseline of the hours after it."""
     history = {c.hour: c for c in counts}
     clean: set[Hour] = set()
     verdicts = []
     for hour in sorted(history):
         verdict = judge(history[hour], reference(hour, history, clean, seed), checks)
-        if verdict.status == "clean":
+        if verdict.status in ("clean", "shifted"):
             clean.add(hour)
         verdicts.append(verdict)
     return verdicts

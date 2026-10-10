@@ -1,5 +1,5 @@
 # 0004: Quality is judged against a rolling clean baseline; verdicts live in one table
-Date: 2026-10-10 · Story: M1-S4 · Status: accepted (known weakness: issue #22)
+Date: 2026-10-10 · Story: M1-S4 · Status: accepted, amended in M1-S5 (`shifted`, closing #22)
 
 ## Context
 
@@ -54,3 +54,26 @@ call most of mid-September to October broken.
   prediction, shown to the owner first.
 - Until #22 lands, the verdict table over-flags Sep 18 – Oct 9. M5 must not shade those hours
   as broken until M1-S5 re-judges them.
+
+## Amendment (M1-S5, 2026-10-10): verdicts say how an hour differs
+
+The weakness above was fixed by an owner decision, verbatim: "Adopt 'shifted' (Recommended)".
+- **`flagged`** means volume broke, or the dominant type (`QUALITY_DOMINANT_TYPE`, PushEvent) did.
+  These hours are shaded by M5 and never join the baseline.
+- **`shifted`** means only minor types' shares moved. These hours are recorded but not shaded,
+  and they join the baseline, so a regime change is followed instead of walked.
+
+Five other candidates were measured first (`automation/runs/m1-s5/`). None kept every abrupt-break
+claim while freeing October:
+- also judging each type's absolute rate;
+- a seed-anchored join;
+- a regime re-seed, after 5 or after 7 days;
+- a centred median.
+
+On the same frozen counts, all 14 claims of `prediction-baseline.json` held:
+- 438 flagged (from 742) and 88 shifted;
+- Oct 1–9: 43 of 216 flagged, every one on volume or PushEvent (its real defects);
+- the mix red team unchanged.
+
+M1-S4's U3 ("≤ 5% of October flagged") was itself wrong: October judged against itself flags
+51 of 216 hours.

@@ -1,0 +1,60 @@
+{
+  "benchmark": "ingest-day",
+  "recorded_at": "2026-10-10T04:04:44Z",
+  "git_head": "f9f7d34",
+  "machine": {
+    "python": "3.12.13",
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel"
+  },
+  "results": [
+    {
+      "day": "2026-10-02",
+      "hours": 24,
+      "rows_in": 2040996,
+      "gz_mb": 554.6,
+      "inputs_sha256": "87408d8b7fdffea752846af8be9190905c4f8917929a4db6f437e62008f892a9",
+      "excluded": "download and S3 PUT (network and disk, not code)",
+      "ingest_day": {
+        "runs": 5,
+        "median_s": 72.7413,
+        "min_s": 72.0801,
+        "max_s": 75.3503,
+        "spread_pct": 4.5,
+        "rows_per_s": 28058,
+        "all_s": [
+          72.7413,
+          73.3771,
+          72.628,
+          75.3503,
+          72.0801
+        ]
+      },
+      "bronze_sha256_by_hour": {
+        "2026-10-02-0": "2ec92d6920a170674a7171416f8b1e93095fdf77a5f72c9180cb76256853f67b",
+        "2026-10-02-1": "82692a24b82b433d838e33f044a67e7cfef6271c14f2c713f84fc38c324a3014",
+        "2026-10-02-2": "63fe93691a4265abd0e30c09e80a96a2f7a81642f8d145074a6d27ba1eda1f63",
+        "2026-10-02-3": "c0dd35953134d6e593ba7d51efa857c7a47eb2c929e614346b373ccc94d53b49",
+        "2026-10-02-4": "cdacc46e12114a3dbb10d98acb47d51f510eaa45e01d782108458e64fecdc7c8",
+        "2026-10-02-5": "50529843e7065d43b9981ac183977380fcac031675d97e48c2eafa9a661fb572",
+        "2026-10-02-6": "250c131473f8769c145be033f58cd252eafa8a64ec1c89e932d2739725f5ea6c",
+        "2026-10-02-7": "2e8077de97da81e27dd1b75f3eed74eea2f8ee932896163f4e6ed532f486ce56",
+        "2026-10-02-8": "97ee21d2bf05c09a6b5803ccf02ea778c18fd2ec517b77d060948e2e54e824d2",
+        "2026-10-02-9": "d83546302caed4ff0293c8bf930513a9b335811b9446c0d9b05d9e55ecd939d8",
+        "2026-10-02-10": "30c2c1b9f8e1d9ea39183f3fdddef7032e62c951ba2b13548a988e4a2c4a9835",
+        "2026-10-02-11": "b98e34fea89ba3e64fc91abddb298904e9a74990191ca86613df1194d26e847b",
+        "2026-10-02-12": "f3c777895d18d1708c2fae7bd08982652fc974f4ca6f20e476c456246949630e",
+        "2026-10-02-13": "4062a883165e05cae150eeab79c77e1509a40b7b21b23fce56a84a1dfad072c2",
+        "2026-10-02-14": "e8b34e2bf3bb9324d8d5ff58d4988be291a5fe16ed50ffaf01d4468d3ce22f33",
+        "2026-10-02-15": "20863afeaf584dff5e8a33fef25a902f31e2484ecc9f15a446efba1c9e963ad4",
+        "2026-10-02-16": "3c811a89f62d08e2ad11c9fdb398b1526ac30ec5a2c1006eedcedd6b139289a2",
+        "2026-10-02-17": "670fc6130804af207e3d1c0dd21ad21c674d52f947ef45df24ecdc6ead327dfb",
+        "2026-10-02-18": "ac8626d07149198457f26774e5b6f2f12b7a20fe49813f20926d6765457ae498",
+        "2026-10-02-19": "66f9609e8f57d942b22cd256d2dfd46b8483e1055fe501064ee6107e639245e8",
+        "2026-10-02-20": "8b6632394d4217d16d486ed2f6241274569967cc9934558ba4316e31eb7df273",
+        "2026-10-02-21": "c0e80e16e3b32e14207bf782f1af3b9d5f694f6941e85d87734a80ba242e6ee7",
+        "2026-10-02-22": "5af36ab7242ac5ec96cb30c0e0291c3562ac33ba34f8fde86b6e6a3852036134",
+        "2026-10-02-23": "ae53299819d1314b63449907396536aa78bd3c06d8b24905ca8f8cc58f4614c6"
+      }
+    }
+  ]
+}

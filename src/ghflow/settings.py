@@ -83,3 +83,6 @@ QUALITY_MIX_MIN_SHARE = 0.05
 #: to 0.15-0.55. 0.6 sits between with margin; the high bar is its log-mirror (1/0.6).
 QUALITY_MIX_LOW = 0.6
 QUALITY_MIX_HIGH = 1.67
+#: The type whose collapse makes an hour broken rather than shifted (owner's decision 2026-10-10,
+#: M1-S5, #22): PushEvent is 74-95% of every regime in the window; minor types swing by regime.
+QUALITY_DOMINANT_TYPE = "PushEvent"
