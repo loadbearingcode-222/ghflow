@@ -7,7 +7,8 @@ its era fails by name) and silver rows = bronze rows per hour. Trigger with conf
 
 DuckDB has exactly one writer: both tasks run in the one-slot `duckdb` pool, and nothing else
 writes the warehouse file. `compact` then copies the warehouse into a fresh file, because DuckDB
-never shrinks its own (#26).
+never shrinks its own (#26), and emits the warehouse asset: gharchive_quality judges the new
+hours, then marts_publish rebuilds the marts with those verdicts (M5-S3).
 """
 
 from __future__ import annotations
@@ -24,8 +25,8 @@ from airflow.timetables.interval import CronDataIntervalTimetable
 GHFLOW_PYTHON = os.environ.get("GHFLOW_PYTHON", "/opt/ghflow-venv/bin/python")
 DBT = str(Path(GHFLOW_PYTHON).with_name("dbt"))
 PROJECT = "/opt/ghflow/dbt/ghflow"
-#: Updated by `export`; dashboard_render runs on it (M5-S2).
-MARTS = Asset("s3://marts/latest/manifest.json")
+#: Emitted after compact: gharchive_quality judges the new hours, then marts_publish (M5-S3).
+WAREHOUSE = Asset("duckdb://warehouse/ghflow")
 FULL_REFRESH = "{{ 'true' if (dag_run.conf or {}).get('full_refresh') else 'false' }}"
 
 
@@ -39,8 +40,9 @@ def run(args: list[str], what: str) -> None:
 
 
 @dag(
-    # Daily at 02:30 UTC, after the day's last hour is published and ingested.
-    schedule=CronDataIntervalTimetable("30 2 * * *", timezone="UTC"),
+    # Daily at 00:30 UTC: GH Archive publishes an hour 5.1-5.4 min after it ends (1,652 hours
+    # measured, M5-S3), so the day's last hour has been ingested for ~20 min. Was 02:30.
+    schedule=CronDataIntervalTimetable("30 0 * * *", timezone="UTC"),
     start_date=pendulum.datetime(2026, 8, 3, tz="UTC"),
     catchup=False,
     max_active_runs=1,
@@ -53,25 +55,12 @@ def dbt_build() -> None:
         args = [DBT, "build", "--project-dir", PROJECT, "--profiles-dir", PROJECT]
         run(args + (["--full-refresh"] if full_refresh == "true" else []), "dbt build")
 
-    @task(pool="duckdb", execution_timeout=timedelta(hours=1), retries=0)
+    @task(pool="duckdb", execution_timeout=timedelta(hours=1), retries=0, outlets=[WAREHOUSE])
     def compact() -> None:
         """Copy the warehouse into a fresh file: DuckDB never shrinks its own (#26)."""
         run([GHFLOW_PYTHON, "-m", "ghflow.commands.warehouse", "compact"], "warehouse compact")
 
-    @task(pool="duckdb", execution_timeout=timedelta(hours=1), retries=0)
-    def twin() -> None:
-        """M5-S1: every KPI headline recomputed independently; a mismatch stops the export."""
-        run([GHFLOW_PYTHON, "-m", "ghflow.commands.marts", "twin"], "marts twin")
-
-    @task(pool="duckdb", execution_timeout=timedelta(hours=1), retries=0, outlets=[MARTS])
-    def export(**context: object) -> None:
-        """Snapshot the marts (refused if any is empty, M5-S1). The asset event carries this
-        build's start, so dashboard_render can refuse marts older than it (M5-S2)."""
-        run([GHFLOW_PYTHON, "-m", "ghflow.commands.marts", "export"], "marts export")
-        started = context["dag_run"].start_date.isoformat()  # type: ignore[attr-defined]
-        context["outlet_events"][MARTS].extra = {"build_started": started}  # type: ignore[index]
-
-    build(full_refresh=FULL_REFRESH) >> compact() >> twin() >> export()
+    build(full_refresh=FULL_REFRESH) >> compact()
 
 
 dbt_build()

@@ -192,8 +192,32 @@ flowchart LR
 - **Every table tolerates a re-read block.** The Kafka engine delivers at least once, and ReplacingMergeTree, bitmap states and markers-as-data absorb the duplicates (ADR-0010).
 - **Grafana reads only ClickHouse** (ADR-0011). The ops data comes through PostgreSQL-engine tables, and lag through the sampler.
 
-Status at this revision (M4-S3, `v0.4.0`):
-- **Batch path:** runs end to end over the whole window (Aug 3 onward, hourly since), with the SCD2 dimensions.
-- **Replayed stream:** carries the same window. Batch = stream = ClickHouse for every hour (three witnesses), and the repo-state topic equals `dim_repo`.
-- **Ops:** the Grafana dashboard shows freshness, lag per consumer group, reconciliation and flagged hours.
-- **Still planned:** the stakeholder dashboard (M5).
+## The stakeholder story as it runs (M5)
+
+```mermaid
+flowchart LR
+  ING["gharchive_ingest · hourly"] --> BRZ[("bronze")]
+  BRZ --> DBT["dbt_build · 00:30<br/>staging · silver · gold"]
+  DBT -->|warehouse asset| Q["gharchive_quality<br/>judge every hour"]
+  Q -->|verdicts asset| MP["marts_publish<br/>marts · twin · export"]
+  PG[("ghflow_ops.quality_verdicts")] -.->|"postgres attach (read-only)"| MP
+  MP -->|marts asset| DR["dashboard_render<br/>fill · quarto · check · publish"]
+  MP --> S3[("s3://marts/latest<br/>Parquet snapshots")]
+  S3 --> DR
+  DR --> NG["nginx · 127.0.0.1:33001<br/>+ zip that opens offline"]
+```
+
+- **Data, not clock times, orders the daily chain** (M5-S3, gotcha #57). A day reaches the
+  dashboard about 30 minutes after its last hour is published, and only once all 24 of its
+  hours are judged.
+- **Every number on a page is anchored to a mart and read back before publishing** (ADR-0013).
+  Every mart's headline has an independent twin (ADR-0012).
+
+Status at this revision (M5-S3):
+- **Batch path:** the whole window runs end to end (Aug 3 onward, hourly since), with the SCD2
+  dimensions, the insight marts and their twins.
+- **Replayed stream:** batch = stream = ClickHouse for every hour, and the repo-state topic
+  equals `dim_repo`.
+- **Ops and stakeholders:** Grafana for engineers; the Quarto dashboard for everyone else,
+  rebuilt by the asset chain.
+- **Still planned:** the one-command demo (M5-S4, `v1.0.0`).

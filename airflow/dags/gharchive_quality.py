@@ -1,6 +1,6 @@
 """gharchive_quality: judge every hour, re-check ETags, re-ingest what changed (M1-S4, ADR-0004).
 
-Daily at 03:30 UTC, after dbt_build (02:30):
+After every dbt_build (the warehouse asset its compact emits; M5-S3, before that daily 03:30):
 1. judge: every hour against its rolling clean baseline; each verdict, with the bars it was
    taken under, goes to ghflow_ops.quality_verdicts (the one table "broken" is defined by).
 2. etag_check: HEAD the last 14 days of hours; a changed ETag queues the hour for re-ingest.
@@ -16,12 +16,14 @@ import subprocess
 
 import pendulum
 from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
-from airflow.sdk import dag, task
-from airflow.timetables.interval import CronDataIntervalTimetable
+from airflow.sdk import Asset, dag, task
 
 GHFLOW_PYTHON = os.environ.get("GHFLOW_PYTHON", "/opt/ghflow-venv/bin/python")
 # Exit codes, as ghflow.exitcodes defines them (this interpreter cannot import ghflow).
 PASSED, NO_VERDICT = 0, 3
+#: M5-S3 chain: dbt_build -> (WAREHOUSE) -> judge -> (VERDICTS) -> marts_publish -> dashboard_render.
+WAREHOUSE = Asset("duckdb://warehouse/ghflow")
+VERDICTS = Asset("postgres://platform-db:5432/ghflow_ops/public/quality_verdicts")
 
 
 def ghflow(*args: str, also_ok: tuple[int, ...] = ()) -> int:
@@ -35,7 +37,7 @@ def ghflow(*args: str, also_ok: tuple[int, ...] = ()) -> int:
 
 
 @dag(
-    schedule=CronDataIntervalTimetable("30 3 * * *", timezone="UTC"),
+    schedule=[WAREHOUSE],
     start_date=pendulum.datetime(2026, 8, 3, tz="UTC"),
     catchup=False,
     max_active_runs=1,
@@ -43,7 +45,7 @@ def ghflow(*args: str, also_ok: tuple[int, ...] = ()) -> int:
     doc_md=__doc__,
 )
 def gharchive_quality() -> None:
-    @task(pool="duckdb")  # reads the warehouse: never while dbt_build writes it
+    @task(pool="duckdb", outlets=[VERDICTS])  # reads the warehouse: never while dbt_build writes it
     def judge(run_id: str) -> None:
         ghflow("ghflow.commands.quality", "judge", "--run-id", run_id)
 

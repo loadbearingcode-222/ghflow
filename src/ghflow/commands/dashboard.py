@@ -32,13 +32,12 @@ import pyarrow.parquet as pq
 
 from ghflow import dashboard, figures
 from ghflow.commands.local import REPO_ROOT, s3_config
+from ghflow.commands.marts import MARTS
 from ghflow.exitcodes import ExitCode, guarded
 from ghflow.storage import Store
 
 TEMPLATES = REPO_ROOT / "dashboard"
 SITE_ROOT = Path(os.environ.get("GHFLOW_DASHBOARD_SITE", "/opt/ghflow/dashboard-site"))
-MARTS = ["mart_daily_activity", "mart_event_mix", "mart_hour_of_week", "mart_rising_repos",
-         "mart_bot_share", "mart_top_bots", "mart_trust"]  # fmt: skip
 
 
 def load_marts() -> tuple[Any, dict[str, Any]]:
@@ -68,7 +67,7 @@ def build(out: Path) -> Path:
     con, marts = load_marts()
     shutil.rmtree(out, ignore_errors=True)
     shutil.copytree(TEMPLATES, out, ignore=shutil.ignore_patterns("_site", ".quarto"))
-    import plotly  # type: ignore[import-untyped]
+    import plotly
 
     shutil.copy(Path(plotly.__file__).parent / "package_data" / "plotly.min.js", out / "assets")
     nums = numbers(con)

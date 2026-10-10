@@ -241,7 +241,12 @@ def open_store(path: Path) -> tuple[StateStore, dict[str, Any]]:
         if mode != "tail":
             store, start = StateStore(path, fresh=True), None
         assert store is not None
-        read = restore(reader, store, start)
+        if mode == "tail" and start and all(start.get(p, 0) == e for p, e in end.items()):
+            # Nothing was written since the store's position: reading would only wait for EOF
+            # (a 5 s floor, then 1.5 s: #36). The store already is the changelog's state.
+            mode, read = "tail: caught up, nothing to read", 0
+        else:
+            read = restore(reader, store, start)
     finally:
         reader.close()
     return store, {

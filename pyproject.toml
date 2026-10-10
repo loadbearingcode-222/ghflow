@@ -18,6 +18,7 @@ dev = [
     "pyyaml>=6.0",
     "types-PyYAML>=6.0",
     "import-linter>=2.3",
+    "vulture>=2.14",
 ]
 # Talks to the running stack (.\make.ps1 test-integration). Its clients (pyarrow, psycopg) became
 # runtime dependencies in M1-S1; the group stays as the CI/make entry point for these tests.
@@ -127,6 +128,11 @@ follow_imports = "skip"
 [[tool.mypy.overrides]]
 # pyarrow ships without complete type hints.
 module = ["pyarrow", "pyarrow.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# M5: plotly (dashboard) and vulture (the cohesion test) ship no type information.
+module = ["plotly", "plotly.*", "vulture", "vulture.*"]
 ignore_missing_imports = true
 
 # ---------------------------------------------------------------- pytest

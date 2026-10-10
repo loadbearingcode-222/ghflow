@@ -93,3 +93,27 @@ def test_gharchive_quality_judges_then_rechecks_then_reingests() -> None:
         assert downstream in dag.get_task(upstream).downstream_task_ids, (upstream, downstream)
     assert dag.get_task("judge").pool == "duckdb", "the warehouse has one writer; read outside it"
     assert dag.get_task("rebuild_silver").conf == {"full_refresh": True}
+
+
+def _schedule_uris(dag: object) -> set[str]:
+    condition = dag.timetable.asset_condition  # type: ignore[attr-defined]
+    return {asset.uri for asset in condition.objects}
+
+
+def test_the_daily_chain_runs_on_assets_build_judge_marts_dashboard() -> None:
+    """M5-S3: a day reaches the dashboard only after its hours are judged."""
+    dags = DagBag(dag_folder=str(DAGS)).dags
+    uris = {
+        t.task_id: {o.uri for o in t.outlets} for d in dags.values() for t in d.tasks if t.outlets
+    }
+    assert uris["compact"] == {"duckdb://warehouse/ghflow"}
+    assert _schedule_uris(dags["gharchive_quality"]) == {"duckdb://warehouse/ghflow"}
+    assert uris["judge"] == {"postgres://platform-db:5432/ghflow_ops/public/quality_verdicts"}
+    assert _schedule_uris(dags["marts_publish"]) == {
+        "postgres://platform-db:5432/ghflow_ops/public/quality_verdicts"
+    }
+    assert uris["export"] == {"s3://marts/latest/manifest.json"}
+    assert _schedule_uris(dags["dashboard_render"]) == {"s3://marts/latest/manifest.json"}
+    publish = dags["marts_publish"]
+    assert [t.task_id for t in publish.topological_sort()] == ["refresh", "twin", "export"]
+    assert {t.pool for t in publish.tasks} == {"duckdb"}, "one writer (ADR-0003)"

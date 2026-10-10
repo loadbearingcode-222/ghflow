@@ -1,0 +1,60 @@
+{
+  "story": "M5-S3",
+  "change": "D1",
+  "prediction": "prediction.json (5cd662f)",
+  "benchmark": "dashboard",
+  "metric": "s of dashboard build (fill + quarto render); zip bytes of the site",
+  "before": {
+    "all_s": [
+      11.86,
+      11.82,
+      11.5,
+      11.54,
+      11.57
+    ],
+    "median_s": 11.57,
+    "iqr_s": [
+      11.52,
+      11.84
+    ],
+    "zip_bytes": [
+      14505484,
+      14505484,
+      14505484,
+      14505484,
+      14505484
+    ]
+  },
+  "after": {
+    "all_s": [
+      3.68,
+      3.77,
+      3.63,
+      3.56,
+      3.64
+    ],
+    "median_s": 3.64,
+    "iqr_s": [
+      3.59,
+      3.72
+    ],
+    "zip_bytes": [
+      1842408,
+      1842408,
+      1842408,
+      1842408,
+      1842408
+    ]
+  },
+  "verdict": {
+    "render_ratio": 0.315,
+    "render_claim": "<= 0.8",
+    "zip_mb": 1.84,
+    "zip_claim": "<= 3.0 MB",
+    "iqrs_disjoint": true,
+    "check": true,
+    "redteam_all_caught": true,
+    "tags_loading_http": 0,
+    "kept": true
+  }
+}
