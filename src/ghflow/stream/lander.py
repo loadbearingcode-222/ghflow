@@ -25,9 +25,10 @@ from confluent_kafka import Consumer, TopicPartition
 
 from ghflow import bronze
 from ghflow.storage import Store
+from ghflow.stream import clients
 
-TOPIC = "gharchive.events"
-GROUP = "lander"
+TOPIC = clients.TOPIC
+GROUP = clients.LANDER_GROUP
 BUCKET = "stream"
 
 HOURS_SQL = b"""
@@ -70,16 +71,6 @@ def landed_path(partition: int, first: int, last: int) -> str:
 def compact_path(hour_key: str) -> str:
     day, _, hh = hour_key.rpartition("-")
     return f"{BUCKET}/compact/date={day}/hour={int(hh):02d}/events.parquet"
-
-
-def consumer_config(bootstrap: str) -> dict[str, Any]:
-    return {
-        "bootstrap.servers": bootstrap,
-        "group.id": GROUP,
-        "enable.auto.commit": False,  # commit only after the file is written
-        "auto.offset.reset": "earliest",
-        "max.poll.interval.ms": 600_000,
-    }
 
 
 @dataclass

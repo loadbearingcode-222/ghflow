@@ -21,9 +21,9 @@ from confluent_kafka import KafkaError, Message, Producer
 from ghflow import bronze, settings
 from ghflow.hours import Hour
 from ghflow.storage import Store
-from ghflow.stream import schema
+from ghflow.stream import clients, schema
 
-TOPIC = "gharchive.events"
+TOPIC = clients.TOPIC
 
 CHECKPOINT_SQL = b"""
 create table if not exists replay_checkpoint (
@@ -36,18 +36,6 @@ create table if not exists replay_checkpoint (
     replayed_at   timestamptz not null default now()
 );
 """
-
-
-def producer_config(bootstrap: str) -> dict[str, Any]:
-    return {
-        "bootstrap.servers": bootstrap,
-        "enable.idempotence": True,  # retries never duplicate within one producer session
-        "acks": "all",
-        "compression.type": "zstd",
-        "linger.ms": 50,
-        "partitioner": "murmur2_random",  # Java-compatible: same repo id, same partition
-        "queue.buffering.max.messages": 500_000,
-    }
 
 
 @dataclass

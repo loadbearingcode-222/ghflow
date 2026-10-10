@@ -70,6 +70,7 @@ ghflow/
 │  ├─ stream/
 │  │  ├─ __init__.py · replayer.py                    M2-S1  bronze hour → topic; checkpoint after flush; end-of-hour markers
 │  │  ├─ schema.py                                   M2-S1  pure: the Avro schema generated from bronze, named record rules, BACKWARD check
+│  │  ├─ clients.py                                  M2-S4  the one Kafka / registry client configuration (a test refuses settings anywhere else)
 │  │  ├─ lander.py · compact.py                       M2-S2  topic → S3 files named by offset range; small-file compaction
 │  │  └─ repo_state.py                                M3-S2  stateful processor: SQLite store + compacted changelog, transactional
 │  └─ reconcile.py                                    M2-S3  per-hour event-id sets: batch ↔ stream (↔ ClickHouse from M4-S1)

@@ -9,7 +9,7 @@ import confluent_kafka.admin as kafka_admin
 import pytest
 
 from ghflow import settings
-from ghflow.stream import schema
+from ghflow.stream import clients, schema
 
 pytestmark = pytest.mark.integration
 
@@ -17,7 +17,7 @@ BOOTSTRAP, REGISTRY, TOPIC = "127.0.0.1:39092", "http://127.0.0.1:38081", "gharc
 
 
 def test_the_topic_matches_its_spec() -> None:
-    admin = kafka_admin.AdminClient({"bootstrap.servers": BOOTSTRAP})
+    admin = clients.admin()
     topic = admin.list_topics(TOPIC, timeout=30).topics[TOPIC]
     assert len(topic.partitions) == settings.STREAM_PARTITIONS
     # ConfigResource is real; the 2.16 type stub leaves it out of __all__.
