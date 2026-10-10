@@ -1,4 +1,4 @@
-"""dbt_build: bronze → silver in DuckDB, once a day (M1-S3, ADR-0003).
+"""dbt_build: bronze → silver → gold → marts in DuckDB, once a day (M1-S3, ADR-0003; marts M5-S1).
 
 `dbt build` loads the newest days of bronze into the incremental staging table, refreshes the
 typed silver views and runs every test: the enforced contracts, the era tests (a field outside
@@ -61,7 +61,26 @@ def dbt_build() -> None:
         if done.returncode != 0:
             raise RuntimeError(f"warehouse compact exited {done.returncode}")
 
-    build(full_refresh=FULL_REFRESH) >> compact()
+    @task(pool="duckdb", execution_timeout=timedelta(hours=1), retries=0)
+    def marts(command: str) -> None:
+        """M5-S1: `twin` recomputes every KPI headline independently and must match; `export`
+        then snapshots the marts to s3://marts/latest (refused if any mart is empty)."""
+        done = subprocess.run(
+            [GHFLOW_PYTHON, "-m", "ghflow.commands.marts", command],
+            capture_output=True,
+            text=True,
+        )
+        print(done.stdout, end="")
+        print(done.stderr, end="")
+        if done.returncode != 0:
+            raise RuntimeError(f"marts {command} exited {done.returncode}")
+
+    (
+        build(full_refresh=FULL_REFRESH)
+        >> compact()
+        >> marts.override(task_id="twin")("twin")
+        >> marts.override(task_id="export")("export")
+    )
 
 
 dbt_build()

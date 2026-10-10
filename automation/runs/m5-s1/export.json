@@ -1,0 +1,76 @@
+{
+  "story": "M5-S1",
+  "accept_when": "the marts export as Parquet snapshots",
+  "dag_run": "m5-s1-marts-185132",
+  "objects": [
+    "marts/latest/manifest.json",
+    "marts/latest/mart_bot_share.parquet",
+    "marts/latest/mart_daily_activity.parquet",
+    "marts/latest/mart_event_mix.parquet",
+    "marts/latest/mart_hour_of_week.parquet",
+    "marts/latest/mart_rising_repos.parquet",
+    "marts/latest/mart_top_bots.parquet",
+    "marts/latest/mart_trust.parquet"
+  ],
+  "built_at": "20261010T185458Z",
+  "marts": {
+    "mart_daily_activity": {
+      "rows": 68,
+      "sha256": "e91ef141497ad697b9570135131e84cbf2b567001bd2a959c3d1ab3d73f0eed9"
+    },
+    "mart_event_mix": {
+      "rows": 959,
+      "sha256": "a37188660c98ec34ecb7598a5fa505e1254d9e02835393090a2a301b26971660"
+    },
+    "mart_hour_of_week": {
+      "rows": 168,
+      "sha256": "2c887c387d4b91615f3cddb2b6060d00480e0665ab07ca09735ecd4186782c93"
+    },
+    "mart_rising_repos": {
+      "rows": 25,
+      "sha256": "bad347dabd4ba99a3b3016e3d5eec60ed5aa73707c4b1aeae0bc2bd3f21eb656"
+    },
+    "mart_bot_share": {
+      "rows": 60,
+      "sha256": "246f7c27c2b722c3f607c1f6c71bccf59d81c3980cadc2a42e79ba757d221a09"
+    },
+    "mart_top_bots": {
+      "rows": 20,
+      "sha256": "4b775eec3f493ba5e6ccd0146eae8092f6e355cb32990c7f322758dca6756e35"
+    },
+    "mart_trust": {
+      "rows": 69,
+      "sha256": "40e8a93fd2365c82067497625dfdca3ab4a7dad9b6ac545bf44b47689a3b741c"
+    }
+  },
+  "headlines": {
+    "K01": [
+      2228544.5,
+      null
+    ],
+    "K02": [
+      0.8899801377711329,
+      null
+    ],
+    "K03": [
+      141292.0,
+      "Monday 1:00 UTC"
+    ],
+    "K04": [
+      903,
+      "eternity4719/HowToLiveBetter"
+    ],
+    "K05": [
+      0.11275091967707754,
+      null
+    ],
+    "K06": [
+      10200747,
+      "github-actions[bot]"
+    ],
+    "K07": [
+      0.9993939393939394,
+      null
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+version: 2
+
+# One mart per KPI (M5-S1, ADR-0012). `meta.kpi` links each to its row in docs/KPIS.md; a unit
+# test fails on a mart without an entry or an entry without a mart. Every mart reads hour trust
+# from stg_ops__hour_verdicts, the one definition of a broken hour.
+
+models:
+  - name: mart_daily_activity
+    meta: {kpi: K01}
+    description: "Per complete day: events, flagged / shifted hours, events per day over clean hours (scaled to 24), actors and repos seen in clean hours."
+    columns:
+      - name: event_date
+        data_tests: [not_null, unique]
+  - name: mart_event_mix
+    meta: {kpi: K02}
+    description: "Per complete day and event type: events in clean hours and their share of the day."
+  - name: mart_hour_of_week
+    meta: {kpi: K03}
+    description: "Average events per clean hour by weekday (1 = Monday) and hour of day (UTC)."
+  - name: mart_rising_repos
+    meta: {kpi: K04}
+    description: "Top 25 repos by stars in the newest 14 complete days, against the 14 before; clean hours only; current names from dim_repo."
+  - name: mart_bot_share
+    meta: {kpi: K05}
+    description: "Per complete day: the share of clean-hour events made by GitHub App bots (logins ending in [bot])."
+  - name: mart_top_bots
+    meta: {kpi: K06}
+    description: "The 20 busiest GitHub App bots over the window, clean hours only."
+  - name: mart_trust
+    meta: {kpi: K07}
+    description: "Per day: hours ingested, quality verdicts, and hours reconciled green across the three witnesses."

@@ -23,6 +23,9 @@ models:
       +schema: silver
     gold:
       +schema: gold
+    marts:
+      +schema: marts
+      +materialized: table
 
 flags:
   send_anonymous_usage_stats: false
