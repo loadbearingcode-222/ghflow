@@ -159,6 +159,13 @@ Silver (M1-S3, ADR-0003): DAG `dbt_build` (daily 02:30, pool `duckdb` = the one 
 Warehouse: `/opt/ghflow/warehouse/ghflow.duckdb` (volume `warehouse`); attach it read-only AS
 `ghflow` (gotcha #47). Full rebuild: trigger dbt_build with conf {"full_refresh": true}.
 
+Quality (M1-S4, ADR-0004): DAG `gharchive_quality` (daily 03:30) judges every hour against a
+rolling clean baseline → `ghflow_ops.quality_verdicts` (status, findings, bars), re-checks 14 days
+of ETags → `reingest_requests` → re-ingest → dbt_build full_refresh. Offline:
+`uv run python -m ghflow.commands.quality argue|run|redteam --counts automation/runs/m1-s4/hour_counts.json`;
+`python -m ghflow.commands.etag check|process|redteam`. Known: the baseline over-flags
+Sep 18 - Oct 9 (issue #22, M1-S5); M5 must not shade those hours until it is fixed.
+
 Code layers (M0-S5, `docs/ITERATION.md`): pure core `settings`, `hours`, `events`, `fields`,
 `contract`, `profiling` (no I/O); shell `archive`, `commands/` (every CLI through `guarded()`).
 One cast (`contract.py`), one JSON-line reader (`events.py`), one home per knob (`settings.py`);
