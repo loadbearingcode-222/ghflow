@@ -182,6 +182,9 @@ DAG `stream_compact` (15 min) compacts closed hours into stream/compact; `.\make
 Reconcile (M2-S3, ADR-0007): DAG `reconcile` (hourly :45) compares bronze ids with compacted stream
 ids per hour → `reconcile_results`; `uv run python -m ghflow.commands.reconcile run --to <hour>`.
 Operating and failure steps: `docs/RUNBOOK.md`, `docs/FAILURE_DRILLS.md`.
+Kafka clients only via `ghflow.stream.clients` (law test). `dbt_build` = build -> compact (the
+warehouse copied into a fresh file each run, M2-S4). Stream bench: `scripts/bench.py stream`
+(disposable topics); measure before/after INTERLEAVED (a worktree of the base commit + `.env`).
 
 Code layers (M0-S5, `docs/ITERATION.md`): pure core `settings`, `hours`, `events`, `fields`,
 `contract`, `profiling` (no I/O); shell `archive`, `commands/` (every CLI through `guarded()`).

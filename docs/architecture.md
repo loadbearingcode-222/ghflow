@@ -131,7 +131,27 @@ flowchart LR
 Every DAG is thin by law (`tests/unit/test_thin_dags.py`): it calls `python -m ghflow.commands.…`
 in the project venv and maps exit codes; parsing, Parquet and SQL live in `src/ghflow`.
 
-Status at this revision (M1-S5, `v0.1.0`): the batch path runs end to end over the whole window
-(Aug 3 onward, hourly since): ingest with an audit row per attempt, a backfill that can be parked,
-silver generated from the contract, and quality verdicts that say how an hour differs. The stream
-(M2–M4) and the stakeholder dashboard (M5) are planned.
+## The replayed stream as it runs (M2)
+
+```mermaid
+flowchart LR
+  BRZ[("bronze Parquet")] --> REP["replayer · service<br/>checkpoint after flush"]
+  REP -->|Avro, keyed by repo id<br/>+ END_OF_HOUR per partition| RP[["gharchive.events<br/>6 partitions · LogAppendTime · BACKWARD"]]
+  RP --> LAN["lander · service<br/>one file per (partition, hour)<br/>commit after write"]
+  LAN --> LND[("stream/landed")]
+  LND --> CMP["stream_compact · 15 min<br/>closed hours · dedup by id"]
+  CMP --> SC[("stream/compact")]
+  BRZ & SC --> REC["reconcile · hourly<br/>batch ids = stream ids"]
+  REC -.-> RR[("reconcile_results")]
+  REP -.-> CK[("replay_checkpoint")]
+  LAN -.-> SH[("stream_hours")]
+```
+
+Every Kafka client is built by `ghflow.stream.clients` (a test refuses client settings anywhere
+else). Status at this revision (M2-S4, `v0.2.0`):
+- **Batch path:** runs end to end over the whole window (Aug 3 onward, hourly since), and
+  `dbt_build` compacts the warehouse after each build.
+- **Replayed stream:** carries the same window, and reconciles with the batch path to the event
+  (1,640 hours green, 0 missing, 0 extra).
+- **Still planned:** repo history (M3), ClickHouse and Grafana (M4), and the stakeholder
+  dashboard (M5).
