@@ -1,0 +1,14 @@
+---
+title: "What's rising"
+---
+
+::: {.finding}
+**The repositories gaining stars fastest** in the two weeks up to {{n:rising_end}}: the leader,
+{{e:top_repo}}, picked up {{n:top_repo_stars}} new stars. Here are the top {{n:rising_count}},
+next to how they did in the two weeks before.
+:::
+
+{{fig:rising}}
+
+A star is a public bookmark, the closest thing GitHub has to a "like". Only projects are ranked
+here, never people.

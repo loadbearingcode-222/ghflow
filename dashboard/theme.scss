@@ -1,0 +1,11 @@
+/*-- scss:defaults --*/
+$primary: #1f6feb;
+$font-family-sans-serif: "Inter", "Segoe UI", system-ui, sans-serif;
+$body-color: #1f2328;
+
+/*-- scss:rules --*/
+.num { font-weight: 650; color: #0b3d91; white-space: nowrap; }
+.entity { font-family: ui-monospace, "Cascadia Code", monospace; font-size: 0.95em; }
+.finding { font-size: 1.15rem; line-height: 1.6; margin: 1.2rem 0 0.6rem; }
+.fig { width: 100%; min-height: 420px; }
+.callout-flagged { border-left: 4px solid rgba(214, 39, 40, 0.6); padding-left: 0.8rem; color: #57606a; }

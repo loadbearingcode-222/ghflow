@@ -1,0 +1,25 @@
+{
+  "story": "M5-S2",
+  "accept_when": "a red team that alters one number, or drops the shading of flagged hours, fails naming it; a page naming a human account fails",
+  "plants": {
+    "number": {
+      "caught": true,
+      "named": [
+        "index: typical_day reads '2.24 million', the marts say '2.23 million'"
+      ]
+    },
+    "shading": {
+      "caught": true,
+      "named": [
+        "trends: chart trends shades 40 days, the marts flag 41"
+      ]
+    },
+    "person": {
+      "caught": true,
+      "named": [
+        "rising: names 'octocat' as 'person': only ranked repos and bots may be named"
+      ]
+    }
+  },
+  "all_caught": true
+}

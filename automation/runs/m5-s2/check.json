@@ -1,0 +1,10 @@
+{
+  "story": "M5-S2",
+  "accept_when": "dashboard_check reads every number in the page text back from the marts and fails on any empty chart",
+  "site": "the published release (dashboard-site/current -> releases/20261010T192426Z), built by dashboard_render after dbt_build m5-s2-dash-191709",
+  "pages": 6,
+  "numbers_and_names": 27,
+  "charts": 7,
+  "problems": [],
+  "passed": true
+}

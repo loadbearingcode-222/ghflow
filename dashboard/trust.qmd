@@ -1,0 +1,20 @@
+---
+title: "Can we trust it?"
+---
+
+::: {.finding}
+**We checked every hour.** Of {{n:hours_ingested}} hours read so far, {{n:flagged_hours}} were
+broken at the source: far too few events, or pushes missing. They are left out of averages and
+shaded on every chart. Another {{n:shifted_hours}} hours only had their mix of minor event kinds
+move; they are kept.
+:::
+
+::: {.finding}
+**Three independent copies agree, event by event:** the daily batch, the live stream and a fast
+analytics database. They held exactly the same events in {{n:reconciled_share}} of all hours.
+:::
+
+{{fig:trust}}
+
+Every number on these pages is recomputed from the data each time the pages are built, and the
+build stops if any of them does not read back exactly.

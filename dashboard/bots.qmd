@@ -1,0 +1,17 @@
+---
+title: "Bots and people"
+---
+
+::: {.finding}
+**About {{n:bot_share}} of all public activity comes from bots:** automated accounts that run
+tests, update dependencies and tidy up repositories.
+:::
+
+{{fig:bot_share}}
+
+::: {.finding}
+**The busiest of them is {{e:top_bot}},** with {{n:top_bot_events}} events. These are the most
+active bots; people are never ranked on these pages.
+:::
+
+{{fig:top_bots}}

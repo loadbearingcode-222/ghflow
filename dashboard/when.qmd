@@ -1,0 +1,17 @@
+---
+title: "When the world codes"
+---
+
+::: {.finding}
+**The busiest hour of the week is {{n:busiest_slot}},** with about {{n:busiest_avg}} events in
+that hour on average. The quietest is {{n:quietest_slot}}, with about {{n:quietest_avg}}.
+:::
+
+::: {.finding}
+**Weekdays against weekends:** an average weekday hour sees {{n:weekday_lift}} activity than an
+average weekend hour. Public GitHub never sleeps: activity runs around the clock, in every time zone.
+:::
+
+{{fig:when}}
+
+Times are in UTC. Hover over a square to see its average.

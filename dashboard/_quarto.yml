@@ -1,0 +1,35 @@
+# The stakeholder dashboard (M5-S2, ADR-0013). The .qmd pages here are templates: `python -m
+# ghflow.commands.dashboard build` fills their numbers, names and charts from the mart snapshots
+# into a build directory and renders that. Each page embeds its resources, so the built site
+# opens from a folder or a zip, without the stack.
+project:
+  type: website
+  output-dir: _site
+  resources:
+    - assets/plotly.min.js
+website:
+  title: "GitHub, in public"
+  search: false
+  navbar:
+    left:
+      - href: index.qmd
+        text: The gist
+      - href: trends.qmd
+        text: Trends
+      - href: when.qmd
+        text: When the world codes
+      - href: rising.qmd
+        text: What's rising
+      - href: bots.qmd
+        text: Bots and people
+      - href: trust.qmd
+        text: Can we trust it?
+  page-footer:
+    center: "Data: GH Archive (gharchive.org), every public GitHub event. Built by ghflow."
+format:
+  html:
+    theme: [cosmo, theme.scss]
+    embed-resources: true
+    toc: false
+    page-layout: article
+    include-after-body: assets/scripts.html
