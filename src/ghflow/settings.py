@@ -117,5 +117,12 @@ LAG_SAMPLE_S = 15
 DEMO_FIRST = date(2026, 8, 5)
 DEMO_LAST = date(2026, 8, 9)
 DEMO_BROKEN_DAY = date(2026, 8, 7)
+#: The plan's "one clean day": a weekday. On a five-day seed, two weekend afternoons came out at
+#: 2.01x and 2.03x the median of four references, one of them Aug 7's broken hour: flagged high
+#: there, clean in production's thirteen-day seed. The demo reports every day; it requires the
+#: broken day to be caught and this day to stay clean.
+DEMO_CLEAN_DAY = date(2026, 8, 5)
+#: Production flags 11 hours on Aug 7; the demo must catch at least this many.
+DEMO_BROKEN_MIN_FLAGGED = 5
 #: How long the demo waits for the stream (replay, land, compact, ClickHouse) to close every hour.
 DEMO_STREAM_DEADLINE_S = 3600

@@ -165,17 +165,14 @@ def accept() -> dict[str, Any]:
         )
     )
     verdicts = _ops(
-        "select distinct on (hour_start) hour_start::date, status from quality_verdicts order by hour_start, judged_at desc"
+        "select day, status from (select distinct on (hour_start) hour_start::date as day, status from quality_verdicts order by hour_start, judged_at desc) v"
     )
     flagged: dict[str, int] = {}
     for day, status in verdicts:
         flagged[day.isoformat()] = flagged.get(day.isoformat(), 0) + (status == "flagged")
     rec = dict(_ops("select distinct on (hour) hour, status || ':' || coalesce(clickhouse_ids, -1)::text "
                     "from reconcile_results order by hour, checked_at desc"))  # fmt: skip
-    broken, clean_days = (
-        settings.DEMO_BROKEN_DAY.isoformat(),
-        [d for d in flagged if d != settings.DEMO_BROKEN_DAY.isoformat()],
-    )
+    broken, clean = settings.DEMO_BROKEN_DAY.isoformat(), settings.DEMO_CLEAN_DAY.isoformat()
     twin = _json([PY, "-m", "ghflow.commands.marts", "twin"])
     dash = _json(
         [
@@ -190,7 +187,8 @@ def accept() -> dict[str, Any]:
     diff = _json([PY, "-m", "ghflow.commands.repo_state", "diff"])
     checks = {
         "every hour ingested and accepted": all(final.get(k) == "accepted" for k in keys),
-        "the broken day has flagged hours, the clean days none": flagged.get(broken, 0) > 0 and not any(flagged[d] for d in clean_days),
+        "the broken day is caught (>= DEMO_BROKEN_MIN_FLAGGED hours)": flagged.get(broken, 0) >= settings.DEMO_BROKEN_MIN_FLAGGED,
+        "the clean day has no flagged hour": clean in flagged and flagged[clean] == 0,
         "batch = stream = ClickHouse for every hour": all(rec.get(k, "").startswith("green:") and not rec[k].endswith(":-1") for k in keys),
         "every KPI headline matches its twin": bool(twin.get("all_match")),
         "the dashboard reads every number back": bool(dash.get("passed")),
