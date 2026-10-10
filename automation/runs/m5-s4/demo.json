@@ -1,0 +1,178 @@
+{
+  "story": "M5-S4",
+  "accept_when": "from a clean clone, .\\make.ps1 demo runs a bounded window end to end (one clean day and one day with broken hours), renders the dashboard, passes demo_acceptance.py and commits its evidence JSON",
+  "clone": {
+    "commit": "be93cb2",
+    "how": "git clone of feat/m5-s4-demo into a new folder (no .env), GHFLOW_DEMO_PROJECT=ghflow-demo-5, .\\make.ps1 demo",
+    "minutes": 16.4
+  },
+  "steps": [
+    {
+      "step": "ingest",
+      "seconds": 284.1,
+      "hours": 120
+    },
+    {
+      "step": "dbt build --full-refresh",
+      "seconds": 27.9
+    },
+    {
+      "step": "quality judge",
+      "seconds": 0.5
+    },
+    {
+      "step": "stream closed every hour",
+      "seconds": 617.2,
+      "compacted": 120,
+      "clickhouse_closed": 120,
+      "of": 120
+    },
+    {
+      "step": "reconcile (three witnesses)",
+      "seconds": 17.3
+    },
+    {
+      "step": "marts",
+      "seconds": 4.0
+    },
+    {
+      "step": "marts twin",
+      "seconds": 2.3
+    },
+    {
+      "step": "marts export",
+      "seconds": 0.5
+    },
+    {
+      "step": "dashboard render",
+      "seconds": 4.7
+    },
+    {
+      "step": "demo",
+      "seconds": 958.5,
+      "window": [
+        "2026-08-05",
+        "2026-08-09"
+      ]
+    }
+  ],
+  "window": [
+    "2026-08-05",
+    "2026-08-09"
+  ],
+  "hours": 120,
+  "flagged_hours_by_day": {
+    "2026-08-05": 0,
+    "2026-08-06": 0,
+    "2026-08-07": 9,
+    "2026-08-08": 1,
+    "2026-08-09": 1
+  },
+  "twin": {
+    "K01": {
+      "mart": [
+        3250065.0,
+        null
+      ],
+      "twin": [
+        3250065.0,
+        null
+      ],
+      "match": true
+    },
+    "K02": {
+      "mart": [
+        0.9535109868760474,
+        null
+      ],
+      "twin": [
+        0.9535109868760474,
+        null
+      ],
+      "match": true
+    },
+    "K03": {
+      "mart": [
+        172457.0,
+        "Saturday 9:00 UTC"
+      ],
+      "twin": [
+        172457.0,
+        "Saturday 9:00 UTC"
+      ],
+      "match": true
+    },
+    "K04": {
+      "mart": [
+        72,
+        "PrimeIntellect-ai/prime-agent"
+      ],
+      "twin": [
+        72,
+        "PrimeIntellect-ai/prime-agent"
+      ],
+      "match": true
+    },
+    "K05": {
+      "mart": [
+        0.07451124090750018,
+        null
+      ],
+      "twin": [
+        0.07451124090750018,
+        null
+      ],
+      "match": true
+    },
+    "K06": {
+      "mart": [
+        932288,
+        "github-actions[bot]"
+      ],
+      "twin": [
+        932288,
+        "github-actions[bot]"
+      ],
+      "match": true
+    },
+    "K07": {
+      "mart": [
+        1.0,
+        null
+      ],
+      "twin": [
+        1.0,
+        null
+      ],
+      "match": true
+    }
+  },
+  "dashboard": {
+    "pages": 6,
+    "numbers_and_names": 27,
+    "charts": 7,
+    "problems": []
+  },
+  "repo_diff": {
+    "equal": {
+      "repos": 1664808,
+      "named": []
+    }
+  },
+  "checks": {
+    "every hour ingested and accepted": true,
+    "the broken day is caught (>= DEMO_BROKEN_MIN_FLAGGED hours)": true,
+    "the clean day has no flagged hour": true,
+    "batch = stream = ClickHouse for every hour": true,
+    "every KPI headline matches its twin": true,
+    "the dashboard reads every number back": true,
+    "the repo-state topic equals dim_repo": true
+  },
+  "passed": true,
+  "earlier_runs": [
+    "1: four parallel first ingests deadlocked on the schema DDL -> advisory lock (gotcha #58)",
+    "2: mart_trust read reconcile_results before anything created it -> one home for the ops schema",
+    "3: Aug 3-7 has no weekend; the dashboard refused the empty weekday-vs-weekend number -> window Aug 5-9",
+    "4: passed end to end; the acceptance miscounted verdicts (an alias bug) and demanded no flag on four days where the plan names one clean day -> fixed, see settings.DEMO_CLEAN_DAY"
+  ]
+}

@@ -194,7 +194,8 @@ switch ($Target) {
         $record = & docker compose exec -T airflow-scheduler bash -c 'cd /tmp && $GHFLOW_PYTHON -m ghflow.commands.demo accept'
         $passed = $LASTEXITCODE -eq 0
         $minutes = [math]::Round(((Get-Date) - $started).TotalMinutes, 1)
-        ($record -join "`n") | Set-Content -LiteralPath (Join-Path $out 'demo.json') -Encoding utf8
+        # UTF-8 without a byte-order mark: the evidence must parse as JSON (PowerShell 5 adds one).
+        [IO.File]::WriteAllText((Join-Path $out 'demo.json'), ($record -join "`n"), (New-Object Text.UTF8Encoding($false)))
         Write-Host ''
         Write-Host "  demo: $minutes min, evidence in automation/runs/m5-s4/demo.json" -ForegroundColor Cyan
         Write-Host '  dashboard  ->  http://127.0.0.1:33001     grafana  ->  http://127.0.0.1:33000' -ForegroundColor Green

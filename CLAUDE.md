@@ -136,6 +136,7 @@ uv run python scripts/bench.py contract --out automation/runs/<story>/bench.json
 .\make.ps1 reset -Force  # down -v: deletes every volume
 .\make.ps1 dags        # build the image's dag-test stage, run tests/dags in it with --network none
 .\make.ps1 test-integration  # S3 + ghflow_ops round-trips, Airflow health, ingest on planted 2020 hours (needs up)
+.\make.ps1 demo        # from a clean clone: Aug 5-9 end to end in its own project (ghflow-demo; GHFLOW_DEMO_PROJECT), ~16 min -> automation/runs/m5-s4/demo.json
 # inside the stack (docker compose exec airflow-scheduler ...): $GHFLOW_PYTHON -m ghflow.commands.ingest probe|run <hour>
 ```
 
