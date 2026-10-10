@@ -1,0 +1,36 @@
+{
+  "story": "M4-S3",
+  "phase": "prediction, committed before any change (the order is checked from git)",
+  "frozen_scope": [
+    "P1: the one slow Grafana panel (Events per hour) - a change to the materialized views",
+    "#36: the tail restore's 5 s floor (target M4-S3)",
+    "common refine checks (docs/ITERATION.md); #35 and #37 stay targeted at M5-S3"
+  ],
+  "baseline_measured_before_this_file": {
+    "panel_median_ms_of_5": {"Ingest freshness": 4.8, "Reconciliation": 6.3, "Flagged hours per day": 7.9,
+                             "Events per hour (ClickHouse)": 51.6, "Consumer lag x4": "4.2-5.3",
+                             "Flagged hours (latest verdict)": 7.0},
+    "tail_restore_s": "5.01 in each of 5 runs (automation/runs/m3-s3/restore.json)"
+  },
+  "changes_and_claims": [
+    {
+      "id": "P1",
+      "change": "a refreshable materialized view (every 5 minutes) folds events_hourly's bitmaps into events_hour_counts (hour_start, events); the panel reads plain counts",
+      "metric": "median of 11 runs of the panel's query (last 7 days), before (bitmap merge) and after (counts), interleaved",
+      "claim": "after median <= 10 ms (from 51.6 ms), IQRs disjoint",
+      "argument": "the bitmap merge of ~2,000 (hour, type) states is the panel's work; ~170 precomputed rows read in the ~5 ms every other panel costs",
+      "also_required": "events_hour_counts equals groupBitmapMerge over events_hourly per hour (0 differing hours); three witnesses still agree; verify still green; the gate still passes",
+      "declared_behaviour_change": "the panel's newest hour can lag events_hourly by up to the refresh interval (5 min)"
+    },
+    {
+      "id": "R2",
+      "issue": 36,
+      "change": "read_to_end consumes with a short timeout (0.5 s) and stops as soon as every partition reported EOF, instead of waiting out a 5 s consume() per call",
+      "metric": "seconds from process start to a usable store, restarted while caught up (tail), scripts/bench_history.py restore --tail: before = a worktree of main, after = this branch, 5 runs each, interleaved",
+      "claim": "after median <= 1.0 s (from 5.01 s), IQRs disjoint",
+      "argument": "with nothing to read, the only work is opening SQLite, assigning partitions and receiving 6 EOF events: well under a second",
+      "also_required": "a full rebuild still reads every committed record (count equal); repo_state diff green; audit 0 spurious after a live restart"
+    }
+  ],
+  "keep_rule": "unchanged: claim met on interleaved medians, IQRs disjoint, also_required holds; otherwise reverted with a refine issue"
+}
