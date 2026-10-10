@@ -22,5 +22,12 @@
     "spurious_changes": 0,
     "as_of_not_increasing": 0,
     "aborted_records_visible_uncommitted": 0
+  },
+  "audit_after_restart_and_hour_10": {
+    "committed_records": 13723435,
+    "spurious_changes": 0,
+    "as_of_not_increasing": 0,
+    "aborted_records_visible_uncommitted": 0,
+    "note": "after kill 2 the restored processor closed 2026-10-10-10 on all 6 partitions (6,420 changes); still 0 spurious, 0 aborted"
   }
 }
