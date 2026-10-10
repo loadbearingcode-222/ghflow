@@ -72,7 +72,8 @@ ghflow/
 │  │  ├─ schema.py                                   M2-S1  pure: the Avro schema generated from bronze, named record rules, BACKWARD check
 │  │  ├─ clients.py                                  M2-S4  the one Kafka / registry client configuration (a test refuses settings anywhere else)
 │  │  ├─ lander.py · compact.py                       M2-S2  topic → S3 files named by offset range; small-file compaction
-│  │  └─ repo_state.py                                M3-S2  stateful processor: SQLite store + compacted changelog, transactional
+│  │  ├─ repo_state.py                                M3-S2  stateful processor: SQLite store + compacted changelog, transactional
+│  │  └─ state_store.py                               M3-S3  the processor's SQLite store and the changelog position it reflects (split from repo_state.py)
 │  └─ reconcile.py                                    M2-S3  per-hour event-id sets: batch ↔ stream (↔ ClickHouse from M4-S1)
 ├─ airflow/dags/                                      M1-S1  gharchive_ingest (M1-S1) · raw_retention (M1-S2) · dbt_build (M1-S3) · gharchive_quality (M1-S4) · stream_compact (M2-S2) · reconcile (M2-S3) · dashboard_render (M5-S2)
 ├─ dbt/ghflow/
@@ -91,6 +92,7 @@ ghflow/
 │  ├─ doctor.ps1                                      M0-S4  port holders · Docker RAM vs budget (foreign stacks at their mem_limit) · path length
 │  ├─ bench.py                                        M0-S5  named benchmarks on cached reference hours → automation/runs/m#-s#/bench.json
 │  ├─ bench_stream.py                                 M2-S4  stream benchmark: replayer and lander events/s on disposable topics
+│  ├─ bench_history.py                                M3-S3  SCD2 build and repo-state restore, interleaved, on disposable copies inside one-off containers
 │  ├─ redteam/                                        M1-S4  one planting script per gate; disposable copies only
 │  ├─ dashboard_check.py                              M5-S2  every number on the pages read back from the marts; an empty chart fails
 │  └─ demo_acceptance.py                              M5-S4  end-to-end gate → automation/runs/

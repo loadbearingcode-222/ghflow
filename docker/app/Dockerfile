@@ -15,6 +15,7 @@ COPY src ./src
 COPY config/schemas ./config/schemas
 RUN uv sync --locked --no-dev --group stream \
     && useradd --uid 50001 --no-create-home ghflow \
-    && chown -R ghflow /opt/ghflow /opt/ghflow-venv
+    && mkdir -p /var/lib/ghflow-state \
+    && chown -R ghflow /opt/ghflow /opt/ghflow-venv /var/lib/ghflow-state
 USER ghflow
 CMD ["python", "-m", "ghflow.commands.stream", "run"]

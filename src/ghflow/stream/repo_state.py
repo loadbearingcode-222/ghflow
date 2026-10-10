@@ -24,9 +24,10 @@ import io
 import json
 import sqlite3
 import struct
+import time
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -34,6 +35,7 @@ from confluent_kafka import Consumer, KafkaError, Producer, TopicPartition
 from fastavro import parse_schema, schemaless_reader, schemaless_writer
 
 from ghflow.stream import clients
+from ghflow.stream.state_store import StateStore, Stored, micros
 
 TOPIC = clients.TOPIC
 STATE_TOPIC = clients.REPO_STATE_TOPIC
@@ -64,10 +66,6 @@ def schema_json() -> str:
     return json.dumps(SCHEMA, indent=2) + "\n"
 
 
-def micros(moment: datetime) -> int:
-    return (moment - EPOCH) // timedelta(microseconds=1)
-
-
 class Serializer:
     """Confluent wire format: magic byte 0, the 4-byte schema id, the Avro body."""
 
@@ -82,49 +80,6 @@ class Serializer:
 
 def decode(value: bytes) -> dict[str, Any]:
     return schemaless_reader(io.BytesIO(value[5:]), PARSED, PARSED)  # type: ignore[return-value]
-
-
-# ------------------------------------------------------------------ the store (a cache)
-
-
-@dataclass(frozen=True)
-class Stored:
-    name: str
-    as_of: int  # micros
-    event_id: int
-
-
-class StateStore:
-    """repo id → current name, in SQLite. Rebuilt from the changelog on every start, so it is
-    never the source of truth: no journal, no fsync."""
-
-    def __init__(self, path: Path) -> None:
-        path.unlink(missing_ok=True)
-        self.db = sqlite3.connect(path)
-        self.db.executescript(
-            "pragma journal_mode = off; pragma synchronous = off; "
-            "create table state (repo_id integer primary key, name text not null, "
-            "as_of integer not null, event_id integer not null);"
-        )
-
-    def lookup(self, repo_ids: Iterable[int]) -> dict[int, Stored]:
-        ids = json.dumps(list(repo_ids))
-        rows = self.db.execute(
-            "select repo_id, name, as_of, event_id from state "
-            "where repo_id in (select value from json_each(?))",
-            (ids,),
-        )
-        return {r[0]: Stored(r[1], r[2], r[3]) for r in rows}
-
-    def put(self, records: Iterable[Mapping[str, Any]]) -> None:
-        self.db.executemany(
-            "insert or replace into state values (?, ?, ?, ?)",
-            [(r["repo_id"], r["repo_name"], micros(r["as_of"]), r["event_id"]) for r in records],
-        )
-        self.db.commit()
-
-    def count(self) -> int:
-        return int(self.db.execute("select count(*) from state").fetchone()[0])
 
 
 # ------------------------------------------------------------------ one (partition, hour)
@@ -187,20 +142,32 @@ class Processor:
         changes = net_changes(buf, self.store.lookup(buf.latest))
         self.producer.begin_transaction()
         for change in changes:
-            self._produce(str(change["repo_id"]).encode(), self.serialize(change))
+            # The events' partition, explicitly: a repo's state sits in its events' partition, and
+            # the store knows which changelog partition this transaction moved.
+            self._produce(str(change["repo_id"]).encode(), self.serialize(change), partition)
         self.producer.send_offsets_to_transaction(
             [TopicPartition(TOPIC, partition, marker_offset + 1)],
             self.consumer.consumer_group_metadata(),
         )
         self.producer.commit_transaction()
-        self.store.put(changes)  # only after the commit: a crash before this is rebuilt on start
+        # Only after the commit: a crash before this leaves the store behind, and the next start
+        # reads the changelog from the older position. The position may lag (the commit markers
+        # land asynchronously), never lead: only this processor writes the changelog.
+        self.store.put(changes, self._ends({partition} if changes else set()))
         return {"hour": buf.hour, "partition": partition, "events": buf.events,
                 "repos": len(buf.latest), "changes": len(changes)}  # fmt: skip
 
-    def _produce(self, key: bytes, value: bytes) -> None:
+    def _ends(self, partitions: set[int]) -> dict[int, int]:
+        ends = {}
+        for p in sorted(partitions):
+            tp = TopicPartition(STATE_TOPIC, p)
+            ends[p] = self.consumer.get_watermark_offsets(tp, timeout=30, cached=False)[1]
+        return ends
+
+    def _produce(self, key: bytes, value: bytes, partition: int) -> None:
         while True:
             try:
-                self.producer.produce(STATE_TOPIC, key=key, value=value)
+                self.producer.produce(STATE_TOPIC, key=key, value=value, partition=partition)
                 return
             except BufferError:  # the local queue is full: let deliveries drain it
                 self.producer.poll(0.5)
@@ -209,10 +176,14 @@ class Processor:
 # ------------------------------------------------------------------ restore
 
 
-def read_to_end(reader: Consumer, topic: str, batch: int = 10_000) -> Iterable[Any]:
-    """Every readable message of `topic`, partition by partition order, until EOF everywhere."""
+def read_to_end(
+    reader: Consumer, topic: str, start: Mapping[int, int] | None = None, batch: int = 10_000
+) -> Iterable[Any]:
+    """Every readable message of `topic` from `start` (per partition; default 0) until EOF on
+    every partition. The reader's isolation level decides what is readable."""
     partitions = reader.list_topics(topic, timeout=30).topics[topic].partitions
-    reader.assign([TopicPartition(topic, p, 0) for p in partitions])  # 0 = from the start
+    begin = start or {}
+    reader.assign([TopicPartition(topic, p, begin.get(p, 0)) for p in partitions])
     open_parts = set(partitions)
     while open_parts:
         for msg in reader.consume(batch, timeout=5.0):
@@ -225,14 +196,56 @@ def read_to_end(reader: Consumer, topic: str, batch: int = 10_000) -> Iterable[A
                 raise RuntimeError(f"reading {topic}: {err}")
 
 
-def restore(reader: Consumer, store: StateStore) -> int:
-    """Rebuild the store from the changelog's committed records; returns how many were read."""
+def ends(reader: Consumer, topic: str) -> dict[int, int]:
+    """Per partition, the end a committed reader stops at."""
+    partitions = reader.list_topics(topic, timeout=30).topics[topic].partitions
+    return {
+        p: reader.get_watermark_offsets(TopicPartition(topic, p), timeout=30, cached=False)[1]
+        for p in partitions
+    }
+
+
+def restore(reader: Consumer, store: StateStore, start: Mapping[int, int] | None = None) -> int:
+    """Apply the changelog's committed records from `start` (default: the beginning) to the
+    store, and record where it ended; returns how many records were read."""
+    end = ends(reader, STATE_TOPIC)  # taken first: the store may lag, never lead
     read, pending = 0, []
-    for msg in read_to_end(reader, STATE_TOPIC):
+    for msg in read_to_end(reader, STATE_TOPIC, start):
         pending.append(decode(msg.value()))
         read += 1
         if len(pending) >= 50_000:
             store.put(pending)
             pending = []
-    store.put(pending)
+    store.put(pending, end)
     return read
+
+
+def open_store(path: Path) -> tuple[StateStore, dict[str, Any]]:
+    """The store the processor starts from: the persisted one plus the changelog tail after its
+    position, or (no store, an unreadable one, or a position past the topic's end) a full
+    rebuild from the beginning. Returns the store and what was done."""
+    started = time.monotonic()
+    reader = clients.changelog_reader()
+    try:
+        mode, store, start = "tail", None, None
+        try:
+            store = StateStore(path)
+            start = store.positions()
+            end = ends(reader, STATE_TOPIC)
+            if not start:
+                mode = "full: no stored position"
+            elif any(start.get(p, 0) > e for p, e in end.items()):
+                mode = "full: stored position past the topic's end"
+        except sqlite3.DatabaseError as exc:
+            mode = f"full: unreadable store ({exc})"
+        if mode != "tail":
+            store, start = StateStore(path, fresh=True), None
+        assert store is not None
+        read = restore(reader, store, start)
+    finally:
+        reader.close()
+    return store, {
+        "mode": mode,
+        "restored_records": read,
+        "seconds": round(time.monotonic() - started, 1),
+    }

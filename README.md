@@ -7,3 +7,18 @@ what the data shows.
 
 The plan, the repo layout and every story: [docs/MILESTONES.md](docs/MILESTONES.md).
 This README grows as each milestone closes.
+
+## Where it stands (`v0.3.0`, M3)
+
+- **Batch path:** hourly ingest from 2026-08-03 into bronze, then silver on DuckDB with
+  drift-aware contracts and event-mix quality checks. Repo and actor name history is kept as
+  SCD2 dimensions (`dim_repo`, `dim_actor`).
+- **Replayed stream:** Redpanda and the Schema Registry, a lander that commits after it writes,
+  and a repo-state processor that writes a compacted topic in Kafka transactions.
+- **Agreement:**
+  - batch and stream reconcile hour by hour to the event id;
+  - the repo-state topic equals `dim_repo`'s current rows.
+- **Next:** ClickHouse and Grafana (M4), then the stakeholder dashboard (M5).
+
+How it is built: [docs/architecture.md](docs/architecture.md) · decisions: [docs/adr/](docs/adr/)
+· traps: [docs/gotchas.md](docs/gotchas.md).

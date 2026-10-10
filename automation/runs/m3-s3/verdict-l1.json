@@ -1,0 +1,48 @@
+{
+  "story": "M3-S3",
+  "change": "L1 (#31)",
+  "prediction": "automation/runs/m3-s3/prediction.json (cece800)",
+  "sample": "20 before / 20 after, 4 interleaved rounds of 5",
+  "git_heads": {
+    "before": [
+      "d430ca7"
+    ],
+    "after": [
+      "bf0af7e"
+    ]
+  },
+  "lander_s": {
+    "before": {
+      "median": 5.969,
+      "iqr": [
+        5.702,
+        6.247
+      ]
+    },
+    "after": {
+      "median": 4.797,
+      "iqr": [
+        4.69,
+        4.946
+      ]
+    }
+  },
+  "lander_events_per_s": {
+    "before": 27708,
+    "after": 34472
+  },
+  "gain": 0.244,
+  "claim": ">= +0.15",
+  "claim_met": true,
+  "iqrs_disjoint": true,
+  "fingerprints": {
+    "before": [
+      "5c9232c628938294413c3bb1b534dc32fb0418da23bc005e81143b4fd1c6fbd1"
+    ],
+    "after": [
+      "5c9232c628938294413c3bb1b534dc32fb0418da23bc005e81143b4fd1c6fbd1"
+    ]
+  },
+  "fingerprint_identical": true,
+  "kept": true
+}

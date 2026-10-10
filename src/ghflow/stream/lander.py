@@ -100,9 +100,11 @@ class Lander:
     def land(self, partition: int) -> dict[str, Any]:
         buf = self.buffers.pop(partition)
         first, last = buf.rows[0]["_offset"], buf.rows[-1]["_offset"]
-        rows = [{k: r.get(k) for k in LANDED_SCHEMA.names} for r in buf.rows]
+        # Arrow picks the schema's columns from the records itself (keys outside it are ignored),
+        # so no per-row copy is made first (M3-S3, #31).
         sink = pa.BufferOutputStream()
-        pq.write_table(pa.Table.from_pylist(rows, schema=LANDED_SCHEMA), sink, compression="zstd")
+        table = pa.Table.from_pylist(buf.rows, schema=LANDED_SCHEMA)
+        pq.write_table(table, sink, compression="zstd")
         path = landed_path(partition, first, last)
         self.store.put(path, bytes(sink.getvalue().to_pybytes()))
         self.consumer.commit(

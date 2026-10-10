@@ -21,7 +21,6 @@ import os
 import signal
 import sys
 import threading
-import time
 from datetime import UTC
 from pathlib import Path
 from typing import Any
@@ -50,12 +49,8 @@ def run() -> int:
         signal.signal(sig, lambda *_: stopping.set())
     producer = clients.transactional_producer()
     producer.init_transactions(60)  # fences an older instance; its open transaction is aborted
-    store, started = repo_state.StateStore(STORE), time.monotonic()
-    reader = clients.changelog_reader()
-    read = repo_state.restore(reader, store)
-    reader.close()
-    print(json.dumps({"restored_records": read, "repos": store.count(),
-                      "seconds": round(time.monotonic() - started, 1)}), flush=True)  # fmt: skip
+    store, opened = repo_state.open_store(STORE)
+    print(json.dumps({**opened, "repos": store.count()}), flush=True)
     serialize = repo_state.Serializer(
         register(clients.registry(), repo_state.SUBJECT, repo_state.SCHEMA)
     )

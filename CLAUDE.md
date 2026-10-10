@@ -187,15 +187,16 @@ warehouse copied into a fresh file each run, M2-S4). Stream bench: `scripts/benc
 (disposable topics); measure before/after INTERLEAVED (a worktree of the base commit + `.env`).
 
 Gold (M3-S1, ADR-0008): `main_gold.dim_repo` / `dim_actor`, SCD2 recomputed in full from staging
-every dbt_build (~50 s); a version is an island of same-name events (A→B→A = 3), one name per
+every dbt_build (~58 s; an incremental variant saved 43.5% but missed its bar, #35); a version is an island of same-name events (A→B→A = 3), one name per
 (id, second) by highest event id, `valid_to` = next `valid_from`; dbt test `scd2_invariants`.
 Order-independence proof: `$GHFLOW_PYTHON -m ghflow.commands.history late-hour` (in the stack,
 disposable warehouse). Heavy DuckDB experiments go in a one-off container with its own
 `--memory`, never the scheduler (gotcha #52).
 
 Repo state (M3-S2, ADR-0009): service `repo-state` (group `repo-state`) → compacted
-`gharchive.repo_state`, one transaction per (partition, hour) with its offsets; store rebuilt
-from the changelog on start. `python -m ghflow.commands.repo_state progress|diff [--plant]|audit`
+`gharchive.repo_state`, one transaction per (partition, hour) with its offsets; the SQLite store
+and its changelog position persist in volume `repo-state` (start = tail read, ~5 s; full rebuild
+~3.5 min if the store is missing or impossible; M3-S3). `python -m ghflow.commands.repo_state progress|diff [--plant]|audit`
 (diff/audit in a one-off airflow-image container on the compose network with the warehouse ro).
 
 Code layers (M0-S5, `docs/ITERATION.md`): pure core `settings`, `hours`, `events`, `fields`,

@@ -1,0 +1,138 @@
+{
+  "benchmark": "restore",
+  "metric": "s from process start to a usable store",
+  "setup_of_the_after_store": [
+    "217.57563666600254",
+    "13723435",
+    "full:_no_stored_position"
+  ],
+  "before": {
+    "all_s": [
+      295.64,
+      218.56,
+      218.39,
+      207.57,
+      226.3
+    ],
+    "median_s": 218.56,
+    "iqr_s": [
+      212.98,
+      260.97
+    ]
+  },
+  "after": {
+    "all_s": [
+      5.01,
+      5.01,
+      5.01,
+      5.01,
+      5.01
+    ],
+    "median_s": 5.01,
+    "iqr_s": [
+      5.01,
+      5.01
+    ]
+  },
+  "records_read_and_mode": {
+    "before": [
+      [
+        "13723435"
+      ],
+      [
+        "13723435"
+      ],
+      [
+        "13723435"
+      ],
+      [
+        "13723435"
+      ],
+      [
+        "13723435"
+      ]
+    ],
+    "after": [
+      [
+        "0",
+        "tail"
+      ],
+      [
+        "0",
+        "tail"
+      ],
+      [
+        "0",
+        "tail"
+      ],
+      [
+        "0",
+        "tail"
+      ],
+      [
+        "0",
+        "tail"
+      ]
+    ]
+  },
+  "story": "M3-S3",
+  "change": "R1",
+  "prediction": "automation/runs/m3-s3/prediction.json (cece800)",
+  "how": "app image, compose network, 768 MiB like the service; before = a worktree of main (M3-S2: full rebuild into a fresh store), after = this branch's open_store on a store prepared once (untimed setup)",
+  "verdict": {
+    "after_over_before": 0.023,
+    "claim": "<= 0.10",
+    "claim_met": true,
+    "iqrs_disjoint": true,
+    "note": "after is a flat 5.01 s: read_to_end's consume(timeout=5) waits out its timeout once the tail is empty; the floor, not the work (#36)",
+    "kept": true
+  },
+  "live_drill_on_the_new_path": {
+    "first_start_no_store": {
+      "mode": "full: no stored position",
+      "restored_records": 13723435,
+      "seconds": 204.3
+    },
+    "after_sigkill": {
+      "mode": "tail",
+      "restored_records": 0,
+      "seconds": 5.0,
+      "repos": 13606154
+    }
+  },
+  "also_required": {
+    "diff": {
+      "verdict": "green",
+      "records_read": 13729685,
+      "warehouse_until": "2026-10-10 09:00:00+00:00",
+      "progress": {
+        "partitions": {
+          "0": "2026-10-10-11",
+          "1": "2026-10-10-11",
+          "2": "2026-10-10-11",
+          "3": "2026-10-10-11",
+          "4": "2026-10-10-11",
+          "5": "2026-10-10-11"
+        },
+        "closed_through": "2026-10-10-11"
+      },
+      "counts": {
+        "equal": {
+          "repos": 13587017,
+          "named": []
+        },
+        "ahead": {
+          "repos": 19137,
+          "named": []
+        }
+      },
+      "planted": null
+    },
+    "audit": {
+      "committed_records": 13729685,
+      "spurious_changes": 0,
+      "as_of_not_increasing": 0,
+      "aborted_records_visible_uncommitted": 0
+    }
+  }
+}

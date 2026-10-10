@@ -47,3 +47,24 @@ leave the state out of step with the consumed offsets.
   bronze first (the replayer can).
 - **`valid_from` is not carried.** The topic says what a repo is called now, as of the event that
   named it; when it was called something else is answered by `dim_repo`.
+
+## Amendment (M3-S3, 2026-10-10): the store persists with its changelog position
+
+This supersedes decision 5 ("the store is a cache, rebuilt from the changelog on every start").
+- **Old behaviour:** every start read all 13.7M changelog records, taking 218.6 s (median of 5).
+- **New behaviour:** the SQLite store lives on the `repo-state` volume (WAL) and holds, next to
+  the state, the changelog position it reflects (per partition, the next offset). Both are
+  written in one SQLite transaction, after the Kafka commit.
+- **Why it is safe:** the position can lag the changelog, because the commit markers land
+  asynchronously, or because the process died between the Kafka commit and the SQLite write.
+  Re-reading committed records rewrites the same values, so lagging is harmless. The position
+  can never lead the changelog, because only this processor writes the changelog.
+- **On start:** the processor reads the changelog tail from the stored position. It rebuilds in
+  full (decision 5's old path) when there is no store, the store is unreadable, or the stored
+  position lies past the topic's end.
+- **Partitioning:** change records now name their partition explicitly, the same one as the
+  events they came from, so a transaction moves exactly one known changelog partition.
+- **Measured** (`automation/runs/m3-s3/restore.json`):
+  - start time 218.6 → 5.0 s (2.3%) against a committed bar of ≤ 10%;
+  - the 5.0 s floor is `consume()`'s timeout (#36);
+  - after a live `SIGKILL`: `diff` green, 0 spurious changes, 0 aborted records.

@@ -1,0 +1,59 @@
+{
+  "benchmark": "stream",
+  "recorded_at": "2026-10-10T12:15:36Z",
+  "git_head": "d430ca7",
+  "machine": {
+    "python": "3.12.13",
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel"
+  },
+  "results": [
+    {
+      "hour": "2026-08-03-0",
+      "events": 165375,
+      "delivered_and_landed_every_run": [
+        [
+          165381,
+          165375
+        ]
+      ],
+      "landed_files_fingerprint": [
+        "5c9232c628938294413c3bb1b534dc32fb0418da23bc005e81143b4fd1c6fbd1"
+      ],
+      "linger_ms": 50,
+      "batch_bytes": 1000000,
+      "excluded": "the lander's S3 PUT and Postgres row (disk and network, not code)",
+      "replayer": {
+        "runs": 5,
+        "median_s": 6.6627,
+        "min_s": 6.5706,
+        "max_s": 6.894,
+        "spread_pct": 4.9,
+        "rows_per_s": 24821,
+        "all_s": [
+          6.5706,
+          6.8111,
+          6.894,
+          6.604,
+          6.6627
+        ],
+        "events_per_s": 24821
+      },
+      "lander": {
+        "runs": 5,
+        "median_s": 6.1521,
+        "min_s": 5.8782,
+        "max_s": 6.5219,
+        "spread_pct": 10.5,
+        "rows_per_s": 26881,
+        "all_s": [
+          6.1521,
+          6.4529,
+          5.8782,
+          6.5219,
+          6.0446
+        ],
+        "events_per_s": 26881
+      }
+    }
+  ]
+}
