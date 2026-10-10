@@ -1,0 +1,26 @@
+{
+  "story": "M2-S4",
+  "issue": 26,
+  "phase": "prediction, committed before the compaction change",
+  "measured_now": {
+    "warehouse_bytes": 13509603328,
+    "note": "compacted to 13.3 GB in M1-S5; one incremental build since added 0.17 GB"
+  },
+  "experiment": "1) compact the current file: its size is ONE COPY; 2) dbt_build full_refresh (the file roughly doubles); 3) the dbt_build `compact` task; 4) an incremental dbt_build + compact",
+  "claims": [
+    {
+      "id": "W1",
+      "claim": "after full refresh + compaction, the file is within +/-10% of ONE COPY",
+      "argument": "COPY FROM DATABASE writes only live blocks; M1-S5 left a file with 0 free blocks"
+    },
+    {
+      "id": "W2",
+      "claim": "after an incremental build + compaction, within +/-5% of ONE COPY (no growth cycle)"
+    },
+    {
+      "id": "W3",
+      "claim": "staging row count unchanged by every compaction, and dbt test passes as before"
+    }
+  ],
+  "keep_rule": "kept only if W1, W2 and W3 hold; otherwise reverted"
+}
